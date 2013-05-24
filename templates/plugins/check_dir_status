@@ -47,9 +47,9 @@ The following arguments are accepted:
 
 Examples:
 
-Generate a warning if any file in in the directory is older than 7 days, a
-critical if it's older than 14 days, or a critical if any doesn't start with
-'OK' on the last line :
+Generate a warning if any file in in the directories, or the directories
+themselves, are older than 7 days, a critical if older than 14 days, or a
+critical if any file doesn't start with 'OK' on the last line :
 
   check_jobs_status -d \"/var/foo /var/bar\" -w 7 -c 14 -t days -p '^OK'
 
@@ -205,12 +205,13 @@ OS_DISTRO=`uname -s`
 full_path=${dir}
 if [ -d "$full_path" ] && ls $full_path &>/dev/null; then
     file_list=`ls -t $full_path`
+    # If there are no files, check the directory itself
+    [ -z "$file_list" ] && file_list="."
     # Cycle through files, looking for checkable files.
-    for next_file in $file_list
-    do
+    for next_file in $file_list; do
         next_filepath=$full_path/$next_file
-        # Check if it's a file.
-        if [ -f "$next_filepath" ]; then
+        # Check if it's a file or the current direcory.
+        if [ -f "$next_filepath" -o "$next_file" == "." ]; then
             # Skip file if excluded
             SKIP=0
             for exclude in $exclude_files; do
@@ -243,17 +244,17 @@ if [ -d "$full_path" ] && ls $full_path &>/dev/null; then
                     OUTPUT="$OUTPUT ${next_file}: ${FILE_AGE_UNITS}${abbreviation}"
                 fi
             fi
-            last_line="`tail -1 ${next_filepath}`"
             # file content check - must start with OK on the last line
-            if [ "$pattern" ]; then
+            if [ -f $next_filepath -a -n "$pattern" ]; then
+                last_line="`tail -1 ${next_filepath}`"
                 if ! (echo $last_line | egrep -q $pattern); then
                     OUTPUT="$OUTPUT ${next_file}: Bad Content"
                     set_exit_status $STATE_CRITICAL
                 fi
-            fi
-            # performance data on the last line
-            if (echo $last_line | grep -q '|'); then
-                PERFDATA="$PERFDATA`echo $last_line | cut -d '|' -f 2`"
+                # performance data on the last line
+                if (echo $last_line | grep -q '|'); then
+                    PERFDATA="$PERFDATA`echo $last_line | cut -d '|' -f 2`"
+                fi
             fi
         fi
     done
@@ -283,7 +284,7 @@ if [ "$OUTPUT" ]; then
     exit_message="${exit_message}:${OUTPUT}"
 fi
 
-echo -n "$exit_message (${FILE_COUNT} checked, ${FILE_SKIP} skipped)"
+echo -n "$exit_message (${FILE_COUNT} checked, ${FILE_SKIP} skipped, ${warning}${abbreviation} warn, ${critical}${abbreviation} crit)"
 [ -n "$PERFDATA" ] && echo -n " |$PERFDATA"
 echo
 exit $exitstatus

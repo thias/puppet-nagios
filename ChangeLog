@@ -1,3 +1,5 @@
+* Update check_dir_status to also check dir timestamp when empty.
+
 2013-05-24 - 0.3.1
 * Update SELinux messages file.
 * Change the Gentoo nrpe.pid location, to match the current one.
