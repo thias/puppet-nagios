@@ -3,6 +3,18 @@
 #
 class nagios::defaultchecks {
 
+    if $::nagios_check_cpu_disable != 'true' {
+        nagios::check::cpu { $nagios::client::host_name: }
+    }
+    if $::nagios_check_disk_disable != 'true' {
+        nagios::check::disk { $nagios::client::host_name: }
+    }
+    if $::nagios_check_load_disable != 'true' {
+        nagios::check::load { $nagios::client::host_name: }
+    }
+    if $::nagios_check_ping_disable != 'true' {
+        nagios::check::ping { $nagios::client::host_name: }
+    }
     if $::nagios_check_swap_disable != 'true' {
         nagios::check::swap { $nagios::client::host_name: }
     }
@@ -13,6 +25,12 @@ class nagios::defaultchecks {
         nagios::check::ram { $nagios::client::host_name: }
     }
     # Conditional checks, enabled based on custom facts
+    if $::nagios_check_httpd_disable != 'true' and
+       $::nagios_httpd == 'true' {
+        nagios::check::httpd { $nagios::client::host_name: }
+    } else {
+        nagios::check::httpd { $nagios::client::host_name: ensure => absent }
+    }
     if $::nagios_check_megaraid_sas_disable != 'true' and
        $::nagios_pci_megaraid_sas == 'true' {
         nagios::check::megaraid_sas { $nagios::client::host_name: }

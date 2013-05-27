@@ -116,16 +116,6 @@ class nagios::client (
 
     # Enable all default checks by... default
     include nagios::defaultchecks
-    # Default checks, enabled on all hosts
-    nagios::check::cpu { $host_name: }
-    nagios::check::disk { $host_name: }
-    if $::nagios_httpd == 'true' {
-        nagios::check::httpd { $host_name: }
-    } else {
-        nagios::check::httpd { $host_name: ensure => absent }
-    }
-    nagios::check::load { $host_name: }
-    nagios::check::ping { $host_name: }
 
     # With selinux, some nrpe plugins require additional rules to work
     if $selinux and $::selinux_enforced {
