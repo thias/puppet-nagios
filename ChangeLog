@@ -1,3 +1,4 @@
+2013-05-29 - 0.3.2
 * Update check_dir_status to also check dir timestamp when empty.
 * Move leftover default checks from client.pp to defaultchecks.pp.
 
