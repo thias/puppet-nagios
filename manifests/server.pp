@@ -377,6 +377,9 @@ class nagios::server (
     nagios_command { 'check_nrpe_mptsas':
         command_line => "${nrpe} -c check_mptsas",
     }
+    nagios_command { 'check_nrpe_mysql_health_connection_time':
+        command_line => "${nrpe} -c check_mysql_health_connection_time",
+    }
 
     # Nagios contacts and contactgroups
     # Taken from contacts.cfg

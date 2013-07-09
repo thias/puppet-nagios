@@ -137,3 +137,7 @@ another for the client configuration to take the new fact into account, then
 the server run to update the nagios configuration. This might take a little
 while depending on how often puppet is run on the nodes.
 
+The mysql_health part is more recent than the rest, and :
+* Relies on using automatic hiera class parameter lookups.
+* Requires the puppetlabs-stdlib module because it uses getvar().
+

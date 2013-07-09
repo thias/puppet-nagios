@@ -67,6 +67,10 @@ class nagios::defaultchecks {
     } else {
         nagios::check::moxi { $nagios::client::host_name: ensure => absent }
     }
+  # New class-type checks, to be used with hiera parameter lookups
+  if $::nagios_mysql_health == 'true' {
+    class { 'nagios::check::mysql_health': }
+  }
 
 }
 
