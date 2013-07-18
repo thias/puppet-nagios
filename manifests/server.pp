@@ -45,6 +45,7 @@ class nagios::server (
 #        '/etc/nagios/nagios_hostdependency.cfg',
         '/etc/nagios/nagios_hostgroup.cfg',
         '/etc/nagios/nagios_service.cfg',
+        '/etc/nagios/nagios_servicegroup.cfg',
         '/etc/nagios/nagios_timeperiod.cfg',
     ],
     $cfg_dir                        = [],
@@ -239,6 +240,7 @@ class nagios::server (
         'nagios_hostdependency',
         'nagios_hostgroup',
         'nagios_service',
+        'nagios_servicegroup',
         'nagios_timeperiod',
     ]:
         purge => true,
@@ -253,6 +255,7 @@ class nagios::server (
         '/etc/nagios/nagios_hostdependency.cfg',
         '/etc/nagios/nagios_hostgroup.cfg',
         '/etc/nagios/nagios_service.cfg',
+        '/etc/nagios/nagios_servicegroup.cfg',
         '/etc/nagios/nagios_timeperiod.cfg',
     ]:
         owner => 'root',
@@ -380,6 +383,60 @@ class nagios::server (
     nagios_command { 'check_nrpe_mysql_health_connection_time':
         command_line => "${nrpe} -c check_mysql_health_connection_time",
     }
+    nagios_command { 'check_nrpe_mysql_health_uptime':
+        command_line => "${nrpe} -c check_mysql_health_uptime",
+    }
+    nagios_command { 'check_nrpe_mysql_health_threads_connected':
+        command_line => "${nrpe} -c check_mysql_health_threads_connected",
+    }
+    nagios_command { 'check_nrpe_mysql_health_threadcache_hitrate':
+        command_line => "${nrpe} -c check_mysql_health_threadcache_hitrate",
+    }
+    nagios_command { 'check_nrpe_mysql_health_querycache_hitrate':
+        command_line => "${nrpe} -c check_mysql_health_querycache_hitrate",
+    }
+    nagios_command { 'check_nrpe_mysql_health_querycache_lowmem_prunes':
+        command_line => "${nrpe} -c check_mysql_health_querycache_lowmem_prunes",
+    }
+    nagios_command { 'check_nrpe_mysql_health_keycache_hitrate':
+        command_line => "${nrpe} -c check_mysql_health_keycache_hitrate",
+    }
+    nagios_command { 'check_nrpe_mysql_health_bufferpool_hitrate':
+        command_line => "${nrpe} -c check_mysql_health_bufferpool_hitrate",
+    }
+    nagios_command { 'check_nrpe_mysql_health_bufferpool_wait_free':
+        command_line => "${nrpe} -c check_mysql_health_bufferpool_wait_free",
+    }
+    nagios_command { 'check_nrpe_mysql_health_log_waits':
+        command_line => "${nrpe} -c check_mysql_health_log_waits",
+    }
+    nagios_command { 'check_nrpe_mysql_health_tablecache_hitrate':
+        command_line => "${nrpe} -c check_mysql_health_tablecache_hitrate",
+    }
+    nagios_command { 'check_nrpe_mysql_health_table_lock_contention':
+        command_line => "${nrpe} -c check_mysql_health_table_lock_contention",
+    }
+    nagios_command { 'check_nrpe_mysql_health_index_usage':
+        command_line => "${nrpe} -c check_mysql_health_index_usage",
+    }
+    nagios_command { 'check_nrpe_mysql_health_tmp_disk_tables':
+        command_line => "${nrpe} -c check_mysql_health_tmp_disk_tables",
+    }
+    nagios_command { 'check_nrpe_mysql_health_slow_queries':
+        command_line => "${nrpe} -c check_mysql_health_slow_queries",
+    }
+    nagios_command { 'check_nrpe_mysql_health_slave_lag':
+        command_line => "${nrpe} -c check_mysql_health_slave_lag",
+    }
+    nagios_command { 'check_nrpe_mysql_health_slave_io_running':
+        command_line => "${nrpe} -c check_mysql_health_slave_io_running",
+    }
+    nagios_command { 'check_nrpe_mysql_health_slave_sql_running':
+        command_line => "${nrpe} -c check_mysql_health_slave_sql_running",
+    }
+    nagios_command { 'check_nrpe_mysql_health_open_files':
+        command_line => "${nrpe} -c check_mysql_health_open_files",
+    }
 
     # Nagios contacts and contactgroups
     # Taken from contacts.cfg
@@ -420,6 +477,11 @@ class nagios::server (
     # Nagios hostgroup, we need at least one for puppet to create the file
     nagios_hostgroup { 'nagios':
         alias => 'Nagios Servers',
+    }
+
+    # Nagios service groups
+    nagios_servicegroup { 'mysql_health':
+        alias => 'MySQL Health service checks',
     }
 
     # With selinux, adjustements are needed for nagiosgraph

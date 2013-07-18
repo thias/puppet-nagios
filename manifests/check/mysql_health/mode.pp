@@ -6,7 +6,7 @@
 define nagios::check::mysql_health::mode () {
 
   # We need the mode name with underscores
-  $mode_u = regsubst($title,'-','_')
+  $mode_u = regsubst($title,'-','_','G')
 
   # Get the variables we need
   $check_title    = $::nagios::client::host_name
@@ -18,9 +18,9 @@ define nagios::check::mysql_health::mode () {
   # Get the args passed to the main class for our mode
   $args_mode = getvar("nagios::check::mysql_health::args_${mode_u}")
 
-  if ( ( $modes_enabled == [] and $modes_enabled == [] ) or
+  if ( ( $modes_enabled == [] and $modes_disabled == [] ) or
        ( $modes_enabled != [] and $mode_u in $modes_enabled ) or
-       ( $modes_disabled != [] and $mode_u in $modes_disabled ) )
+       ( $modes_disabled != [] and ! ( $mode_u in $modes_disabled ) ) )
   {
     nagios::client::nrpe_file { "check_mysql_health_${mode_u}":
       plugin => 'check_mysql_health',
@@ -30,15 +30,16 @@ define nagios::check::mysql_health::mode () {
     nagios::service { "check_mysql_health_${mode_u}_${check_title}":
       check_command       => "check_nrpe_mysql_health_${mode_u}",
       service_description => "mysql_health_${mode_u}",
-      #servicegroups       => 'mysql_health',
+      servicegroups       => 'mysql_health',
       ensure              => $ensure,
     }
   } else {
-    nagios::client::nrpe_file { 'check_mysql_health_connection_time':
+    nagios::client::nrpe_file { "check_mysql_health_${mode_u}":
       ensure => absent,
     }
     nagios::service { "check_mysql_health_${mode_u}_${check_title}":
-      ensure => absent,
+      check_command => 'foo',
+      ensure        => absent,
     }
   }
 

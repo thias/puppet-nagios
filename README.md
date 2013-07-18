@@ -137,7 +137,50 @@ another for the client configuration to take the new fact into account, then
 the server run to update the nagios configuration. This might take a little
 while depending on how often puppet is run on the nodes.
 
+## mysql_health
+
 The mysql_health part is more recent than the rest, and :
 * Relies on using automatic hiera class parameter lookups.
 * Requires the puppetlabs-stdlib module because it uses getvar().
+
+You will need to create the MySQL user on your servers, allowed for localhost
+since we use nrpe for execution. Example :
+
+    # This could go in site.pp, the fact is true only if mysqld is found
+    if $::nagios_mysqld == 'true' {
+      database_user { 'nagios@localhost':
+        ensure        => present,
+        password_hash => mysql_password('mysupersecretpassword'),
+        provider      => 'mysql',
+      }
+    }
+
+    # In hieradata
+    nagios::check::mysql_health::args: '--username nagios --password mysupersecretpassword'
+
+The single mysql_health script has many different 'modes', which are all
+enabled by default. Because hyphens shouldn't be used in puppet variable names,
+we use underscores instead in their names.
+
+You can either selectively disable some :
+
+    # Disable some checks (modes)
+    nagios::check::mysql_health::modes_disabled:
+      - 'slave_io_running'
+      - 'slave_lag'
+      - 'slave_sql_running'
+
+Or selectively enable some :
+
+    # Enable only the following checks (modes)
+    nagios::check::mysql_health::modes_enabled:
+      - 'connection_time'
+      - 'open_files'
+      - 'uptime'
+
+Then for each mode, you can also pass some arguments, typically to change the
+warning and critical values as needed :
+
+    # Tweak some check values
+    nagios::check::mysql_health::args_connection_time: '--warning 5 --critical 10'
 
