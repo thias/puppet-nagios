@@ -39,7 +39,7 @@ Nagios server instance (node specific, typically inside a node section) :
 
     class { 'nagios::server':
       apache_httpd_ssl             => false,
-      apache_httpd_conf_source     => 'puppet:///modules/my/nagios-httpd.conf',
+      apache_httpd_conf_content    => 'puppet:///modules/my/nagios-httpd.conf',
       apache_httpd_htpasswd_source => 'puppet:///modules/my/htpasswd',
       cgi_authorized_for_system_information        => '*',
       cgi_authorized_for_configuration_information => '*',
