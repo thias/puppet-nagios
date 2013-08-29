@@ -74,6 +74,7 @@ class nagios::server (
     $timeperiod_workhours = '09:00-17:00',
     $plugin_dir           = $nagios::params::plugin_dir,
     $plugin_nginx         = false,
+    $plugin_xcache        = false,
     $selinux              = true
 ) inherits nagios::params {
 
@@ -110,6 +111,19 @@ class nagios::server (
         }
     } else {
         file { "${plugin_dir}/check_nginx":
+            ensure => absent,
+        }
+    }
+    if $plugin_xcache {
+        file { "${plugin_dir}/check_xcache":
+            owner   => 'root',
+            group   => 'root',
+            mode    => '0755',
+            content => template('nagios/plugins/check_xcache'),
+            ensure  => $ensure,
+        }
+    } else {
+        file { "${plugin_dir}/check_xcache":
             ensure => absent,
         }
     }

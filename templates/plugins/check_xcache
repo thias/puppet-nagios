@@ -1,0 +1,97 @@
+#!/bin/sh
+#
+# check_xcache for Nagios.
+# Plugin to check how full the php and var caches of xcache are.
+#
+
+PROGPATH=`dirname $0`
+
+. $PROGPATH/utils.sh
+
+print_usage() {
+    echo "Usage: check_xcache [OPTIONS]... <url to xcache.php>
+Checks xcache status for nagios integration.
+
+  -h, --help
+  -w            Percentage full for warning. Default: 80
+  -c            Percentage full for critical. Default: 90
+
+Examples:
+  check_xcache http://server1.example.com/private/xcache.php
+  check_xcache -w 50 -c 70 http://server2.example.com/nagios/xcache.php
+"
+}
+
+# Defaults.
+exitstatus=$STATE_UNKNOWN
+warning=80
+critical=90
+
+# Grab the command line arguments.
+while test -n "$1"; do
+    case "$1" in
+        --help|-h)
+            print_usage
+            exit $STATE_OK
+            ;;
+        --warning|-w)
+            warning=$2
+            shift
+            ;;
+        --critical|-cH)
+            critical=$2
+            shift
+            ;;
+        *)
+            echo "Unknown argument: $1"
+            print_usage
+            exit $STATE_UNKNOWN
+            ;;
+    esac
+    shift
+done
+
+URL=$1
+if [ -z "${URL}" ];
+    echo "You must pass a URL as the first parameter."
+    exit $STATE_UNKNOWN
+fi
+
+if [ `echo "$warning" | grep [^0-9]` ] || [ ! "$warning" ]; then
+    echo "Warning value must be a number."
+    exit $STATE_UNKNOWN
+fi
+
+if [ `echo "$critical" | grep [^0-9]` ] || [ ! "$critical" ]; then
+    echo "Critical value must be a number."
+    exit $STATE_UNKNOWN
+fi
+
+if [ "$warning" -ge "$critical" ]; then
+    echo "Critical percentage must be greater than warning percentage."
+    exit $STATE_UNKNOWN
+fi
+
+# If we are here, make sure CRITICAL is the default
+exitstatus=$STATE_CRITICAL
+
+XCACHE_USAGE="`curl --fail ${URL}`"
+if [ $? -ne 0 ]; then
+    exitmessage="CRITICAL: Fetch of ${URL} failed."
+fi
+
+for LINE in ${XCACHE_USAGE}; do
+    # php, var - each
+        # 1: total
+        # 2: available
+        # used percentage : 100 - available/total*100
+        # if used < warn -> OK
+        # else if used >= warn and < crit -> WARNING
+        # else CRITICAL
+done
+#    exitmessage="OK: ${message} returning stats."
+#    exitstatus=$STATE_OK
+
+echo $exitmessage
+exit $exitstatus
+
