@@ -1,4 +1,5 @@
 * Fix variable name in README (Anton Babenko).
+* Make the megaclibin from check::megaraid_sas configurable.
 
 2013-07-18 - 0.4.0
 * Include mysql_health checks, implemented in a more modern way

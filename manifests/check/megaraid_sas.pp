@@ -2,7 +2,7 @@ define nagios::check::megaraid_sas (
     $ensure = undef,
     $args = '',
     $pkg = true,
-    $megaclibin = '/usr/sbin/MegaCli'
+    $megaclibin = $::nagios::params::megaclibin
 ) {
 
     # Generic overrides
