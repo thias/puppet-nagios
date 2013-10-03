@@ -12,7 +12,6 @@ class nagios::defaultchecks {
 #    if $::nagios_check_load_disable != 'true' {
 #        nagios::check::load { $nagios::client::host_name: }
 #    }
-    class { 'nagios::check::load': }
     if $::nagios_check_ping_disable != 'true' {
         nagios::check::ping { $nagios::client::host_name: }
     }
@@ -68,10 +67,6 @@ class nagios::defaultchecks {
     } else {
         nagios::check::moxi { $nagios::client::host_name: ensure => absent }
     }
-  # New class-type checks, to be used with hiera parameter lookups
-  if $::nagios_mysqld == 'true' {
-    class { 'nagios::check::mysql_health': }
-  }
 
 }
 

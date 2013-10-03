@@ -1,12 +1,14 @@
 class nagios::check::load (
-  $args                = undef,
-  $servicegroups       = undef,
-  $check_period        = $::nagios::client::defaults::check_period,
-  $max_check_attempts  = $::nagios::client::defaults::max_check_attempts,
-  $notification_period = $::nagios::client::defaults::notification_period,
-  $use                 = $::nagios::client::defaults::use,
   $ensure              = undef,
-) inherits ::nagios::client::defaults {
+  $args                = undef,
+  $check_title         = $::nagios::client::host_name,
+  $servicegroups       = undef,
+  $check_period        = $::nagios::client::service_check_period,
+  $contact_groups      = $::nagios::client::service_contact_groups,
+  $max_check_attempts  = $::nagios::client::service_max_check_attempts,
+  $notification_period = $::nagios::client::service_notification_period,
+  $use                 = $::nagios::client::service_use,
+) inherits ::nagios::client {
 
   if $ensure != 'absent' {
     Package <| tag == 'nagios-plugins-load' |>
@@ -27,19 +29,20 @@ class nagios::check::load (
     $final_args = $args
   }
   nagios::client::nrpe_file { 'check_load':
-    args   => $final_args,
     ensure => $ensure,
+    args   => $final_args,
   }
 
-  nagios::service { "check_load_${title}":
+  nagios::service { "check_load_${check_title}":
+    ensure              => $ensure,
     check_command       => 'check_nrpe_load',
     service_description => 'load',
     servicegroups       => $servicegroups,
     check_period        => $check_period,
-    max_check_attempts  => $max_check_attempts,
+    contact_groups      => $contact_groups,
     notification_period => $notification_period,
+    max_check_attempts  => $max_check_attempts,
     use                 => $use,
-    ensure              => $ensure,
   }
 
 }

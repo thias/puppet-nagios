@@ -31,8 +31,8 @@ class nagios::client (
     # service defaults (hint: use host_* or override only service_use for efficiency)
     $service_check_period        = $::nagios_service_check_period,
     $service_contact_groups      = $::nagios_service_contact_groups,
-    $service_notification_period = $::nagios_service_notification_period,
     $service_max_check_attempts  = $::nagios_service_max_check_attempts,
+    $service_notification_period = $::nagios_service_notification_period,
     $service_use                 = 'generic-service',
     # other
     $plugin_dir                  = $nagios::params::plugin_dir,
@@ -115,7 +115,13 @@ class nagios::client (
     }
 
     # Enable all default checks by... default
+    # Old style with facts overrides
     include nagios::defaultchecks
+    # New style with hiera overrides
+    class { 'nagios::check::load': }
+    if $::nagios_mysqld == 'true' {
+      class { 'nagios::check::mysql_health': }
+    }
 
     # With selinux, some nrpe plugins require additional rules to work
     if $selinux and $::selinux_enforced {
