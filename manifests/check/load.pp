@@ -1,12 +1,12 @@
-define nagios::check::load (
-    $args                = $::nagios_check_load_args,
-    $servicegroups       = $::nagios_check_load_servicegroups,
-    $check_period        = $::nagios_check_load_check_period,
-    $max_check_attempts  = $::nagios_check_load_max_check_attempts,
-    $notification_period = $::nagios_check_load_notification_period,
-    $use                 = $::nagios_check_load_use,
-    $ensure              = $::nagios_check_load_ensure
-) {
+class nagios::check::load (
+  $args                = undef,
+  $servicegroups       = undef,
+  $check_period        = $::nagios::client::defaults::check_period,
+  $max_check_attempts  = $::nagios::client::defaults::max_check_attempts,
+  $notification_period = $::nagios::client::defaults::notification_period,
+  $use                 = $::nagios::client::defaults::use,
+  $ensure              = undef,
+) inherits ::nagios::client::defaults {
 
     if $ensure != 'absent' {
         Package <| tag == 'nagios-plugins-load' |>

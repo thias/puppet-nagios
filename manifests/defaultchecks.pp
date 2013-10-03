@@ -9,9 +9,10 @@ class nagios::defaultchecks {
     if $::nagios_check_disk_disable != 'true' {
         nagios::check::disk { $nagios::client::host_name: }
     }
-    if $::nagios_check_load_disable != 'true' {
-        nagios::check::load { $nagios::client::host_name: }
-    }
+#    if $::nagios_check_load_disable != 'true' {
+#        nagios::check::load { $nagios::client::host_name: }
+#    }
+    class { 'nagios::check::load': }
     if $::nagios_check_ping_disable != 'true' {
         nagios::check::ping { $nagios::client::host_name: }
     }
