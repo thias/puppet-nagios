@@ -8,37 +8,37 @@ class nagios::check::load (
   $ensure              = undef,
 ) inherits ::nagios::client::defaults {
 
-    if $ensure != 'absent' {
-        Package <| tag == 'nagios-plugins-load' |>
-    }
+  if $ensure != 'absent' {
+    Package <| tag == 'nagios-plugins-load' |>
+  }
 
-    # We choose defaults based on the number of CPU cores.
-    if $args == '' {
-        if ( $::processorcount > 8 ) {
-            $final_args = '-w 25,20,20 -c 40,35,35'
-        } elsif ( $::processorcount > 4 ) and ( $::processorcount <= 8 ) {
-            $final_args = '-w 20,15,15 -c 35,30,30'
-        } else {
-            $final_args = '-w 15,10,10 -c 30,25,25'
-        }
+  # We choose defaults based on the number of CPU cores.
+  if $args == '' {
+    if ( $::processorcount > 8 ) {
+      $final_args = '-w 25,20,20 -c 40,35,35'
+    } elsif ( $::processorcount > 4 ) and ( $::processorcount <= 8 ) {
+      $final_args = '-w 20,15,15 -c 35,30,30'
     } else {
-        $final_args = $args
+      $final_args = '-w 15,10,10 -c 30,25,25'
     }
-    nagios::client::nrpe_file { 'check_load':
-        args   => $final_args,
-        ensure => $ensure,
-    }
+  } else {
+    $final_args = $args
+  }
+  nagios::client::nrpe_file { 'check_load':
+    args   => $final_args,
+    ensure => $ensure,
+  }
 
-    nagios::service { "check_load_${title}":
-        check_command       => 'check_nrpe_load',
-        service_description => 'load',
-        servicegroups       => $servicegroups,
-        check_period        => $check_period,
-        max_check_attempts  => $max_check_attempts,
-        notification_period => $notification_period,
-        use                 => $use,
-        ensure              => $ensure,
-    }
+  nagios::service { "check_load_${title}":
+    check_command       => 'check_nrpe_load',
+    service_description => 'load',
+    servicegroups       => $servicegroups,
+    check_period        => $check_period,
+    max_check_attempts  => $max_check_attempts,
+    notification_period => $notification_period,
+    use                 => $use,
+    ensure              => $ensure,
+  }
 
 }
 
