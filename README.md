@@ -11,6 +11,9 @@ same puppetmaster.
 The server part is still very Red Hat Enterprise Linux specific. The client
 part is much more generic and has been tested on both RHEL and Gentoo.
 
+Please note that this module is not for the faint of heart. Even I (the author)
+have my head hurt each time I have to make modificiations to it...
+
 ## Requirements
 
 * Stored configurations enabled on the puppetmaster (mandatory)
