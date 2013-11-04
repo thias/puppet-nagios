@@ -147,6 +147,9 @@ class nagios::server (
         require   => Package['nagios'],
     }
 
+    require apache_httpd::install
+    require apache_httpd::service::ssl
+
     file { '/etc/httpd/conf.d/nagios.conf':
         owner   => 'root',
         group   => 'root',
