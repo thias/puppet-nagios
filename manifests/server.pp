@@ -172,9 +172,9 @@ class nagios::server (
             keepalive => 'On',
         }
     }
-        
+
     if $php {
-        include php::mod_php5 
+        include php::mod_php5
         php::ini { '/etc/php.ini': }
         if $php_apc { php::module { 'pecl-apc': } }
     }
