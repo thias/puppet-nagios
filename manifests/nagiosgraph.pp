@@ -65,6 +65,7 @@ class nagios::nagiosgraph (
         file { '/usr/share/nagios/html/ssi/common-header.ssi':
             ensure => link,
             target => '/usr/share/nagiosgraph/examples/nagiosgraph.ssi',
+            require => Package['nagios'],
         }
     }
 
