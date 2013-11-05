@@ -1,5 +1,5 @@
 class nagios::check::mysql_health (
-  $args,
+  $args                = undef,
   $check_period        = undef,
   $notification_period = undef,
   $modes_enabled       = [],
