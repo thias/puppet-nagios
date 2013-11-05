@@ -103,11 +103,11 @@ class nagios::server (
     # Custom plugin scripts required on the server
     if $plugin_nginx {
         file { "${plugin_dir}/check_nginx":
+            ensure  => $ensure,
             owner   => 'root',
             group   => 'root',
             mode    => '0755',
             content => template('nagios/plugins/check_nginx'),
-            ensure  => $ensure,
         }
     } else {
         file { "${plugin_dir}/check_nginx":
@@ -116,11 +116,11 @@ class nagios::server (
     }
     if $plugin_xcache {
         file { "${plugin_dir}/check_xcache":
+            ensure  => $ensure,
             owner   => 'root',
             group   => 'root',
             mode    => '0755',
             content => template('nagios/plugins/check_xcache'),
-            ensure  => $ensure,
         }
     } else {
         file { "${plugin_dir}/check_xcache":
@@ -136,8 +136,8 @@ class nagios::server (
     }
 
     service { 'nagios':
-        enable    => true,
         ensure    => running,
+        enable    => true,
         # "service nagios status" returns 0 when "nagios is not running" :-(
         hasstatus => false,
         # Don't get fooled by any process with "nagios" in its command line
@@ -146,6 +146,9 @@ class nagios::server (
         restart   => '/bin/chgrp nagios /etc/nagios/nagios_*.cfg && /bin/chmod 640 /etc/nagios/nagios_*.cfg && /sbin/service nagios reload',
         require   => Package['nagios'],
     }
+
+    require apache_httpd::install
+    require apache_httpd::service::ssl
 
     file { '/etc/httpd/conf.d/nagios.conf':
         owner   => 'root',
@@ -172,9 +175,9 @@ class nagios::server (
             keepalive => 'On',
         }
     }
-        
+
     if $php {
-        include php::mod_php5 
+        include php::mod_php5
         php::ini { '/etc/php.ini': }
         if $php_apc { php::module { 'pecl-apc': } }
     }
