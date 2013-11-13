@@ -147,9 +147,6 @@ class nagios::server (
         require   => Package['nagios'],
     }
 
-    require apache_httpd::install
-    require apache_httpd::service::ssl
-
     file { '/etc/httpd/conf.d/nagios.conf':
         owner   => 'root',
         group   => 'root',
@@ -169,6 +166,8 @@ class nagios::server (
     }
 
     if $apache_httpd {
+        require apache_httpd::install
+        require apache_httpd::service::ssl
         apache_httpd { 'prefork':
             ssl       => $apache_httpd_ssl,
             modules   => $apache_httpd_modules,
