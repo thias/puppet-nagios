@@ -277,6 +277,8 @@ class nagios::server (
         owner => 'root',
         group => 'nagios',
         mode  => '0640',
+	ensure => present,
+	before => Service[nagios],
     }
 
     # Nagios commands
