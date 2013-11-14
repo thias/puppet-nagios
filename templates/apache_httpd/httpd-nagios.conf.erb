@@ -1,5 +1,5 @@
-ScriptAlias /nagios/cgi-bin/ /usr/lib/nagios/cgi-bin/
-<Directory /usr/lib/nagios/cgi-bin/>
+ScriptAlias /nagios/cgi-bin/ /usr/<%= scope.lookupvar("nagios::params::libdir") %>/nagios/cgi-bin/
+<Directory /usr/<%= scope.lookupvar("nagios::params::libdir") %>/nagios/cgi-bin/>
    Options ExecCGI
    Order Deny,Allow
    Deny from all
