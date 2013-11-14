@@ -18,6 +18,7 @@ class nagios::server (
     ],
     # The apache config snippet, more useful as a template when using a custom
     $apache_httpd_conf_content    = template('nagios/apache_httpd/httpd-nagios.conf.erb'),
+    $apache_allowed_from          = [],   # Allow access to the web in the previous template
     $apache_httpd_htpasswd_source = "puppet:///modules/${module_name}/apache_httpd/htpasswd",
     $php     = true,
     $php_apc = true,
