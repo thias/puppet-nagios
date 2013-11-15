@@ -52,6 +52,7 @@ class nagios::server (
     $cfg_dir                        = [],
     $process_performance_data       = '0',
     $host_perfdata_command          = false,
+    $hostgroups                     = {'nagios' => {alias => 'Nagios Servers',},},
     $service_perfdata_command       = false,
     $service_perfdata_file          = false,
     $service_perfdata_file_template = '[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$',
@@ -493,10 +494,8 @@ class nagios::server (
         alias => 'No Time Is A Good Time',
     }
 
-    # Nagios hostgroup, we need at least one for puppet to create the file
-    nagios_hostgroup { 'nagios':
-        alias => 'Nagios Servers',
-    }
+    # Create all nagios hostgroups specified
+    create_resources (nagios_hostgroup, $hostgroups) 
 
     # Nagios service groups
     nagios_servicegroup { 'mysql_health':
