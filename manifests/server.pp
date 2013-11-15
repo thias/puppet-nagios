@@ -53,6 +53,7 @@ class nagios::server (
     $process_performance_data       = '0',
     $host_perfdata_command          = false,
     $hostgroups                     = {'nagios' => {alias => 'Nagios Servers',},},
+    $servicegroups                  = {'mysql_health' => {alias => 'MySQL Health service checks',},},
     $service_perfdata_command       = false,
     $service_perfdata_file          = false,
     $service_perfdata_file_template = '[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$',
@@ -498,9 +499,7 @@ class nagios::server (
     create_resources (nagios_hostgroup, $hostgroups) 
 
     # Nagios service groups
-    nagios_servicegroup { 'mysql_health':
-        alias => 'MySQL Health service checks',
-    }
+    create_resources (nagios_servicegroup, $servicegroups)
 
     # With selinux, adjustements are needed for nagiosgraph
     if $selinux and $::selinux_enforced {
