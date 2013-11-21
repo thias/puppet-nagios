@@ -155,7 +155,7 @@ class nagios::server (
         group   => 'root',
         mode    => '0644',
         content => $apache_httpd_conf_content,
-        notify  => Service['httpd'],
+        #notify  => Service['httpd'],
         require => Package['nagios'],
     }
     if $apache_httpd_htpasswd_source != false {
