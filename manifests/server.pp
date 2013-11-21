@@ -1,6 +1,7 @@
 class nagios::server (
     # For the tag of the stored configuration to realize
     $nagios_server        = 'default',
+    $puppetlabs_apache    = false,
     $apache_httpd         = true,
     $apache_httpd_ssl     = true,
     $apache_httpd_modules = [
@@ -150,24 +151,8 @@ class nagios::server (
         require   => Package['nagios'],
     }
 
-    file { '/etc/httpd/conf.d/nagios.conf':
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0644',
-        content => $apache_httpd_conf_content,
-        #notify  => Service['httpd'],
-        require => Package['nagios'],
-    }
-    if $apache_httpd_htpasswd_source != false {
-        file { '/etc/nagios/.htpasswd':
-            owner   => 'root',
-            group   => 'apache',
-            mode    => '0640',
-            source  => $apache_httpd_htpasswd_source,
-            require => Package['nagios'],
-        }
-    }
 
+    # Configure apache with apache_httpd module only if requested
     if $apache_httpd {
         require apache_httpd::install
         require apache_httpd::service::ssl
@@ -176,12 +161,31 @@ class nagios::server (
             modules   => $apache_httpd_modules,
             keepalive => 'On',
         }
-    }
 
-    if $php {
-        include php::mod_php5
-        php::ini { '/etc/php.ini': }
-        if $php_apc { php::module { 'pecl-apc': } }
+        file { '/etc/httpd/conf.d/nagios.conf':
+            owner   => 'root',
+            group   => 'root',
+            mode    => '0644',
+            content => $apache_httpd_conf_content,
+            notify  => Service['httpd'],
+            require => Package['nagios'],
+        }
+
+        if $apache_httpd_htpasswd_source != false {
+            file { '/etc/nagios/.htpasswd':
+                owner   => 'root',
+                group   => 'apache',
+                mode    => '0640',
+                source  => $apache_httpd_htpasswd_source,
+                require => Package['nagios'],
+            }
+        }
+
+        if $php {
+            include php::mod_php5
+            php::ini { '/etc/php.ini': }
+            if $php_apc { php::module { 'pecl-apc': } }
+        }
     }
 
     # Configuration files
