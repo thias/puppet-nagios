@@ -188,6 +188,43 @@ class nagios::server (
         }
     }
 
+    # Configure apache with puppetlabs-apache module only if requested
+    if $puppetlabs_apache {
+        #class {'apache': default_vhost => false, default_ssl_vhost => false}
+        include apache
+        include apache::mod::php
+        include apache::mod::ssl
+        apache::vhost { 'nagios':
+            port           => 443,
+            ssl            => true,
+            docroot        => '/usr/share/nagios/html/',
+            scriptaliases  => [{ alias => '/nagios/cgi-bin/', path => '/usr/lib64/nagios/cgi-bin/' }],
+            directories    => [
+                { path             => '/usr/lib64/nagios/cgi-bin/',
+                  'options'        => 'ExecCGI',
+                  'order'          => 'Deny,Allow',
+                  'deny'           => 'from all',
+                  'allow'          => 'from 127.0.0.1, 148.187.0.0/16',
+                  'auth_type'      => 'Basic',
+                  'auth_user_file' => '/etc/nagios/.htpasswd',
+                  'auth_name'      => 'Nagios',
+                  'require'        => 'valid-user',
+                } , {
+                  path             => '/usr/share/nagios/html/',
+                  'options'        => 'FollowSymlinks',
+                  'order'          => 'Deny,Allow',
+                  'deny'           => 'from all',
+                  'allow'          => 'from 127.0.0.1, 148.187.0.0/16',
+                  'auth_type'      => 'Basic',
+                  'auth_user_file' => '/etc/nagios/.htpasswd',
+                  'auth_name'      => 'Nagios',
+                  'require'        => 'valid-user',
+                }
+            ], # end directories
+        } # end vhost
+    }
+
+
     # Configuration files
     file { '/etc/nagios/cgi.cfg':
         owner   => 'root',
