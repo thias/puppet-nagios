@@ -30,7 +30,7 @@ class nagios::params {
             $nrpe_cfg_dir       = '/etc/nagios/nrpe.d'
             $megaclibin         = '/opt/bin/MegaCli'
         }
-        'Fedora': {
+        'Fedora', 'Scientific': {
             $nrpe_package       = [ 'nrpe', 'nagios-plugins' ]
             $nrpe_user          = 'nrpe'
             $nrpe_group         = 'nrpe'
@@ -70,7 +70,7 @@ class nagios::params {
         'nagios-plugins-users',
     ]
     case $operatingsystem {
-        'Fedora': {
+        'Fedora', 'Scientific': {
             $plugin_dir = "/usr/${libdir}/nagios/plugins"
             @package { $nagios_plugins_packages:
                 tag    => $name,
@@ -94,5 +94,8 @@ class nagios::params {
         }
     }
 
+    # This probably needs specialization per OS (needs the final /)
+    $cgi_dir  = "/usr/${libdir}/nagios/cgi-bin/"
+    $html_dir = "/usr/share/nagios/html/"
 }
 
