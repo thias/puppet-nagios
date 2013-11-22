@@ -94,5 +94,8 @@ class nagios::params {
         }
     }
 
+    # This probably needs specialization per OS (needs the final /)
+    $cgi_dir  = "/usr/${libdir}/nagios/cgi-bin/"
+    $html_dir = "/usr/share/nagios/html/"
 }
 

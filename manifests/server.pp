@@ -19,7 +19,7 @@ class nagios::server (
     ],
     # The apache config snippet, more useful as a template when using a custom
     $apache_httpd_conf_content    = template('nagios/apache_httpd/httpd-nagios.conf.erb'),
-    $apache_allowed_from          = [],   # Allow access to the web in the previous template
+    $apache_allowed_from          = '127.0.0.1',   # Allow access to the web in the previous template
     $apache_httpd_htpasswd_source = "puppet:///modules/${module_name}/apache_httpd/htpasswd",
     $php     = true,
     $php_apc = true,
@@ -197,28 +197,33 @@ class nagios::server (
         apache::vhost { 'nagios':
             port           => 443,
             ssl            => true,
-            docroot        => '/usr/share/nagios/html/',
-            scriptaliases  => [{ alias => '/nagios/cgi-bin/', path => '/usr/lib64/nagios/cgi-bin/' }],
+            docroot        => $nagios::params::html_dir,
+            # Avoided scriptaliases because they will go AFTER the aliases and therefore not work
+            aliases        => [
+                { alias => '/nagios/cgi-bin/', path => $nagios::params::cgi_dir }, 
+                { alias => '/nagios/', path => $nagios::params::html_dir }
+            ],
             directories    => [
-                { path             => '/usr/lib64/nagios/cgi-bin/',
+                { path             => $nagios::params::cgi_dir,
+                  'addhandlers'    => [{ handler => 'cgi-script', extensions => ['.cgi']}],
                   'options'        => 'ExecCGI',
                   'order'          => 'Deny,Allow',
                   'deny'           => 'from all',
-                  'allow'          => 'from 127.0.0.1, 148.187.0.0/16',
+                  'allow'          => "from ${apache_allowed_from}",
                   'auth_type'      => 'Basic',
                   'auth_user_file' => '/etc/nagios/.htpasswd',
                   'auth_name'      => 'Nagios',
-                  'require'        => 'valid-user',
+                  'auth_require'   => 'valid-user',
                 } , {
-                  path             => '/usr/share/nagios/html/',
+                  path             => $nagios::params::html_dir,
                   'options'        => 'FollowSymlinks',
                   'order'          => 'Deny,Allow',
                   'deny'           => 'from all',
-                  'allow'          => 'from 127.0.0.1, 148.187.0.0/16',
+                  'allow'          => "from ${apache_allowed_from}",
                   'auth_type'      => 'Basic',
                   'auth_user_file' => '/etc/nagios/.htpasswd',
                   'auth_name'      => 'Nagios',
-                  'require'        => 'valid-user',
+                  'auth_require'   => 'valid-user',
                 }
             ], # end directories
         } # end vhost
