@@ -1,3 +1,5 @@
+* Add $::nagios_client fact for all nagios client nodes.
+
 2013-12-10 - 0.4.1
 * Fix variable name in README (Anton Babenko).
 * Make the megaclibin from check::megaraid_sas configurable.
