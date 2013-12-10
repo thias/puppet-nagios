@@ -1,3 +1,4 @@
+2013-12-10 - 0.4.1
 * Fix variable name in README (Anton Babenko).
 * Make the megaclibin from check::megaraid_sas configurable.
 * Update check::load to become a class.
