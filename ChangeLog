@@ -1,3 +1,5 @@
+* Remove server udp sub-package, now part of the tcp package as of 1.4.15-2.
+
 2013-12-10 - 0.4.2
 * Add $::nagios_client fact for all nagios client nodes.
 
