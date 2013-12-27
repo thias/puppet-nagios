@@ -1,6 +1,7 @@
 class nagios::server (
     # For the tag of the stored configuration to realize
     $nagios_server        = 'default',
+    $puppetlabs_apache    = false,
     $apache_httpd         = true,
     $apache_httpd_ssl     = true,
     $apache_httpd_modules = [
@@ -18,7 +19,7 @@ class nagios::server (
     ],
     # The apache config snippet, more useful as a template when using a custom
     $apache_httpd_conf_content    = template('nagios/apache_httpd/httpd-nagios.conf.erb'),
-    $apache_allowed_from          = [],   # Allow access to the web in the previous template
+    $apache_allowed_from          = '127.0.0.1',   # Allow access to the web in the previous template
     $apache_httpd_htpasswd_source = "puppet:///modules/${module_name}/apache_httpd/htpasswd",
     $php     = true,
     $php_apc = true,
@@ -149,24 +150,8 @@ class nagios::server (
         require   => Package['nagios'],
     }
 
-    file { '/etc/httpd/conf.d/nagios.conf':
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0644',
-        content => $apache_httpd_conf_content,
-        notify  => Service['httpd'],
-        require => Package['nagios'],
-    }
-    if $apache_httpd_htpasswd_source != false {
-        file { '/etc/nagios/.htpasswd':
-            owner   => 'root',
-            group   => 'apache',
-            mode    => '0640',
-            source  => $apache_httpd_htpasswd_source,
-            require => Package['nagios'],
-        }
-    }
 
+    # Configure apache with apache_httpd module only if requested
     if $apache_httpd {
         require apache_httpd::install
         require apache_httpd::service::ssl
@@ -175,13 +160,74 @@ class nagios::server (
             modules   => $apache_httpd_modules,
             keepalive => 'On',
         }
+
+        file { '/etc/httpd/conf.d/nagios.conf':
+            owner   => 'root',
+            group   => 'root',
+            mode    => '0644',
+            content => $apache_httpd_conf_content,
+            notify  => Service['httpd'],
+            require => Package['nagios'],
+        }
+
+        if $apache_httpd_htpasswd_source != false {
+            file { '/etc/nagios/.htpasswd':
+                owner   => 'root',
+                group   => 'apache',
+                mode    => '0640',
+                source  => $apache_httpd_htpasswd_source,
+                require => Package['nagios'],
+            }
+        }
+
+        if $php {
+            include php::mod_php5
+            php::ini { '/etc/php.ini': }
+            if $php_apc { php::module { 'pecl-apc': } }
+        }
     }
 
-    if $php {
-        include php::mod_php5
-        php::ini { '/etc/php.ini': }
-        if $php_apc { php::module { 'pecl-apc': } }
+    # Configure apache with puppetlabs-apache module only if requested
+    if $puppetlabs_apache {
+        #class {'apache': default_vhost => false, default_ssl_vhost => false}
+        include apache
+        include apache::mod::php
+        include apache::mod::ssl
+        apache::vhost { 'nagios':
+            port           => 443,
+            ssl            => true,
+            docroot        => $nagios::params::html_dir,
+            # Avoided scriptaliases because they will go AFTER the aliases and therefore not work
+            aliases        => [
+                { alias => '/nagios/cgi-bin/', path => $nagios::params::cgi_dir }, 
+                { alias => '/nagios/', path => $nagios::params::html_dir }
+            ],
+            directories    => [
+                { path             => $nagios::params::cgi_dir,
+                  'addhandlers'    => [{ handler => 'cgi-script', extensions => ['.cgi']}],
+                  'options'        => 'ExecCGI',
+                  'order'          => 'Deny,Allow',
+                  'deny'           => 'from all',
+                  'allow'          => "from ${apache_allowed_from}",
+                  'auth_type'      => 'Basic',
+                  'auth_user_file' => '/etc/nagios/.htpasswd',
+                  'auth_name'      => 'Nagios',
+                  'auth_require'   => 'valid-user',
+                } , {
+                  path             => $nagios::params::html_dir,
+                  'options'        => 'FollowSymlinks',
+                  'order'          => 'Deny,Allow',
+                  'deny'           => 'from all',
+                  'allow'          => "from ${apache_allowed_from}",
+                  'auth_type'      => 'Basic',
+                  'auth_user_file' => '/etc/nagios/.htpasswd',
+                  'auth_name'      => 'Nagios',
+                  'auth_require'   => 'valid-user',
+                }
+            ], # end directories
+        } # end vhost
     }
+
 
     # Configuration files
     file { '/etc/nagios/cgi.cfg':

@@ -4,7 +4,7 @@
 #
 class nagios::client (
     $nagios_host_name            = $::nagios_host_name,
-    $nagios_server               = $::nagios_server,
+    $nagios_server               = 'default',
     # nrpe.cfg
     $nrpe_log_facility           = 'daemon',
     $nrpe_pid_file               = $nagios::params::nrpe_pid_file,
@@ -23,7 +23,7 @@ class nagios::client (
     $host_check_period           = $::nagios_host_check_period,
     $host_check_command          = $::nagios_host_check_command,
     $host_contact_groups         = $::nagios_host_contact_groups,
-    $host_hostgroups             = $::nagios_host_hostgroups,
+    $host_hostgroups             = undef,
     $host_notes                  = $::nagios_host_notes,
     $host_notes_url              = $::nagios_host_notes_url,
     $host_notification_period    = $::nagios_host_notification_period,
