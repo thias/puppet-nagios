@@ -18,6 +18,7 @@ class nagios::server (
     ],
     # The apache config snippet, more useful as a template when using a custom
     $apache_httpd_conf_content    = template('nagios/apache_httpd/httpd-nagios.conf.erb'),
+    $apache_allowed_from          = [],   # Allow access to the web in the previous template
     $apache_httpd_htpasswd_source = "puppet:///modules/${module_name}/apache_httpd/htpasswd",
     $php     = true,
     $php_apc = true,
@@ -51,6 +52,8 @@ class nagios::server (
     $cfg_dir                        = [],
     $process_performance_data       = '0',
     $host_perfdata_command          = false,
+    $hostgroups                     = {'nagios' => {alias => 'Nagios Servers',},},
+    $servicegroups                  = {'mysql_health' => {alias => 'MySQL Health service checks',},},
     $service_perfdata_command       = false,
     $service_perfdata_file          = false,
     $service_perfdata_file_template = '[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$',
@@ -491,15 +494,11 @@ class nagios::server (
         alias => 'No Time Is A Good Time',
     }
 
-    # Nagios hostgroup, we need at least one for puppet to create the file
-    nagios_hostgroup { 'nagios':
-        alias => 'Nagios Servers',
-    }
+    # Create all nagios hostgroups specified
+    create_resources (nagios_hostgroup, $hostgroups) 
 
     # Nagios service groups
-    nagios_servicegroup { 'mysql_health':
-        alias => 'MySQL Health service checks',
-    }
+    create_resources (nagios_servicegroup, $servicegroups)
 
     # With selinux, adjustements are needed for nagiosgraph
     if $selinux and $::selinux_enforced {
