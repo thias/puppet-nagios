@@ -1,11 +1,11 @@
 define nagios::check::dir_status (
     $args,
-    $servicegroups       = $::nagios_check_dir_servicegroups,
-    $check_period        = $::nagios_check_dir_check_period,
-    $max_check_attempts  = $::nagios_check_dir_max_check_attempts,
-    $notification_period = $::nagios_check_dir_notification_period,
-    $use                 = $::nagios_check_dir_use,
-    $ensure              = $::nagios_check_dir_ensure
+    $servicegroups       = $::nagios_check_dir_status_servicegroups,
+    $check_period        = $::nagios_check_dir_status_check_period,
+    $max_check_attempts  = $::nagios_check_dir_status_max_check_attempts,
+    $notification_period = $::nagios_check_dir_status_notification_period,
+    $use                 = $::nagios_check_dir_status_use,
+    $ensure              = $::nagios_check_dir_status_ensure,
 ) {
 
     include nagios::plugin::dir_status
