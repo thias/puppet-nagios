@@ -14,7 +14,11 @@
 # [* args *]
 #   What arguments to use for the plugin
 #
-# == Variables
+# [* sudo *]
+#   Whether to use sudo for the client-side command
+#
+# [* sudo_user *]
+#   If specified, what user to run sudo as
 #
 # == Examples
 #
@@ -26,6 +30,8 @@
 define nagios::nrpe_service (
   $plugin,
   $args,
+  $sudo,
+  $sudo_user,
   $ensure = present,
 ) {
 
@@ -42,9 +48,11 @@ define nagios::nrpe_service (
   # client-side definition of nrpe command
   # goes in /etc/nagios/nrpe.d/nrpe-$name.cfg
   nagios::client::nrpe_file { "check_${name}":
-    ensure => $ensure,
-    plugin => $plugin,
-    args   => $args,
+    ensure    => $ensure,
+    plugin    => $plugin,
+    args      => $args,
+    sudo      => $sudo,
+    sudo_user => $sudo_user
   }
 
   # server-side definition of nagios command to invoke client-side nrpe command
