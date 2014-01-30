@@ -47,8 +47,6 @@ class nagios::server (
   $cfg_dir                        = [],
   $process_performance_data       = '0',
   $host_perfdata_command          = false,
-  $hostgroups                     = {'nagios' => {alias => 'Nagios Servers',},},
-  $servicegroups                  = {'mysql_health' => {alias => 'MySQL Health service checks',},},
   $service_perfdata_command       = false,
   $service_perfdata_file          = false,
   $service_perfdata_file_template = '[SERVICEPERFDATA]\t$TIMET$\t$HOSTNAME$\t$SERVICEDESC$\t$SERVICEEXECUTIONTIME$\t$SERVICELATENCY$\t$SERVICEOUTPUT$\t$SERVICEPERFDATA$',
@@ -83,6 +81,18 @@ class nagios::server (
   $template_generic_switch  = {},
   $template_generic_service = {},
   $template_local_service   = {},
+  # Optional types
+  $commands         = {},
+  $contacts         = {},
+  $contactgroups    = {},
+  $hosts            = {},
+  $hostdependencies = {},
+  $hostgroups       = {},
+  $services         = {},
+  $servicegroups    = {},
+  $timeperiods      = {},
+  $hostgroups       = {},
+  $servicegroups    = {},
 ) inherits ::nagios::params {
 
   # Full nrpe command to run, with default options
@@ -654,11 +664,21 @@ class nagios::server (
   }
   create_resources (nagios_service, { 'local-service' => $template_local_service }, $template_local_service_defaults)
 
-  # Create all nagios hostgroups specified
-  create_resources (nagios_hostgroup, $hostgroups) 
-
-  # Nagios service groups
+  # Create all resources for nagios types
+  create_resources (nagios_command, $commands)
+  create_resources (nagios_contact, $contacts)
+  create_resources (nagios_contactgroup, $contactgroups)
+  create_resources (nagios_host, $hosts)
+  create_resources (nagios_hostdependency, $hostdependencies)
+  create_resources (nagios_hostgroup, $hostgroups)
+  create_resources (nagios_service, $services)
   create_resources (nagios_servicegroup, $servicegroups)
+  create_resources (nagios_timeperiod, $timeperiods)
+
+  # Additional useful resources
+  nagios_servicegroup { 'mysql_health':
+    alias => 'MySQL Health service checks',
+  }
 
   # With selinux, adjustements are needed for nagiosgraph
   if $selinux == 'true' and $::selinux_enforced == 'true' {

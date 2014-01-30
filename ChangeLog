@@ -1,3 +1,5 @@
+* Enable declaring all types from the server class, useful with hiera.
+
 2014-01-30 - 0.4.3
 * Remove server udp sub-package, now part of the tcp package as of 1.4.15-2.
 * Fix for useless $apache_allowed_from existence check (#12).
