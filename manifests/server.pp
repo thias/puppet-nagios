@@ -182,8 +182,6 @@ class nagios::server (
   }
 
   if $apache_httpd {
-    require apache_httpd::install
-    require apache_httpd::service::ssl
     apache_httpd { 'prefork':
       ssl       => $apache_httpd_ssl,
       modules   => $apache_httpd_modules,
