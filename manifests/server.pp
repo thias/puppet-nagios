@@ -78,8 +78,8 @@ class nagios::server (
     $plugin_dir           = $nagios::params::plugin_dir,
     $plugin_nginx         = false,
     $plugin_xcache        = false,
-    $selinux              = true
-) inherits nagios::params {
+    $selinux              = true,
+) inherits ::nagios::params {
 
     # Full nrpe command to run, with default options
     $nrpe = "\$USER1\$/check_nrpe -H \$HOSTADDRESS\$ ${nrpe_options}"
@@ -281,11 +281,11 @@ class nagios::server (
         '/etc/nagios/nagios_servicegroup.cfg',
         '/etc/nagios/nagios_timeperiod.cfg',
     ]:
-        owner => 'root',
-        group => 'nagios',
-        mode  => '0640',
-	ensure => present,
-	before => Service[nagios],
+        ensure => present,
+        owner  => 'root',
+        group  => 'nagios',
+        mode   => '0640',
+        before => Service['nagios'],
     }
 
     # Nagios commands
@@ -478,22 +478,22 @@ class nagios::server (
     # Nagios timeperiods
     # Taken from timeperiods.cfg
     nagios_timeperiod { '24x7':
-        alias       => '24 Hours A Day, 7 Days A Week',
-        monday      => '00:00-24:00',
-        tuesday     => '00:00-24:00',
-        wednesday   => '00:00-24:00',
-        thursday    => '00:00-24:00',
-        friday      => '00:00-24:00',
-        saturday    => '00:00-24:00',
-        sunday      => '00:00-24:00',
+        alias     => '24 Hours A Day, 7 Days A Week',
+        monday    => '00:00-24:00',
+        tuesday   => '00:00-24:00',
+        wednesday => '00:00-24:00',
+        thursday  => '00:00-24:00',
+        friday    => '00:00-24:00',
+        saturday  => '00:00-24:00',
+        sunday    => '00:00-24:00',
     }
     nagios_timeperiod { 'workhours':
-        alias       => 'Normal Work Hours',
-        monday      => $timeperiod_workhours,
-        tuesday     => $timeperiod_workhours,
-        wednesday   => $timeperiod_workhours,
-        thursday    => $timeperiod_workhours,
-        friday      => $timeperiod_workhours,
+        alias     => 'Normal Work Hours',
+        monday    => $timeperiod_workhours,
+        tuesday   => $timeperiod_workhours,
+        wednesday => $timeperiod_workhours,
+        thursday  => $timeperiod_workhours,
+        friday    => $timeperiod_workhours,
     }
     nagios_timeperiod { 'none':
         alias => 'No Time Is A Good Time',
