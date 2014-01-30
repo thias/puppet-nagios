@@ -105,6 +105,15 @@ To enable nagiosgraph for the client's services in the server web interface :
       service_use => 'generic-service,nagiosgraph-service',
     }
 
+To override the parameters of a default template using hiera :
+
+```yaml
+---
+# Remove default warning notifications for services
+nagios::server::template_generic_service:
+  notification_options: 'u,c,r'
+```
+
 ## Hints
 
 Debug any startup or configuration problems on the server with :

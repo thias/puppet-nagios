@@ -75,110 +75,14 @@ class nagios::server (
   $plugin_xcache        = false,
   $selinux              = $::selinux,
   # Original template entries
-  $template_generic_contact = {
-    'service_notification_period'   => '24x7',
-    'host_notification_period'      => '24x7',
-    'service_notification_options'  => 'u,c,r,f,s',
-    'host_notification_options'     => 'd,u,r,f,s',
-    'service_notification_commands' => 'notify-service-by-email',
-    'host_notification_commands'    => 'notify-host-by-email',
-    'register'                      => '0',
-  },
-  $template_generic_host = {
-    'notifications_enabled'        => '1',
-    'event_handler_enabled'        => '1',
-    'flap_detection_enabled'       => '1',
-    'failure_prediction_enabled'   => '1',
-    'process_perf_data'            => '1',
-    'retain_status_information'    => '1',
-    'retain_nonstatus_information' => '1',
-    'notification_period'          => '24x7',
-    'register'                     => '0',
-  },
-  $template_linux_server = {
-    'use'                   => 'generic-host',
-    'check_period'          => '24x7',
-    'check_interval'        => '5',
-    'retry_interval'        => '1',
-    'max_check_attempts'    => '10',
-    'check_command'         => 'check-host-alive',
-    'notification_period'   => 'workhours',
-    'notification_interval' => '120',
-    'notification_options'  => 'd,u,r',
-    'contact_groups'        => 'admins',
-    'register'              => '0',
-  },
-  $template_windows_server = {
-    'use'                   => 'generic-host',
-    'check_period'          => '24x7',
-    'check_interval'        => '5',
-    'retry_interval'        => '1',
-    'max_check_attempts'    => '10',
-    'check_command'         => 'check-host-alive',
-    'notification_period'   => '24x7',
-    'notification_interval' => '30',
-    'notification_options'  => 'd,r',
-    'contact_groups'        => 'admins',
-    'hostgroups'            => 'windows-servers',
-    'register'              => '0',
-  },
-  $template_generic_printer = {
-    'use'                   => 'generic-host',
-    'check_period'          => '24x7',
-    'check_interval'        => '5',
-    'retry_interval'        => '1',
-    'max_check_attempts'    => '10',
-    'check_command'         => 'check-host-alive',
-    'notification_period'   => 'workhours',
-    'notification_interval' => '30',
-    'notification_options'  => 'd,r',
-    'contact_groups'        => 'admins',
-    'register'              => '0',
-  },
-  $template_generic_switch = {
-    'use'                   => 'generic-host',
-    'check_period'          => '24x7',
-    'check_interval'        => '5',
-    'retry_interval'        => '1',
-    'max_check_attempts'    => '10',
-    'check_command'         => 'check-host-alive',
-    'notification_period'   => '24x7',
-    'notification_interval' => '30',
-    'notification_options'  => 'd,r',
-    'contact_groups'        => 'admins',
-    'register'              => '0',
-  },
-  $template_generic_service = {
-    'active_checks_enabled'        => '1',
-    'passive_checks_enabled'       => '1',
-    'parallelize_check'            => '1',
-    'obsess_over_service'          => '1',
-    'check_freshness'              => '0',
-    'notifications_enabled'        => '1',
-    'event_handler_enabled'        => '1',
-    'flap_detection_enabled'       => '1',
-    'failure_prediction_enabled'   => '1',
-    'process_perf_data'            => '1',
-    'retain_status_information'    => '1',
-    'retain_nonstatus_information' => '1',
-    'is_volatile'                  => '0',
-    'check_period'                 => '24x7',
-    'max_check_attempts'           => '3',
-    'normal_check_interval'        => '10',
-    'retry_check_interval'         => '2',
-    'contact_groups'               => 'admins',
-    'notification_options'         => 'w,u,c,r',
-    'notification_interval'        => '60',
-    'notification_period'          => '24x7',
-    'register'                     => '0',
-  },
-  $template_local_service = {
-    'use'                   => 'generic-service',
-    'max_check_attempts'    => '4',
-    'normal_check_interval' => '5',
-    'retry_check_interval'  => '1',
-    'register'              => '0',
-  },
+  $template_generic_contact = {},
+  $template_generic_host    = {},
+  $template_linux_server    = {},
+  $template_windows_server  = {},
+  $template_generic_printer = {},
+  $template_generic_switch  = {},
+  $template_generic_service = {},
+  $template_local_service   = {},
 ) inherits ::nagios::params {
 
   # Full nrpe command to run, with default options
@@ -599,25 +503,120 @@ class nagios::server (
     alias => 'No Time Is A Good Time',
   }
 
-  # Nagios template for various objects
-  # Taken from objects/templates.cfg
-  $template_contacts = {
-    'generic-contact' => $template_generic_contact,
+  # Nagios templates for various objects
+  # Taken as-is from objects/templates.cfg
+  $template_generic_contact_defaults = {
+    'service_notification_period'   => '24x7',
+    'host_notification_period'      => '24x7',
+    'service_notification_options'  => 'u,c,r,f,s',
+    'host_notification_options'     => 'd,u,r,f,s',
+    'service_notification_commands' => 'notify-service-by-email',
+    'host_notification_commands'    => 'notify-host-by-email',
+    'register'                      => '0',
   }
-  create_resources (nagios_contact, $template_contacts)
-  $template_hosts = {
-    'generic-host'    => $template_generic_host,
-    'linux-server'    => $template_linux_server,
-    'windows-server'  => $template_windows_server,
-    'generic-printer' => $template_generic_printer,
-    'generic-switch'  => $template_generic_switch,
+  create_resources (nagios_contact, { 'generic-contact' => $template_generic_contact }, $template_generic_contact_defaults)
+  $template_generic_host_defaults = {
+    'notifications_enabled'        => '1',
+    'event_handler_enabled'        => '1',
+    'flap_detection_enabled'       => '1',
+    'failure_prediction_enabled'   => '1',
+    'process_perf_data'            => '1',
+    'retain_status_information'    => '1',
+    'retain_nonstatus_information' => '1',
+    'notification_period'          => '24x7',
+    'register'                     => '0',
   }
-  create_resources (nagios_host, $template_hosts)
-  $template_services = {
-    'generic-service' => $template_generic_service,
-    'local-service'   => $template_local_service,
+  create_resources (nagios_host, { 'generic-host' => $template_generic_host }, $template_generic_host_defaults)
+  $template_linux_server_defaults = {
+    'use'                   => 'generic-host',
+    'check_period'          => '24x7',
+    'check_interval'        => '5',
+    'retry_interval'        => '1',
+    'max_check_attempts'    => '10',
+    'check_command'         => 'check-host-alive',
+    'notification_period'   => 'workhours',
+    'notification_interval' => '120',
+    'notification_options'  => 'd,u,r',
+    'contact_groups'        => 'admins',
+    'register'              => '0',
   }
-  create_resources (nagios_service, $template_services)
+  create_resources (nagios_host, { 'linux-server' => $template_linux_server }, $template_linux_server_defaults)
+  $template_windows_server_defaults = {
+    'use'                   => 'generic-host',
+    'check_period'          => '24x7',
+    'check_interval'        => '5',
+    'retry_interval'        => '1',
+    'max_check_attempts'    => '10',
+    'check_command'         => 'check-host-alive',
+    'notification_period'   => '24x7',
+    'notification_interval' => '30',
+    'notification_options'  => 'd,r',
+    'contact_groups'        => 'admins',
+    'hostgroups'            => 'windows-servers',
+    'register'              => '0',
+  }
+  create_resources (nagios_host, { 'windows-server' => $template_windows_server }, $template_windows_server_defaults)
+  $template_generic_printer_defaults = {
+    'use'                   => 'generic-host',
+    'check_period'          => '24x7',
+    'check_interval'        => '5',
+    'retry_interval'        => '1',
+    'max_check_attempts'    => '10',
+    'check_command'         => 'check-host-alive',
+    'notification_period'   => 'workhours',
+    'notification_interval' => '30',
+    'notification_options'  => 'd,r',
+    'contact_groups'        => 'admins',
+    'register'              => '0',
+  }
+  create_resources (nagios_host, { 'generic-printer' => $template_generic_printer }, $template_generic_printer_defaults)
+  $template_generic_switch_defaults = {
+    'use'                   => 'generic-host',
+    'check_period'          => '24x7',
+    'check_interval'        => '5',
+    'retry_interval'        => '1',
+    'max_check_attempts'    => '10',
+    'check_command'         => 'check-host-alive',
+    'notification_period'   => '24x7',
+    'notification_interval' => '30',
+    'notification_options'  => 'd,r',
+    'contact_groups'        => 'admins',
+    'register'              => '0',
+  }
+  create_resources (nagios_host, { 'generic-switch' => $template_generic_switch }, $template_generic_switch_defaults)
+  $template_generic_service_defaults = {
+    'active_checks_enabled'        => '1',
+    'passive_checks_enabled'       => '1',
+    'parallelize_check'            => '1',
+    'obsess_over_service'          => '1',
+    'check_freshness'              => '0',
+    'notifications_enabled'        => '1',
+    'event_handler_enabled'        => '1',
+    'flap_detection_enabled'       => '1',
+    'failure_prediction_enabled'   => '1',
+    'process_perf_data'            => '1',
+    'retain_status_information'    => '1',
+    'retain_nonstatus_information' => '1',
+    'is_volatile'                  => '0',
+    'check_period'                 => '24x7',
+    'max_check_attempts'           => '3',
+    'normal_check_interval'        => '10',
+    'retry_check_interval'         => '2',
+    'contact_groups'               => 'admins',
+    'notification_options'         => 'w,u,c,r',
+    'notification_interval'        => '60',
+    'notification_period'          => '24x7',
+    'register'                     => '0',
+  }
+  create_resources (nagios_service, { 'generic-service' => $template_generic_service }, $template_generic_service_defaults)
+  $template_local_service_defaults = {
+    'use'                   => 'generic-service',
+    'max_check_attempts'    => '4',
+    'normal_check_interval' => '5',
+    'retry_check_interval'  => '1',
+    'register'              => '0',
+  }
+  create_resources (nagios_service, { 'local-service' => $template_local_service }, $template_local_service_defaults)
 
   # Create all nagios hostgroups specified
   create_resources (nagios_hostgroup, $hostgroups) 
