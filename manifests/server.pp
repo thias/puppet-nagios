@@ -78,7 +78,7 @@ class nagios::server (
   $plugin_dir           = $nagios::params::plugin_dir,
   $plugin_nginx         = false,
   $plugin_xcache        = false,
-  $selinux              = true,
+  $selinux              = $::selinux,
 ) inherits ::nagios::params {
 
   # Full nrpe command to run, with default options
@@ -506,7 +506,7 @@ class nagios::server (
   create_resources (nagios_servicegroup, $servicegroups)
 
   # With selinux, adjustements are needed for nagiosgraph
-  if $selinux and $::selinux_enforced {
+  if $selinux == 'true' and $::selinux_enforced == 'true' {
     selinux::audit2allow { 'nagios':
       source => "puppet:///modules/${module_name}/messages.nagios",
     }
