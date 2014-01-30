@@ -216,6 +216,18 @@ class nagios::server (
   # Realize all nagios related exported resources for this server
   # Automatically reload nagios for relevant configuration changes
   # Require the package for the parent directory to exist initially
+  Nagios_command <<| tag == "nagios-${nagios_server}" |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  Nagios_contact <<| tag == "nagios-${nagios_server}" |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  Nagios_contactgroup <<| tag == "nagios-${nagios_server}" |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
   Nagios_host <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -224,11 +236,19 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+  Nagios_hostgroup <<| tag == "nagios-${nagios_server}" |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
   Nagios_service <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
-  Nagios_command <<| tag == "nagios-${nagios_server}" |>> {
+  Nagios_servicegroup <<| tag == "nagios-${nagios_server}" |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  Nagios_timeperiod <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
@@ -249,11 +269,27 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
-  Nagios_timeperiod {
+  Nagios_host {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  Nagios_hostdependency {
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
   Nagios_hostgroup {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  Nagios_service {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  Nagios_servicegroup {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  Nagios_timeperiod {
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
