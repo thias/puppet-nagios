@@ -37,7 +37,7 @@ class nagios::client (
     # other
     $plugin_dir                  = $nagios::params::plugin_dir,
     $selinux                     = true
-) inherits nagios::params {
+) inherits ::nagios::params {
 
     # Set the variables to be used, including scoped from elsewhere, based on the optional
     # fact or parameter from here
@@ -119,11 +119,11 @@ class nagios::client (
 
     # Enable all default checks by... default
     # Old style with facts overrides
-    include nagios::defaultchecks
+    class { '::nagios::defaultchecks': }
     # New style with hiera overrides
-    class { 'nagios::check::load': }
+    class { '::nagios::check::load': }
     if $::nagios_mysqld == 'true' {
-      class { 'nagios::check::mysql_health': }
+      class { '::nagios::check::mysql_health': }
     }
 
     # With selinux, some nrpe plugins require additional rules to work

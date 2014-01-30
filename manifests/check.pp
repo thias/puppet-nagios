@@ -17,7 +17,7 @@ define nagios::check (
 ) {
 
     # We need to take default values from the nagios::client config
-    include nagios::client
+    class { '::nagios::client': }
 
     # Some constants that don't deserve to be parameters
     $host_name           = $nagios::client::host_name

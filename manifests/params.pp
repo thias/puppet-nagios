@@ -2,12 +2,6 @@
 #
 # Parameters for and from the nagios module.
 #
-# Parameters :
-#  none
-#
-# Sample Usage :
-#  include nagios::params
-#
 class nagios::params {
   $libdir = $::architecture ? {
     'x86_64' => 'lib64',
