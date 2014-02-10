@@ -4,4 +4,5 @@ avc:  denied  { create read write open getattr lock } for  pid=4705 comm="nagios
 # apache process reading
 avc:  denied  { read } for  pid=2511 comm="showgraph.cgi" name="rrd" dev=vda1 ino=136243 scontext=unconfined_u:system_r:httpd_t:s0 tcontext=system_u:object_r:var_spool_t:s0 tclass=dir
 avc:  denied  { getattr read open } for  pid=5832 comm="show.cgi" path="/var/spool/nagiosgraph/rrd/x/swap___swap.rrd" dev=vda1 ino=136432 scontext=unconfined_u:system_r:httpd_t:s0 tcontext=unconfined_u:object_r:var_spool_t:s0 tclass=file
+avc:  denied  { getattr read open } for  pid=11533 comm="show.cgi" path="/var/spool/nagiosgraph/rrd/x/swap___swap.rrd" dev=vda2 ino=138752 scontext=unconfined_u:system_r:httpd_t:s0 tcontext=unconfined_u:object_r:nagios_spool_t:s0 tclass=file
 avc:  denied  { setattr } for  pid=9053 comm="showgraph.cgi" name="fontconfig" dev=vda1 ino=134715 scontext=unconfined_u:system_r:httpd_t:s0 tcontext=system_u:object_r:fonts_cache_t:s0 tclass=dir
