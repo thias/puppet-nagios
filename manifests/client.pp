@@ -121,6 +121,7 @@ class nagios::client (
     # Old style with facts overrides
     class { '::nagios::defaultchecks': }
     # New style with hiera overrides
+    class { '::nagios::check::cpu': }
     class { '::nagios::check::load': }
     if $::nagios_mysqld == 'true' {
       class { '::nagios::check::mysql_health': }

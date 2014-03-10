@@ -1,11 +1,12 @@
 class nagios::check::mysql_health (
-  $args                = undef,
-  $check_period        = undef,
-  $notification_period = undef,
-  $modes_enabled       = [],
-  $modes_disabled      = [],
-  $pkg                 = true,
-  $ensure              = undef,
+  $args                     = undef,
+  $check_period             = undef,
+  $first_notification_delay = undef,
+  $notification_period      = undef,
+  $modes_enabled            = [],
+  $modes_disabled           = [],
+  $pkg                      = true,
+  $ensure                   = undef,
   # Modes
   $args_connection_time          = '',
   $args_uptime                   = '',
@@ -25,12 +26,15 @@ class nagios::check::mysql_health (
   $args_slave_lag                = '',
   $args_slave_io_running         = '',
   $args_slave_sql_running        = '',
-  $args_open_files               = ''
+  $args_open_files               = '',
 ) {
 
   # Generic overrides
   if $check_period {
     Nagios_service { check_period => $::nagios_check_mysql_health_check_period }
+  }
+  if $first_notification_delay {
+    Nagios_service { first_notification_delay => $::nagios_check_mysql_health_first_notification_delay }
   }
   if $notification_period {
     Nagios_service { notification_period => $::nagios_check_mysql_health_notification_period }

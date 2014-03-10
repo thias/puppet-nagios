@@ -3,9 +3,9 @@
 #
 class nagios::defaultchecks {
 
-    if $::nagios_check_cpu_disable != 'true' {
-        nagios::check::cpu { $nagios::client::host_name: }
-    }
+#    if $::nagios_check_cpu_disable != 'true' {
+#        nagios::check::cpu { $nagios::client::host_name: }
+#    }
     if $::nagios_check_disk_disable != 'true' {
         nagios::check::disk { $nagios::client::host_name: }
     }

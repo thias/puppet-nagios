@@ -5,17 +5,18 @@
 # * To be able to use defaults overridden or from facts
 #
 define nagios::service (
-    $server              = $nagios::client::server,
-    $host_name           = $nagios::client::host_name,
+    $server                   = $nagios::client::server,
+    $host_name                = $nagios::client::host_name,
     $check_command,
-    $service_description = $name,
-    $servicegroups       = undef,
-    $check_period        = $nagios::client::service_check_period,
-    $contact_groups      = $nagios::client::service_contact_groups,
-    $max_check_attempts  = $nagios::client::service_max_check_attempts,
-    $notification_period = $nagios::client::service_notification_period,
-    $use                 = $nagios::client::service_use,
-    $ensure              = undef
+    $service_description      = $name,
+    $servicegroups            = undef,
+    $check_period             = $nagios::client::service_check_period,
+    $contact_groups           = $nagios::client::service_contact_groups,
+    $first_notification_delay = $nagios::client::service_first_notification_delay,
+    $max_check_attempts       = $nagios::client::service_max_check_attempts,
+    $notification_period      = $nagios::client::service_notification_period,
+    $use                      = $nagios::client::service_use,
+    $ensure                   = undef,
 ) {
 
     # Work around being passed undefined variables resulting in ''
@@ -37,18 +38,19 @@ define nagios::service (
     }
 
     @@nagios_service { $title:
-        host_name           => $host_name,
-        check_command       => $check_command,
-        service_description => $service_description,
-        servicegroups       => $servicegroups,
-        check_period        => $final_check_period,
-        contact_groups      => $contact_groups,
-        max_check_attempts  => $final_max_check_attempts,
-        notification_period => $final_notification_period,
-        use                 => $final_use,
+        host_name                => $host_name,
+        check_command            => $check_command,
+        service_description      => $service_description,
+        servicegroups            => $servicegroups,
+        check_period             => $final_check_period,
+        contact_groups           => $contact_groups,
+        first_notification_delay => $first_notification_delay,
+        max_check_attempts       => $final_max_check_attempts,
+        notification_period      => $final_notification_period,
+        use                      => $final_use,
         # Support an arrays of tags for multiple nagios servers
-        tag                 => regsubst($server,'^(.+)$','nagios-\1'),
-        ensure              => $ensure,
+        tag                      => regsubst($server,'^(.+)$','nagios-\1'),
+        ensure                   => $ensure,
     }
 
 }
