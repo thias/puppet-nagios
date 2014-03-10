@@ -1,5 +1,7 @@
+2014-03-10 - 0.4.4
 * Enable declaring all types from the server class, useful with hiera.
 * Allow httpd_t to read nagios_spool_t files too.
+* Add support for first_notification_delay in class based checks.
 
 2014-01-30 - 0.4.3
 * Remove server udp sub-package, now part of the tcp package as of 1.4.15-2.
