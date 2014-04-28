@@ -64,8 +64,6 @@ class nagios::server (
     $user = {
         '1' => $nagios::params::plugin_dir,
     },
-    # Options for all nrpe-based checks
-    $nrpe_options   = '-t 15',
     # Contacts and Contact Groups
     $admins_members = 'nagiosadmin',
     # Others
@@ -77,9 +75,6 @@ class nagios::server (
     $plugin_xcache        = false,
     $selinux              = true
 ) inherits nagios::params {
-
-    # Full nrpe command to run, with default options
-    $nrpe = "\$USER1\$/check_nrpe -H \$HOSTADDRESS\$ ${nrpe_options}"
 
     # Plugin packages required on the server side
     package { [
