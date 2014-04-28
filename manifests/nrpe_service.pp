@@ -42,8 +42,7 @@ define nagios::nrpe_service (
   # FIXME: without nagios::client, applying a manifest with only an
   #        nrpe_service fails because it doesn't find Service['nrpe']
   include nagios::client
-
-  include nagios::server
+  include nagios::params
 
   # client-side definition of nrpe command
   # goes in /etc/nagios/nrpe.d/nrpe-$name.cfg
@@ -60,7 +59,7 @@ define nagios::nrpe_service (
   nagios_command { "check_nrpe_${name}":
     ensure       => $ensure,
     # -u turns socket timeout into unknowns
-    command_line => "${nagios::server::nrpe} -u -c check_${name}"
+    command_line => "${nagios::params::nrpe} -u -c check_${name}"
   }
 
   # server-side definition of nagios service to check
