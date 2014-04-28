@@ -12,7 +12,7 @@ class nagios::params {
     $libdir = $::architecture ? {
         'x86_64' => 'lib64',
         'amd64'  => 'lib64',
-         default => 'lib',
+        default  => 'lib',
     }
     # The easy bunch
     $nagios_service = 'nagios'
@@ -69,27 +69,27 @@ class nagios::params {
         'nagios-plugins-swap',
         'nagios-plugins-users',
     ]
-    case $operatingsystem {
+    case $::operatingsystem {
         'Fedora': {
             $plugin_dir = "/usr/${libdir}/nagios/plugins"
             @package { $nagios_plugins_packages:
-                tag    => $name,
                 ensure => installed,
+                tag    => $name,
             }
         }
         'Gentoo': {
             $plugin_dir = "/usr/${libdir}/nagios/plugins"
             # No package splitting in Gentoo
             @package { 'net-analyzer/nagios-plugins':
-                tag    => $nagios_plugins_packages,
                 ensure => installed,
+                tag    => $nagios_plugins_packages,
             }
         }
         default: {
             $plugin_dir = '/usr/libexec/nagios/plugins'
             @package { $nagios_plugins_packages:
-                tag    => $name,
                 ensure => installed,
+                tag    => $name,
             }
         }
     }
