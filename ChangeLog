@@ -1,4 +1,5 @@
 * Update params.pp for CentOS, add pid_file (paths should match EPEL packages).
+* Update and fix nrpe SELinux messages for RHEL7.
 
 2014-03-10 - 0.4.4
 * Enable declaring all types from the server class, useful with hiera.
