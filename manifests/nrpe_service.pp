@@ -29,7 +29,7 @@
 #
 define nagios::nrpe_service (
   $plugin,
-  $args,
+  $args = undef,
   $sudo = false,
   $sudo_user = undef,
   $ensure = present,
