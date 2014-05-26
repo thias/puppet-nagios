@@ -1,3 +1,6 @@
+2014-05-26 - 0.4.6
+* Update nrpe messages file.
+
 2014-05-05 - 0.4.5
 * Update params.pp for CentOS, add pid_file (paths should match EPEL packages).
 * Update and fix nrpe SELinux messages for RHEL7.
