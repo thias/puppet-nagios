@@ -45,6 +45,7 @@ class nagios::server (
 #        '/etc/nagios/nagios_hostdependency.cfg',
         '/etc/nagios/nagios_hostgroup.cfg',
         '/etc/nagios/nagios_service.cfg',
+        '/etc/nagios/nagios_servicedependency.cfg',
         '/etc/nagios/nagios_servicegroup.cfg',
         '/etc/nagios/nagios_timeperiod.cfg',
     ],
@@ -223,6 +224,10 @@ class nagios::server (
         notify  => Service['nagios'],
         require => Package['nagios'],
     }
+    Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>> {
+        notify  => Service['nagios'],
+        require => Package['nagios'],
+    }
     # Auto reload and parent dir, but for non-exported resources
     # FIXME: This does not work from outside here, wrong scope.
     # We'll need to wrap around these types with our own
@@ -257,6 +262,7 @@ class nagios::server (
         'nagios_hostdependency',
         'nagios_hostgroup',
         'nagios_service',
+        'nagios_servicedependency',
         'nagios_servicegroup',
         'nagios_timeperiod',
     ]:
