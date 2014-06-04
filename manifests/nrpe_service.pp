@@ -33,11 +33,14 @@ define nagios::nrpe_service (
   $sudo = false,
   $sudo_user = undef,
   $ensure = present,
+  $depends_on_nrpe = undef,
 ) {
 
   if (' ' in $name) {
     fail("name ${name} cannot contain spaces")
   }
+
+  $host_name = $nagios::client::host_name
 
   # FIXME: without nagios::client, applying a manifest with only an
   #        nrpe_service fails because it doesn't find Service['nrpe']
@@ -65,11 +68,20 @@ define nagios::nrpe_service (
   # server-side definition of nagios service to check
   # we use the nagios client host_name because the service name needs to
   # be unique over all clients on the server
-  nagios::service { "${name}_nrpe_from_${nagios::client::host_name}":
+  nagios::service { "${name}_nrpe_from_${host_name}":
     ensure        => $ensure,
     check_command => "check_nrpe_${name}",
     use           => 'nrpe-service',
     require       => Service['nrpe'],
+  }
+
+  if ($depends_on_nrpe) {
+    nagios::servicedependency {
+      "${name} dep on ${depends_on_nrpe} on ${host_name}":
+      ensure                        => present,
+      dependent_service_description => "${name}_nrpe_from_${host_name}",
+      service_description           => "${depends_on_nrpe}_nrpe_from_${host_name}",
+    }
   }
 
 }
