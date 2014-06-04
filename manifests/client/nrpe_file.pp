@@ -7,6 +7,7 @@ define nagios::client::nrpe_file (
     $template   = 'check_generic',
     $command    = $name,
     $sudo       = false,
+    $sudo_user  = undef,
     $args       = false,
     $ensure     = undef
 ) {

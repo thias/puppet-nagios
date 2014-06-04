@@ -8,11 +8,14 @@
 # Sample Usage :
 #  include nagios::params
 #
-class nagios::params {
+class nagios::params (
+  # Options for all nrpe-based checks
+  $nrpe_options   = '-t 15',
+) {
     $libdir = $::architecture ? {
         'x86_64' => 'lib64',
         'amd64'  => 'lib64',
-         default => 'lib',
+        default  => 'lib',
     }
     # The easy bunch
     $nagios_service = 'nagios'
@@ -20,6 +23,10 @@ class nagios::params {
     # nrpe
     $nrpe_service   = 'nrpe'
     $nrpe_cfg_file  = '/etc/nagios/nrpe.cfg'
+
+    # Full nrpe command to run, with default options
+    $nrpe = "\$USER1\$/check_nrpe -H \$HOSTADDRESS\$ ${nrpe_options}"
+
     case $::operatingsystem {
         'Gentoo': {
             $nrpe_package       = [ 'net-analyzer/nrpe' ]
@@ -69,27 +76,27 @@ class nagios::params {
         'nagios-plugins-swap',
         'nagios-plugins-users',
     ]
-    case $operatingsystem {
+    case $::operatingsystem {
         'Fedora': {
             $plugin_dir = "/usr/${libdir}/nagios/plugins"
             @package { $nagios_plugins_packages:
-                tag    => $name,
                 ensure => installed,
+                tag    => $name,
             }
         }
         'Gentoo': {
             $plugin_dir = "/usr/${libdir}/nagios/plugins"
             # No package splitting in Gentoo
             @package { 'net-analyzer/nagios-plugins':
-                tag    => $nagios_plugins_packages,
                 ensure => installed,
+                tag    => $nagios_plugins_packages,
             }
         }
         default: {
             $plugin_dir = '/usr/libexec/nagios/plugins'
             @package { $nagios_plugins_packages:
-                tag    => $name,
                 ensure => installed,
+                tag    => $name,
             }
         }
     }
