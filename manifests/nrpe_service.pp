@@ -20,6 +20,9 @@
 # [* sudo_user *]
 #   If specified, what user to run sudo as
 #
+# [* use_extra *]
+#   Array of extra items for the use argument, in addition to nrpe-service
+#
 # == Examples
 #
 #  nagios::nrpe_service { "sentry_9100":
@@ -34,6 +37,7 @@ define nagios::nrpe_service (
   $sudo_user = undef,
   $ensure = present,
   $depends_on_nrpe = undef,
+  $use_extra = [],
 ) {
 
   if (' ' in $name) {
@@ -68,19 +72,28 @@ define nagios::nrpe_service (
   # server-side definition of nagios service to check
   # we use the nagios client host_name because the service name needs to
   # be unique over all clients on the server
+  if ($use_extra) {
+    $use = inline_template('<%= (["nrpe-service"] + @use_extra).join(",") %>')
+  } else {
+    $use = 'nrpe-service'
+  }
+
   nagios::service { "${name}_nrpe_from_${host_name}":
     ensure        => $ensure,
     check_command => "check_nrpe_${name}",
-    use           => 'nrpe-service',
+    use           => $use,
     require       => Service['nrpe'],
   }
 
   if ($depends_on_nrpe) {
+    $dependent_description = "${name}_nrpe_from_${host_name}"
+    $description = "${depends_on_nrpe}_nrpe_from_${host_name}"
+
     nagios::servicedependency {
       "${name} dep on ${depends_on_nrpe} on ${host_name}":
       ensure                        => present,
-      dependent_service_description => "${name}_nrpe_from_${host_name}",
-      service_description           => "${depends_on_nrpe}_nrpe_from_${host_name}",
+      dependent_service_description => $dependent_description,
+      service_description           => $description,
     }
   }
 
