@@ -1,3 +1,5 @@
+* Update nagiosgraph.pp to use the same $apache_allowed_from as server.
+
 2014-06-03 - 0.4.7
 * Update nrpe messages file.
 
