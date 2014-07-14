@@ -17,8 +17,9 @@ class nagios::server (
     'cgi',
   ],
   # The apache config snippet, more useful as a template when using a custom
-  $apache_httpd_conf_content    = template('nagios/apache_httpd/httpd-nagios.conf.erb'),
-  $apache_allowed_from          = [],   # Allow access to the web in the previous template
+  $apache_httpd_conf_content    = undef,
+  $apache_httpd_conf_source     = undef,
+  $apache_allowed_from          = [],   # Allow access in default template
   $apache_httpd_htpasswd_source = "puppet:///modules/${module_name}/apache_httpd/htpasswd",
   $php     = true,
   $php_apc = true,
@@ -163,11 +164,20 @@ class nagios::server (
     require   => Package['nagios'],
   }
 
+  # Set a default content template if no content/source is specified
+  if $apache_httpd_conf_source == '' {
+    if $apache_httpd_conf_content == '' {
+      $apache_httpd_conf_content_final = template("${module_name}/apache_httpd/httpd-nagios.conf.erb")
+    } else {
+      $apache_httpd_conf_content_final = $apache_httpd_conf_content
+    }
+  }
   file { '/etc/httpd/conf.d/nagios.conf':
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    content => $apache_httpd_conf_content,
+    content => $apache_httpd_conf_content_final,
+    source  => $apache_httpd_conf_source,
     notify  => Service['httpd'],
     require => Package['nagios'],
   }

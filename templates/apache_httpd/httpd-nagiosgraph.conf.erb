@@ -3,11 +3,13 @@ ScriptAlias /nagiosgraph/cgi-bin "/usr/libexec/nagiosgraph/cgi-bin"
 <Directory "/usr/libexec/nagiosgraph/cgi-bin">
    Options ExecCGI
    AllowOverride None
+<% if !@apache_allowed_from.empty? -%>
    Order Deny,Allow
    Deny from all
    Allow from 127.0.0.1
 <% @apache_allowed_from.each do |val| -%>
    Allow from <%= val %>
+<% end -%>
 <% end -%>
    AuthType Basic
    AuthUserFile /etc/nagios/.htpasswd
@@ -19,11 +21,13 @@ Alias /nagiosgraph "/usr/share/nagiosgraph/htdocs"
 <Directory "/usr/share/nagiosgraph/htdocs">
    Options None
    AllowOverride None
+<% if !@apache_allowed_from.empty? -%>
    Order Deny,Allow
    Deny from all
    Allow from 127.0.0.1
 <% @apache_allowed_from.each do |val| -%>
    Allow from <%= val %>
+<% end -%>
 <% end -%>
    AuthType Basic
    AuthUserFile /etc/nagios/.htpasswd

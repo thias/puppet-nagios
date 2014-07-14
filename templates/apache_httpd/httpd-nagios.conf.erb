@@ -1,11 +1,13 @@
 ScriptAlias /nagios/cgi-bin/ /usr/<%= scope.lookupvar("nagios::params::libdir") %>/nagios/cgi-bin/
 <Directory /usr/<%= scope.lookupvar("nagios::params::libdir") %>/nagios/cgi-bin/>
    Options ExecCGI
+<% if !@apache_allowed_from.empty? -%>
    Order Deny,Allow
    Deny from all
    Allow from 127.0.0.1
 <% @apache_allowed_from.each do |val| -%>
    Allow from <%= val %>
+<% end -%>
 <% end -%>
    AuthType Basic
    AuthUserFile /etc/nagios/.htpasswd
@@ -16,11 +18,13 @@ ScriptAlias /nagios/cgi-bin/ /usr/<%= scope.lookupvar("nagios::params::libdir") 
 Alias /nagios/ /usr/share/nagios/html/
 <Directory /usr/share/nagios/html/>
    Options FollowSymlinks
+<% if !@apache_allowed_from.empty? -%>
    Order Deny,Allow
    Deny from all
    Allow from 127.0.0.1
 <% @apache_allowed_from.each do |val| -%>
    Allow from <%= val %>
+<% end -%>
 <% end -%>
    AuthType Basic
    AuthUserFile /etc/nagios/.htpasswd
