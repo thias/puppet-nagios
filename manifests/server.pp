@@ -104,7 +104,6 @@ class nagios::server (
     'nagios',
     'nagios-plugins-dhcp',
     'nagios-plugins-dns',
-    'nagios-plugins-http',
     'nagios-plugins-icmp',
     'nagios-plugins-ldap',
     'nagios-plugins-nrpe',
@@ -116,6 +115,8 @@ class nagios::server (
   ]:
     ensure => installed,
   }
+  # Plugin packages required on both the client and server sides
+  Package <| tag == 'nagios-plugins-http' |>
 
   # Custom plugin scripts required on the server
   if $plugin_nginx {

@@ -9,7 +9,7 @@ define nagios::check::http (
 ) {
 
   if $ensure != 'absent' {
-    Package <<| tag == 'nagios-plugins-http' |>>
+    Package <| tag == 'nagios-plugins-http' |>
   }
 
   nagios::client::nrpe_file { "check_http_${title}":
