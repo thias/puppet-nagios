@@ -1,6 +1,7 @@
 * Update nagiosgraph.pp to use the same $apache_allowed_from as server.
 * Fix main default httpd configuration file.
 * Add /usr/sbin/mysqld to the list of locations for the mysqld fact.
+* Include new http_perf plugin.
 
 2014-06-03 - 0.4.7
 * Update nrpe messages file.
