@@ -2,6 +2,7 @@
 * Fix main default httpd configuration file.
 * Add /usr/sbin/mysqld to the list of locations for the mysqld fact.
 * Include new http check using the http plugin.
+* New nrpe_service definition (#23, @thomasvs).
 
 2014-06-03 - 0.4.7
 * Update nrpe messages file.
