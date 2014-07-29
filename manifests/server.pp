@@ -99,7 +99,7 @@ class nagios::server (
 ) inherits ::nagios::params {
 
   # Full nrpe command to run, with default options
-  $nrpe = "\$USER1\$/check_nrpe -H \$HOSTADDRESS\$ ${nrpe_options}"
+  $nrpe = "${nrpe_command} ${nrpe_options}"
 
   # Plugin packages required on the server side
   package { [
