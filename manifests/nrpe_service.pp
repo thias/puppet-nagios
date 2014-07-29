@@ -31,25 +31,25 @@
 #  }
 #
 define nagios::nrpe_service (
+  $ensure          = present,
   $plugin,
-  $args = undef,
-  $sudo = false,
-  $sudo_user = undef,
-  $ensure = present,
+  $args            = undef,
+  $sudo            = false,
+  $sudo_user       = undef,
   $depends_on_nrpe = undef,
-  $use_extra = [],
+  $use_extra       = [],
 ) {
 
   if (' ' in $name) {
     fail("name ${name} cannot contain spaces")
   }
 
-  $host_name = $nagios::client::host_name
+  $host_name = $::nagios::client::host_name
 
   # FIXME: without nagios::client, applying a manifest with only an
   #        nrpe_service fails because it doesn't find Service['nrpe']
-  include nagios::client
-  include nagios::params
+  include '::nagios::client'
+  include '::nagios::params'
 
   # client-side definition of nrpe command
   # goes in /etc/nagios/nrpe.d/nrpe-$name.cfg
@@ -66,14 +66,15 @@ define nagios::nrpe_service (
   nagios_command { "check_nrpe_${name}":
     ensure       => $ensure,
     # -u turns socket timeout into unknowns
-    command_line => "${nagios::params::nrpe} -u -c check_${name}"
+    command_line => "${::nagios::params::nrpe} -u -c check_${name}"
   }
 
   # server-side definition of nagios service to check
   # we use the nagios client host_name because the service name needs to
   # be unique over all clients on the server
   if ($use_extra) {
-    $use = inline_template('<%= (["nrpe-service"] + @use_extra).join(",") %>')
+    $use_extra_string = join($user_extra,',')
+    $use = "nrpe-service,${use_extra_string}"
   } else {
     $use = 'nrpe-service'
   }
@@ -98,3 +99,4 @@ define nagios::nrpe_service (
   }
 
 }
+
