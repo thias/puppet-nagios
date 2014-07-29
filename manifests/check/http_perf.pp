@@ -8,7 +8,9 @@ define nagios::check::http_perf (
   $ensure              = $::nagios_check_http_perf_ensure,
 ) {
 
-  include '::nagios::plugin::http_perf'
+  if $ensure != 'absent' {
+    include '::nagios::plugin::http_perf'
+  }
 
   nagios::client::nrpe_file { "check_http_perf_${title}":
     ensure => $ensure,

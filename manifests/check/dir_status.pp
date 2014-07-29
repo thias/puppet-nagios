@@ -8,7 +8,9 @@ define nagios::check::dir_status (
   $ensure              = $::nagios_check_dir_status_ensure,
 ) {
 
-  include '::nagios::plugin::dir_status'
+  if $ensure != 'absent' {
+    include '::nagios::plugin::dir_status'
+  }
 
   nagios::client::nrpe_file { "check_dir_status_${title}":
     ensure => $ensure,
