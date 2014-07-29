@@ -1,8 +1,3 @@
-  $nrpe_options = $::nagios::params::nrpe_options,
-  $nrpe_command = $::nagios::params::nrpe_command,
-
-  $nrpe = "${nrpe_command} ${nrpe_options}"
-
 class nagios::server (
   # For the tag of the stored configuration to realize
   $nagios_server        = 'default',
