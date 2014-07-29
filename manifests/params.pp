@@ -16,6 +16,8 @@ class nagios::params {
   # nrpe
   $nrpe_service   = 'nrpe'
   $nrpe_cfg_file  = '/etc/nagios/nrpe.cfg'
+  $nrpe_command   = '$USER1$/check_nrpe -H $HOSTADDRESS$'
+  $nrpe_options   = '-t 15',
 
   # Optional plugin packages, to be realized by tag where needed
   # Note: We use tag, because we can't use alias for 2 reasons :

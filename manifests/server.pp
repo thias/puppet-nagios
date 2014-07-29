@@ -1,3 +1,8 @@
+  $nrpe_options = $::nagios::params::nrpe_options,
+  $nrpe_command = $::nagios::params::nrpe_command,
+
+  $nrpe = "${nrpe_command} ${nrpe_options}"
+
 class nagios::server (
   # For the tag of the stored configuration to realize
   $nagios_server        = 'default',
@@ -42,6 +47,7 @@ class nagios::server (
     '/etc/nagios/nagios_hostdependency.cfg',
     '/etc/nagios/nagios_hostgroup.cfg',
     '/etc/nagios/nagios_service.cfg',
+    '/etc/nagios/nagios_servicedependency.cfg',
     '/etc/nagios/nagios_servicegroup.cfg',
     '/etc/nagios/nagios_timeperiod.cfg',
   ],
@@ -59,17 +65,18 @@ class nagios::server (
   $admin_pager = 'pagenagios@localhost',
   # private/resource.cfg for $USERx$ macros (from 1 to 32)
   $user = {
-    '1' => $nagios::params::plugin_dir,
+    '1' => $::nagios::params::plugin_dir,
   },
-  # Options for all nrpe-based checks
-  $nrpe_options   = '-t 15',
+  # Command and options for all nrpe-based checks
+  $nrpe_command   = $::nagios::params::nrpe_command,
+  $nrpe_options   = $::nagios::params::nrpe_options,
   # Contacts and Contact Groups
   $admins_members = 'nagiosadmin',
   # Others
   $notify_host_by_email_command_line    = '/usr/bin/printf "%b" "***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $HOSTOUTPUT$\n\nDate/Time: $LONGDATETIME$\n" | /bin/mail -s "** $NOTIFICATIONTYPE$ Host Alert: $HOSTNAME$ is $HOSTSTATE$ **" $CONTACTEMAIL$',
   $notify_service_by_email_command_line = '/usr/bin/printf "%b" "***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $LONGDATETIME$\n\nAdditional Info:\n\n$SERVICEOUTPUT$" | /bin/mail -s "** $NOTIFICATIONTYPE$ Service Alert: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **" $CONTACTEMAIL$',
   $timeperiod_workhours = '09:00-17:00',
-  $plugin_dir           = $nagios::params::plugin_dir,
+  $plugin_dir           = $::nagios::params::plugin_dir,
   $plugin_nginx         = false,
   $plugin_xcache        = false,
   $selinux              = $::selinux,
@@ -263,6 +270,10 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+  Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
   Nagios_servicegroup <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -337,6 +348,7 @@ class nagios::server (
     '/etc/nagios/nagios_hostdependency.cfg',
     '/etc/nagios/nagios_hostgroup.cfg',
     '/etc/nagios/nagios_service.cfg',
+    '/etc/nagios/nagios_servicedependency.cfg',
     '/etc/nagios/nagios_servicegroup.cfg',
     '/etc/nagios/nagios_timeperiod.cfg',
   ]:
