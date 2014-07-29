@@ -24,6 +24,7 @@ class nagios::params {
   $nagios_plugins_packages = [
     'nagios-plugins-disk',
     'nagios-plugins-file_age',
+    'nagios-plugins-http',
     'nagios-plugins-ide_smart',
     'nagios-plugins-ifstatus',
     'nagios-plugins-linux_raid',
