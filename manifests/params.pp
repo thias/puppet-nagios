@@ -77,6 +77,8 @@ class nagios::params {
     'Debian': {
       $nrpe_package       = [ 'nagios-nrpe-server' ]
       $nrpe_package_alias = 'nrpe'
+      #Overwrite for debian
+      $nrpe_service       = 'nagios-nrpe-server'
       $nrpe_user          = 'nagios'
       $nrpe_group         = 'nagios'
       $nrpe_pid_file      = '/run/nrpe.pid'
