@@ -81,7 +81,7 @@ class nagios::params {
       $nrpe_group         = 'nagios'
       $nrpe_pid_file      = '/run/nrpe.pid'
       $nrpe_cfg_dir       = '/etc/nagios/nrpe.d'
-      $plugin_dir         = "/usr/${libdir}/nagios/plugins"
+      $plugin_dir         = "/usr/lib/nagios/plugins"
       $pid_file           = '/run/nagios.pid'
       $megaclibin         = '/opt/bin/MegaCli'
       # No package splitting in Debian
