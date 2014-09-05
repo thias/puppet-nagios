@@ -2,7 +2,7 @@ define nagios::check::megaraid_sas (
     $ensure = undef,
     $args = '',
     $pkg = true,
-    $megaclibin = $::nagios::params::megaclibin
+    $megaclibin = $::nagios::params::megaclibin,
 ) {
 
     # Generic overrides
@@ -43,10 +43,15 @@ define nagios::check::megaraid_sas (
             'Gentoo' => 'sys-block/megacli',
              default => 'megacli',
         }
+        if $::nagios_check_megaraid_sas_version != '' {
+          $ensure_value = $::nagios_check_megaraid_sas_version
+        } else {
+          $ensure_value = 'installed'
+        }
         package { $pkgname:
             ensure => $ensure ? {
                 'absent' => 'absent',
-                 default => 'installed',
+                 default => $ensure_value
             }
         }
     }
