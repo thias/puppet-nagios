@@ -83,7 +83,7 @@ define nagios::nrpe_service (
     ensure        => $ensure,
     check_command => "check_nrpe_${name}",
     use           => $use,
-    require       => Service['nrpe'],
+    require       => Service[$nagios::params::nrpe_service],
   }
 
   if ($depends_on_nrpe) {

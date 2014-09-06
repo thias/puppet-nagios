@@ -14,7 +14,6 @@ class nagios::params {
   $nagios_service = 'nagios'
   $nagios_user    = 'nagios'
   # nrpe
-  $nrpe_service   = 'nrpe'
   $nrpe_cfg_file  = '/etc/nagios/nrpe.cfg'
   $nrpe_command   = '$USER1$/check_nrpe -H $HOSTADDRESS$'
   $nrpe_options   = '-t 15'
@@ -46,6 +45,7 @@ class nagios::params {
   case $::operatingsystem {
     'RedHat', 'Fedora', 'CentOS', 'Scientific': {
       $nrpe_package       = [ 'nrpe', 'nagios-plugins' ]
+      $nrpe_service       = 'nrpe'
       $nrpe_user          = 'nrpe'
       $nrpe_group         = 'nrpe'
       $nrpe_pid_file      = hiera('nagios::params::nrpe_pid_file','/var/run/nrpe.pid')
@@ -61,6 +61,7 @@ class nagios::params {
     'Gentoo': {
       $nrpe_package       = [ 'net-analyzer/nrpe' ]
       $nrpe_package_alias = 'nrpe'
+      $nrpe_service       = 'nrpe'
       $nrpe_user          = 'nagios'
       $nrpe_group         = 'nagios'
       $nrpe_pid_file      = '/run/nrpe.pid'
@@ -74,8 +75,26 @@ class nagios::params {
         tag    => $nagios_plugins_packages,
       }
     }
+    'Debian': {
+      $nrpe_package       = [ 'nagios-nrpe-server' ]
+      $nrpe_package_alias = 'nrpe'
+      $nrpe_service       = 'nagios-nrpe-server'
+      $nrpe_user          = 'nagios'
+      $nrpe_group         = 'nagios'
+      $nrpe_pid_file      = '/run/nrpe.pid'
+      $nrpe_cfg_dir       = '/etc/nagios/nrpe.d'
+      $plugin_dir         = "/usr/lib/nagios/plugins"
+      $pid_file           = '/run/nagios.pid'
+      $megaclibin         = '/opt/bin/MegaCli'
+      # No package splitting in Debian
+      @package { 'nagios-plugins':
+        ensure => installed,
+        tag    => $nagios_plugins_packages,
+      }
+    }
     default: {
       $nrpe_package       = [ 'nrpe', 'nagios-plugins' ]
+      $nrpe_service       = 'nrpe'
       $nrpe_user          = 'nrpe'
       $nrpe_group         = 'nrpe'
       $nrpe_pid_file      = hiera('nagios::params::nrpe_pid_file','/var/run/nrpe.pid')

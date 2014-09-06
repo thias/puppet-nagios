@@ -17,7 +17,7 @@ define nagios::client::nrpe_file (
         group   => $nagios::client::nrpe_group,
         mode    => '0640',
         content => template("nagios/nrpe-${template}.cfg.erb"),
-        notify  => Service['nrpe'],
+        notify  => Service[$nagios::params::nrpe_service],
         ensure  => $ensure,
     }
 

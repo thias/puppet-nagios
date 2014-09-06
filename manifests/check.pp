@@ -52,7 +52,7 @@ define nagios::check (
         group   => $nagios::client::nrpe_group,
         mode    => '0640',
         content => "command[check_${title}]=${executable}\n",
-        notify  => Service['nrpe'],
+        notify  => Service[$nagios::params::nrpe_service],
         ensure  => $ensure,
     }
 
