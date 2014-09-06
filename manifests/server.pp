@@ -32,6 +32,7 @@ class nagios::server (
   $cgi_authorized_for_all_service_commands      = 'nagiosadmin',
   $cgi_authorized_for_all_host_commands         = 'nagiosadmin',
   $cgi_default_statusmap_layout                 = '5',
+  $cgi_result_limit                             = '100',
   # nagios.cfg
   $cfg_file = [
     # Where puppet managed types are
