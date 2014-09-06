@@ -196,3 +196,16 @@ warning and critical values as needed :
     # Tweak some check values
     nagios::check::mysql_health::args_connection_time: '--warning 5 --critical 10'
 
+## Removing hosts
+
+If you decommission a Nagios-monitored host a couple of manual steps are required
+to clean up.
+
+    # On the Puppet Master
+    puppet node deactivate <my_host>
+    
+    # On the Nagios server
+    puppet agent -t
+    service nagios restart
+
+See [Issue #21](https://github.com/thias/puppet-nagios/issues/21) on why the service restart is required.
