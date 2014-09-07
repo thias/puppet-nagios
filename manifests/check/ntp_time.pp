@@ -1,6 +1,10 @@
 define nagios::check::ntp_time ( $args = '' ) {
 
     # Generic overrides
+    if $::nagios_check_ntp_time_ensure != 'absent' {
+      Package <| tag == 'nagios-plugins-ntp' |>
+    }
+
     if $::nagios_check_ntp_time_check_period != '' {
         Nagios_service { check_period => $::nagios_check_ntp_time_check_period }
     }
@@ -19,14 +23,11 @@ define nagios::check::ntp_time ( $args = '' ) {
     } else {
         $critical = '2'
     }
-
     if $::nagios_check_ntp_time_target != '' {
         $target = $::nagios_check_ntp_time_target
     } else {
         $target = '1.rhel.pool.ntp.org'
     }
-
-    Package <| tag == 'nagios-plugins-ntp' |>
 
     nagios::client::nrpe_file { 'check_ntp_time':
         args => "-H ${target} -w ${warning} -c ${critical} ${args}",
