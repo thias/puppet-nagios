@@ -20,10 +20,16 @@ define nagios::check::ntp_time ( $args = '' ) {
         $critical = '2'
     }
 
+    if $::nagios_check_ntp_time_target != '' {
+        $target = $::nagios_check_ntp_time_target
+    } else {
+        $target = '1.rhel.pool.ntp.org'
+    }
+
     Package <| tag == 'nagios-plugins-ntp' |>
 
     nagios::client::nrpe_file { 'check_ntp_time':
-        args => "-H 1.rhel.pool.ntp.org -w ${warning} -c ${critical} ${args}",
+        args => "-H ${target} -w ${warning} -c ${critical} ${args}",
     }
 
     nagios::service { "check_ntp_time_${title}":
