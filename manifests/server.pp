@@ -465,6 +465,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_moxi':
     command_line => "${nrpe} -c check_moxi",
   }
+  nagios_command { 'check_nrpe_memcached':
+    command_line => "${nrpe} -c check_memcached",
+  }
   # Custom NRPE-based commands using custom plugins, conditionally enabled
   nagios_command { 'check_nrpe_megaraid_sas':
     command_line => "${nrpe} -c check_megaraid_sas",

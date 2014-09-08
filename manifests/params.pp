@@ -53,6 +53,7 @@ class nagios::params {
       $plugin_dir         = hiera('nagios::params::plugin_dir',"/usr/${libdir}/nagios/plugins")
       $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios.pid')
       $megaclibin         = '/usr/sbin/MegaCli'
+      $perl_memcached     = 'perl-Cache-Memcached'
       @package { $nagios_plugins_packages:
         ensure => installed,
         tag    => $name,
@@ -69,6 +70,7 @@ class nagios::params {
       $plugin_dir         = "/usr/${libdir}/nagios/plugins"
       $pid_file           = '/run/nagios.pid'
       $megaclibin         = '/opt/bin/MegaCli'
+      $perl_memcached     = 'dev-perl/Cache-Memcached'
       # No package splitting in Gentoo
       @package { 'net-analyzer/nagios-plugins':
         ensure => installed,
@@ -86,6 +88,7 @@ class nagios::params {
       $plugin_dir         = '/usr/lib/nagios/plugins'
       $pid_file           = '/run/nagios.pid'
       $megaclibin         = '/opt/bin/MegaCli'
+      $perl_memcached     = 'libcache-memcached-perl'
       # No package splitting in Debian
       @package { 'nagios-plugins':
         ensure => installed,
@@ -101,7 +104,8 @@ class nagios::params {
       $nrpe_cfg_dir       = hiera('nagios::params::nrpe_cfg_dir','/etc/nagios/nrpe.d')
       $plugin_dir         = hiera('nagios::params::plugin_dir','/usr/libexec/nagios/plugins')
       $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios.pid')
-      $megaclibin         = '/usr/sbin/MegaCli'
+      $megaclibin         = hiera('nagios::params::megaclibin','/usr/sbin/MegaCli')
+      $perl_memcached     = hiera('nagios::params::perl_memcached','perl-Cache-Memcached')
       @package { $nagios_plugins_packages:
         ensure => installed,
         tag    => $name,

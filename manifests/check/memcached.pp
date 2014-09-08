@@ -1,42 +1,48 @@
-define nagios::check::memcached (
-    $ensure = undef,
-    $args = ''
+class nagios::check::memcached (
+  $ensure                   = undef,
+  $args                     = '-U 75,90 -f',
+  $check_title              = $::nagios::client::host_name,
+  $servicegroups            = undef,
+  $check_period             = $::nagios::client::service_check_period,
+  $contact_groups           = $::nagios::client::service_contact_groups,
+  $first_notification_delay = $::nagios::client::first_notification_delay,
+  $max_check_attempts       = $::nagios::client::service_max_check_attempts,
+  $notification_period      = $::nagios::client::service_notification_period,
+  $use                      = $::nagios::client::service_use,
 ) {
 
-    # Generic overrides
-    if $::nagios_check_memcached_check_period != '' {
-        Nagios_service { check_period => $::nagios_check_memcached_check_period }
-    }
-    if $::nagios_check_memcached_notification_period != '' {
-        Nagios_service { notification_period => $::nagios_check_memcached_notification_period }
-    }
+  # Service specific script
+  package { $::nagios::params::perl_memcached: ensure => installed }
+  file { "${nagios::client::plugin_dir}/check_memcached":
+    ensure  => $ensure,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0755',
+    content => template('nagios/plugins/check_memcached'),
+  }
 
-    # Service specific overrides
-    if $::nagios_check_memcached_args != '' {
-        $fullargs = $::nagios_check_memcached_args
-    } else {
-        $fullargs = $args
-    }
+  # Include default host (-H) and port (-p) if no override in $args
+  if $args !~ /-H/ { $arg_host = '-H 127.0.0.1 ' }
+  if $args !~ /-p/ { $arg_port = '-p 11211 ' }
+  $fullargs = "${arg_host}${arg_port}${args}"
 
-    file { "${nagios::client::plugin_dir}/check_memcached":
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0755',
-        content => template('nagios/plugins/check_memcached.erb'),
-        ensure  => $ensure,
-    }
+  nagios::client::nrpe_file { 'check_memcached':
+    ensure  => $ensure,
+    args    => $fullargs,
+  }
 
-    nagios::client::nrpe_file { 'check_memcached':
-        args    => $fullargs,
-        ensure  => $ensure,
-    }
-
-    nagios::service { "check_memcached_${title}":
-        check_command       => 'check_nrpe_memcached',
-        service_description => 'memcached',
-        #servicegroups       => 'memcached',
-        ensure              => $ensure,
-    }
+  nagios::service { "check_memcached_${check_title}":
+    ensure                   => $ensure,
+    check_command            => 'check_nrpe_memcached',
+    service_description      => 'memcached',
+    servicegroups            => $servicegroups,
+    check_period             => $check_period,
+    contact_groups           => $contact_groups,
+    first_notification_delay => $first_notification_delay,
+    notification_period      => $notification_period,
+    max_check_attempts       => $max_check_attempts,
+    use                      => $use,
+  }
 
 }
 

@@ -126,6 +126,9 @@ class nagios::client (
     if $::nagios_mysqld == 'true' {
       class { '::nagios::check::mysql_health': }
     }
+    if $::nagios_memcached == 'true' {
+      class { '::nagios::check::memcached': }
+    }
 
     # With selinux, some nrpe plugins require additional rules to work
     if $selinux and $::selinux_enforced {
