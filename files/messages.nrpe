@@ -24,6 +24,8 @@ avc:  denied  { create } for  pid=8122 comm="MegaCli" name="megaraid_sas_ioctl_n
 # check_couchbase
 avc:  denied  { execute_no_trans } for  pid=4202 comm="cbstats" path="/opt/couchbase/lib/python/cbstats" dev=vda2 ino=13654 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:lib_t:s0 tclass=file
 avc:  denied  { name_connect } for  pid=4639 comm="python" dest=11219 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:port_t:s0 tclass=tcp_socket
+# check_memcached
+avc:  denied  { name_connect } for  pid=24176 comm="check_memcached" dest=11211 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:memcache_port_t:s0 tclass=tcp_socket
 # check_mysql_health
 avc:  denied  { search } for  pid=728 comm="check_mysql_hea" name="mysql" dev=vda2 ino=5374963 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:mysqld_db_t:s0 tclass=dir
 avc:  denied  { write } for  pid=2112 comm="check_mysql_hea" name="mysql.sock" dev=vda2 ino=5375049 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:mysqld_var_run_t:s0 tclass=sock_file
