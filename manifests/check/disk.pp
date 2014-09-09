@@ -1,9 +1,9 @@
 define nagios::check::disk (
     # We want to be able to manipulate the arguments in 3 parts :
-    # default_args : useful default set for all nodes
+    # original_args : useful default set for all nodes
     # args : the main warning and critical values
     # extra_args : optional additional arguments
-    $default_args        = $::nagios_check_disk_default_args,
+    $original_args       = $::nagios_check_disk_original_args,
     $args                = $::nagios_check_disk_args,
     $extra_args          = $::nagios_check_disk_extra_args,
     $servicegroups       = $::nagios_check_disk_servicegroups,
