@@ -22,7 +22,8 @@ define nagios::check::disk (
         # -l : Don't check network mounts, local (and checked) elsewhere
         # binfmt_misc : Denied by default, not useful to monitor
         # rpc_pipefs  : Denied by default, not useful to monitor
-        ''      => '-l -X binfmt_misc -X rpc_pipefs',
+        # cgroup      : Denied by default, not useful to monitor
+        ''      => '-l -X binfmt_misc -X rpc_pipefs -X cgroup',
         default => $original_args,
     }
     $final_args = $args ? {

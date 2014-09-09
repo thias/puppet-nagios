@@ -8,6 +8,7 @@
 * Add Debian support for nrpe (#26, @davideagle).
 * Add memcached check and plugin.
 * Add conntrack check and plugin.
+* Fix original_args in disk check and exclude cgroup mount by default.
 
 2014-06-03 - 0.4.7
 * Update nrpe messages file.
