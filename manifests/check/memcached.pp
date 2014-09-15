@@ -12,7 +12,9 @@ class nagios::check::memcached (
 ) {
 
   # Service specific script
-  package { $::nagios::params::perl_memcached: ensure => installed }
+  if $ensure != 'absent' {
+    package { $::nagios::params::perl_memcached: ensure => installed }
+  }
   file { "${nagios::client::plugin_dir}/check_memcached":
     ensure  => $ensure,
     owner   => 'root',
