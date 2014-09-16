@@ -1,3 +1,4 @@
+2014-09-16 - 1.0.2
 * Fix the linux-server host template to have 24x7 notifications by default.
 * Fix check_proc typo in server.pp (#37, @alexharv074).
 * Make the ntp check's server configurable (#36, @alexharv074).
