@@ -1,4 +1,6 @@
 * Fix the linux-server host template to have 24x7 notifications by default.
+* Fix check_proc typo in server.pp (#37, @alexharv074).
+* Make the ntp check's server configurable (#36, @alexharv074).
 
 2014-09-15 - 1.0.1
 * Fix to not install perl bindings package when memcached check is disabled.
