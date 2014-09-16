@@ -443,8 +443,8 @@ class nagios::server (
   nagios_command { 'check_nrpe_disk':
     command_line => "${nrpe} -c check_disk",
   }
-  nagios_command { 'check_nrpe_proc':
-    command_line => "${nrpe} -c check_proc",
+  nagios_command { 'check_nrpe_procs':
+    command_line => "${nrpe} -c check_procs",
   }
   nagios_command { 'check_nrpe_ntp_time':
     command_line => "${nrpe} -c check_ntp_time",
