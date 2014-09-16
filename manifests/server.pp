@@ -603,7 +603,7 @@ class nagios::server (
     'retry_interval'        => '1',
     'max_check_attempts'    => '10',
     'check_command'         => 'check-host-alive',
-    'notification_period'   => 'workhours',
+    'notification_period'   => '24x7',
     'notification_interval' => '120',
     'notification_options'  => 'd,u,r',
     'contact_groups'        => 'admins',

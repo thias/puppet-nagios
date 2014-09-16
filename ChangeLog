@@ -1,3 +1,5 @@
+* Fix the linux-server host template to have 24x7 notifications by default.
+
 2014-09-15 - 1.0.1
 * Fix to not install perl bindings package when memcached check is disabled.
 
