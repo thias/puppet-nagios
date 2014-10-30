@@ -1,8 +1,25 @@
+* Add sshd check (#30, @alexharv074).
+
+2014-09-16 - 1.0.2
+* Fix the linux-server host template to have 24x7 notifications by default.
+* Fix check_proc typo in server.pp (#37, @alexharv074).
+* Make the ntp check's server configurable (#36, @alexharv074).
+
+2014-09-15 - 1.0.1
+* Fix to not install perl bindings package when memcached check is disabled.
+
+2014-09-09 - 1.0.0
 * Update nagiosgraph.pp to use the same $apache_allowed_from as server.
 * Fix main default httpd configuration file.
 * Add /usr/sbin/mysqld to the list of locations for the mysqld fact.
 * Include new http check using the http plugin.
 * New nrpe_service definition (#23, @thomasvs).
+* Allow specifying a megacli version to pin (#35, @thomasvs).
+* Add results_limit parameter for cgi.cfg (#32, @alexharv074).
+* Add Debian support for nrpe (#26, @davideagle).
+* Add memcached check and plugin.
+* Add conntrack check and plugin.
+* Fix original_args in disk check and exclude cgroup mount by default.
 
 2014-06-03 - 0.4.7
 * Update nrpe messages file.

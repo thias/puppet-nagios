@@ -32,6 +32,7 @@ class nagios::server (
   $cgi_authorized_for_all_service_commands      = 'nagiosadmin',
   $cgi_authorized_for_all_host_commands         = 'nagiosadmin',
   $cgi_default_statusmap_layout                 = '5',
+  $cgi_result_limit                             = '100',
   # nagios.cfg
   $cfg_file = [
     # Where puppet managed types are
@@ -442,8 +443,8 @@ class nagios::server (
   nagios_command { 'check_nrpe_disk':
     command_line => "${nrpe} -c check_disk",
   }
-  nagios_command { 'check_nrpe_proc':
-    command_line => "${nrpe} -c check_proc",
+  nagios_command { 'check_nrpe_procs':
+    command_line => "${nrpe} -c check_procs",
   }
   nagios_command { 'check_nrpe_ntp_time':
     command_line => "${nrpe} -c check_ntp_time",
@@ -463,6 +464,12 @@ class nagios::server (
   }
   nagios_command { 'check_nrpe_moxi':
     command_line => "${nrpe} -c check_moxi",
+  }
+  nagios_command { 'check_nrpe_memcached':
+    command_line => "${nrpe} -c check_memcached",
+  }
+  nagios_command { 'check_nrpe_conntrack':
+    command_line => "${nrpe} -c check_conntrack",
   }
   # Custom NRPE-based commands using custom plugins, conditionally enabled
   nagios_command { 'check_nrpe_megaraid_sas':
@@ -596,7 +603,7 @@ class nagios::server (
     'retry_interval'        => '1',
     'max_check_attempts'    => '10',
     'check_command'         => 'check-host-alive',
-    'notification_period'   => 'workhours',
+    'notification_period'   => '24x7',
     'notification_interval' => '120',
     'notification_options'  => 'd,u,r',
     'contact_groups'        => 'admins',

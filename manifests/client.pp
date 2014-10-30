@@ -123,8 +123,12 @@ class nagios::client (
     # New style with hiera overrides
     class { '::nagios::check::cpu': }
     class { '::nagios::check::load': }
+    class { '::nagios::check::conntrack': }
     if $::nagios_mysqld == 'true' {
       class { '::nagios::check::mysql_health': }
+    }
+    if $::nagios_memcached == 'true' {
+      class { '::nagios::check::memcached': }
     }
 
     # With selinux, some nrpe plugins require additional rules to work

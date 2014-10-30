@@ -1,5 +1,5 @@
 name 'thias-nagios'
-version '0.4.7'
+version '1.0.2'
 source 'git://github.com/thias/puppet-nagios'
 author 'Matthias Saou'
 license 'Apache 2.0'

@@ -1,0 +1,19 @@
+{
+  "author": "Matthias Saou",
+  "dependencies": [
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": "\u003e\u003d 2.0.0"
+    }
+  ],
+  "description": "Install and configure one or more nagios servers to monitor all of your puppet-managed nodes.",
+  "license": "Apache 2.0",
+  "name": "thias-nagios",
+  "operatingsystem_support": [],
+  "project_page": "https://github.com/thias/puppet-nagios",
+  "requirements": [],
+  "source": "git://github.com/thias/puppet-nagios",
+  "summary": "Nagios client and server module",
+  "tags": [],
+  "version": "0.4.7"
+}

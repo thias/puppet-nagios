@@ -1,6 +1,6 @@
-class nagios::check::memcached (
+class nagios::check::conntrack (
   $ensure                   = undef,
-  $args                     = '-U 75,90 -f',
+  $args                     = '75% 90%',
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
@@ -12,31 +12,23 @@ class nagios::check::memcached (
 ) {
 
   # Service specific script
-  if $ensure != 'absent' {
-    package { $::nagios::params::perl_memcached: ensure => installed }
-  }
-  file { "${nagios::client::plugin_dir}/check_memcached":
+  file { "${nagios::client::plugin_dir}/check_conntrack":
     ensure  => $ensure,
     owner   => 'root',
     group   => 'root',
     mode    => '0755',
-    content => template('nagios/plugins/check_memcached'),
+    content => template('nagios/plugins/check_conntrack'),
   }
 
-  # Include default host (-H) and port (-p) if no override in $args
-  if $args !~ /-H/ { $arg_host = '-H 127.0.0.1 ' }
-  if $args !~ /-p/ { $arg_port = '-p 11211 ' }
-  $fullargs = "${arg_host}${arg_port}${args}"
-
-  nagios::client::nrpe_file { 'check_memcached':
+  nagios::client::nrpe_file { 'check_conntrack':
     ensure  => $ensure,
-    args    => $fullargs,
+    args    => $args,
   }
 
-  nagios::service { "check_memcached_${check_title}":
+  nagios::service { "check_conntrack_${check_title}":
     ensure                   => $ensure,
-    check_command            => 'check_nrpe_memcached',
-    service_description      => 'memcached',
+    check_command            => 'check_nrpe_conntrack',
+    service_description      => 'conntrack',
     servicegroups            => $servicegroups,
     check_period             => $check_period,
     contact_groups           => $contact_groups,

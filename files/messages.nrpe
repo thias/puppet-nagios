@@ -1,3 +1,5 @@
+# check_procs
+avc:  denied  { getattr } for  pid=6203 comm="check_procs" path="/usr/sbin/nrpe" dev="vda2" ino=136026409 scontext=system_u:system_r:nagios_system_plugin_t:s0 tcontext=system_u:object_r:nrpe_exec_t:s0 tclass=file
 # check_disk
 avc:  denied  { getattr } for  pid=30142 comm="check_disk" path="/dev/shm" dev=tmpfs ino=5174 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:tmpfs_t:s0 tclass=dir
 avc:  denied  { getattr } for  pid=11968 comm="check_disk" path="/boot" dev=sda1 ino=2 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:boot_t:s0 tclass=dir
@@ -24,9 +26,14 @@ avc:  denied  { create } for  pid=8122 comm="MegaCli" name="megaraid_sas_ioctl_n
 # check_couchbase
 avc:  denied  { execute_no_trans } for  pid=4202 comm="cbstats" path="/opt/couchbase/lib/python/cbstats" dev=vda2 ino=13654 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:lib_t:s0 tclass=file
 avc:  denied  { name_connect } for  pid=4639 comm="python" dest=11219 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:port_t:s0 tclass=tcp_socket
+# check_memcached
+avc:  denied  { name_connect } for  pid=24176 comm="check_memcached" dest=11211 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:memcache_port_t:s0 tclass=tcp_socket
+# check_conntrack
+avc:  denied  { search } for  pid=25903 comm="sysctl" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:sysctl_net_t:s0 tclass=dir
+avc:  denied  { read } for  pid=26419 comm="sysctl" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:sysctl_net_t:s0 tclass=file
 # check_mysql_health
 avc:  denied  { search } for  pid=728 comm="check_mysql_hea" name="mysql" dev=vda2 ino=5374963 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:mysqld_db_t:s0 tclass=dir
 avc:  denied  { write } for  pid=2112 comm="check_mysql_hea" name="mysql.sock" dev=vda2 ino=5375049 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:mysqld_var_run_t:s0 tclass=sock_file
 avc:  denied  { connectto } for  pid=3551 comm="check_mysql_hea" path="/var/lib/mysql/mysql.sock" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:system_r:mysqld_t:s0 tclass=unix_stream_socket
 avc:  denied  { create add_name write } for  pid=19390 comm="check_mysql_hea" name="tmp" dev=vda2 ino=5111844 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:tmp_t:s0 tclass=dir
-avc:  denied  { create write open getattr ioctl read } for  pid=22861 comm="check_mysql_hea" name="localhost_server::instance::querycachehitrate_3306_information_schema" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:tmp_t:s0 tclass=file
+avc:  denied  { create write open getattr ioctl read } for  pid=22861 comm="check_mysql_hea" name="tmp" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:tmp_t:s0 tclass=file
