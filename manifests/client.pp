@@ -39,6 +39,9 @@ class nagios::client (
     $selinux                     = true
 ) inherits ::nagios::params {
 
+  # We are checking facts, which are strings (not booleans!)
+  # lint:ignore:quoted_booleans
+
   # Set the variables to be used, including scoped from elsewhere, based on
   # the optional fact or parameter from here
   $host_name = $nagios_host_name ? {
@@ -74,12 +77,12 @@ class nagios::client (
     }
     # Included in the package, but we need to enable purging
     file { $nagios::params::nrpe_cfg_dir:
+        ensure  => directory,
         owner   => 'root',
         group   => $nrpe_group,
         mode    => '0750',
         purge   => true,
         recurse => true,
-        ensure  => directory,
         require => Package['nrpe'],
     }
     # Create resource for the check_* parent resource
@@ -139,6 +142,8 @@ class nagios::client (
             source => "puppet:///modules/${module_name}/messages.nrpe",
         }
     }
+
+  # lint:endignore
 
 }
 

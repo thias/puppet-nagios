@@ -1,16 +1,18 @@
 * Add sshd check (#30, @alexharv074).
 * Update apache_httpd to the recent class (requires 0.5.0+).
 * Fixes for future parser compatibility.
+* Replace Modulefile with metadata.json.
+* Clean up to make puppet lint happy.
 
-2014-09-16 - 1.0.2
+#### 2014-09-16 - 1.0.2
 * Fix the linux-server host template to have 24x7 notifications by default.
 * Fix check_proc typo in server.pp (#37, @alexharv074).
-* Make the ntp check's server configurable (#36, @alexharv074).
+* Make the ntp check server configurable (#36, @alexharv074).
 
-2014-09-15 - 1.0.1
+#### 2014-09-15 - 1.0.1
 * Fix to not install perl bindings package when memcached check is disabled.
 
-2014-09-09 - 1.0.0
+#### 2014-09-09 - 1.0.0
 * Update nagiosgraph.pp to use the same $apache_allowed_from as server.
 * Fix main default httpd configuration file.
 * Add /usr/sbin/mysqld to the list of locations for the mysqld fact.
@@ -23,51 +25,51 @@
 * Add conntrack check and plugin.
 * Fix original_args in disk check and exclude cgroup mount by default.
 
-2014-06-03 - 0.4.7
+#### 2014-06-03 - 0.4.7
 * Update nrpe messages file.
 
-2014-05-26 - 0.4.6
+#### 2014-05-26 - 0.4.6
 * Update nrpe messages file.
 
-2014-05-05 - 0.4.5
+#### 2014-05-05 - 0.4.5
 * Update params.pp for CentOS, add pid_file (paths should match EPEL packages).
 * Update and fix nrpe SELinux messages for RHEL7.
 
-2014-03-10 - 0.4.4
+#### 2014-03-10 - 0.4.4
 * Enable declaring all types from the server class, useful with hiera.
 * Allow httpd_t to read nagios_spool_t files too.
 * Add support for first_notification_delay in class based checks.
 
-2014-01-30 - 0.4.3
+#### 2014-01-30 - 0.4.3
 * Remove server udp sub-package, now part of the tcp package as of 1.4.15-2.
 * Fix for useless $apache_allowed_from existence check (#12).
 * Fix nagios pid file location.
 * Fix typo in the default parameter variable names for dir_status check.
 * Create overrideable resources instead of relying on templates.cfg.
 
-2013-12-10 - 0.4.2
+#### 2013-12-10 - 0.4.2
 * Add $::nagios_client fact for all nagios client nodes.
 
-2013-12-10 - 0.4.1
+#### 2013-12-10 - 0.4.1
 * Fix variable name in README (Anton Babenko).
 * Make the megaclibin from check::megaraid_sas configurable.
 * Update check::load to become a class.
 * Add new check::load default values for over 16 CPUs.
 
-2013-07-18 - 0.4.0
+#### 2013-07-18 - 0.4.0
 * Include mysql_health checks, implemented in a more modern way
 
-2013-05-29 - 0.3.2
+#### 2013-05-29 - 0.3.2
 * Update check_dir_status to also check dir timestamp when empty.
 * Move leftover default checks from client.pp to defaultchecks.pp.
 
-2013-05-24 - 0.3.1
+#### 2013-05-24 - 0.3.1
 * Update SELinux messages file.
 * Change the Gentoo nrpe.pid location, to match the current one.
 * Include custom check_dir_status script.
 * Update README.
 
-2012-09-19 - 0.3.0
+#### 2012-09-19 - 0.3.0
 * Add support for Fedora.
 * Add support for host_check_command.
 * Add support for service contact_groups.
@@ -80,7 +82,7 @@
 * Gentoo nrpe has been renamed net-analyzer/nrpe
 * Add !requiretty for the required sudo commands
 
-2012-05-23 - 0.2.0
+#### 2012-05-23 - 0.2.0
 * Clean up the module to match current puppetlabs guidelines.
 * Add new params.pp and use it from nagios::client for Gentoo specifics.
 * Renamed checks.pp to defaultchecks.pp to be more explicit.
