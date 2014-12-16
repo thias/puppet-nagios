@@ -196,7 +196,7 @@ class nagios::server (
   }
 
   if $apache_httpd {
-    apache_httpd { 'prefork':
+    class { '::apache_httpd':
       ssl       => $apache_httpd_ssl,
       modules   => $apache_httpd_modules,
       keepalive => 'On',

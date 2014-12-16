@@ -1,4 +1,5 @@
 * Add sshd check (#30, @alexharv074).
+* Update apache_httpd to the recent class (requires 0.5.0+).
 
 2014-09-16 - 1.0.2
 * Fix the linux-server host template to have 24x7 notifications by default.
