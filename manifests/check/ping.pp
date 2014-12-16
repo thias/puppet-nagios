@@ -9,7 +9,7 @@ define nagios::check::ping (
 ) {
 
     $final_args = $args ? {
-        ''      => '-w 2000,50% -c 5000,100% -p 5',
+        undef   => '-w 2000,50% -c 5000,100% -p 5',
         default => $args,
     }
 

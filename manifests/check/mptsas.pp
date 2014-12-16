@@ -1,20 +1,20 @@
 define nagios::check::mptsas (
     $ensure = undef,
-    $args = '',
+    $args = undef,
     $pkg = true,
     $lsiutilbin = '/usr/sbin/lsiutil'
 ) {
 
     # Generic overrides
-    if $::nagios_check_mptsas_check_period != '' {
+    if $::nagios_check_mptsas_check_period != undef {
         Nagios_service { check_period => $::nagios_check_mptsas_check_period }
     }
-    if $::nagios_check_mptsas_notification_period != '' {
+    if $::nagios_check_mptsas_notification_period != undef {
         Nagios_service { notification_period => $::nagios_check_mptsas_notification_period }
     }
 
     # Service specific overrides
-    if $::nagios_check_mptsas_args != '' {
+    if $::nagios_check_mptsas_args != undef {
         $fullargs = $::nagios_check_mptsas_args
     } else {
         $fullargs = $args

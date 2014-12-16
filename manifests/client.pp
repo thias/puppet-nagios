@@ -39,22 +39,24 @@ class nagios::client (
     $selinux                     = true
 ) inherits ::nagios::params {
 
-    # Set the variables to be used, including scoped from elsewhere, based on the optional
-    # fact or parameter from here
-    $host_name = $nagios_host_name ? {
-        ''      => $::fqdn,
-        default => $nagios_host_name,
-    }
-    $server = $nagios_server ? {
-        ''      => 'default',
-        default => $nagios_server,
-    }
+  # Set the variables to be used, including scoped from elsewhere, based on
+  # the optional fact or parameter from here
+  $host_name = $nagios_host_name ? {
+    ''      => $::fqdn,
+    undef   => $::fqdn,
+    default => $nagios_host_name,
+  }
+  $server = $nagios_server ? {
+    ''      => 'default',
+    undef   => 'default',
+    default => $nagios_server,
+  }
 
-    # Base package(s)
-    package { $nagios::params::nrpe_package:
-        ensure => installed,
-        alias  => $nagios::params::nrpe_package_alias,
-    }
+  # Base package(s)
+  package { $nagios::params::nrpe_package:
+    ensure => 'installed',
+    alias  => $nagios::params::nrpe_package_alias,
+  }
 
     # Most plugins use nrpe, so we install it everywhere
     service { $nagios::params::nrpe_service:

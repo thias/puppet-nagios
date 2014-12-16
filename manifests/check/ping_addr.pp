@@ -1,25 +1,25 @@
 define nagios::check::ping_addr () {
 
     # Generic overrides
-    if $::nagios_check_ping_addr_check_period != '' {
+    if $::nagios_check_ping_addr_check_period != undef {
         Nagios_service { check_period => $::nagios_check_ping_addr_check_period }
     }
-    if $::nagios_check_ping_addr_notification_period != '' {
+    if $::nagios_check_ping_addr_notification_period != undef {
         Nagios_service { notification_period => $::nagios_check_ping_addr_notification_period }
     }
 
     # Service specific overrides
-    if $::nagios_check_ping_addr_address != '' {
+    if $::nagios_check_ping_addr_address != undef {
         $address = $::nagios_check_ping_addr_address
     } else {
         $address = $nagios::client::host_address
     }
-    if $::nagios_check_ping_addr_warning != '' {
+    if $::nagios_check_ping_addr_warning != undef {
         $warning = $::nagios_check_ping_addr_warning
     } else {
         $warning = '2000.0,50%'
     }
-    if $::nagios_check_ping_addr_critical != '' {
+    if $::nagios_check_ping_addr_critical != undef {
         $critical = $::nagios_check_ping_addr_critical
     } else {
         $critical = '5000.0,100%'

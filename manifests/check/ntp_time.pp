@@ -1,5 +1,5 @@
 define nagios::check::ntp_time (
-  $args       = '',
+  $args       = undef,
   $ntp_server = $::nagios_check_ntp_time_target,
 ) {
 
@@ -9,25 +9,25 @@ define nagios::check::ntp_time (
   }
 
   # Generic overrides
-  if $::nagios_check_ntp_time_check_period != '' {
+  if $::nagios_check_ntp_time_check_period != undef {
     Nagios_service { check_period => $::nagios_check_ntp_time_check_period }
   }
-  if $::nagios_check_ntp_time_notification_period != '' {
+  if $::nagios_check_ntp_time_notification_period != undef {
     Nagios_service { notification_period => $::nagios_check_ntp_time_notification_period }
   }
 
   # Service specific overrides
-  if $::nagios_check_ntp_time_warning != '' {
+  if $::nagios_check_ntp_time_warning != undef {
     $warning = $::nagios_check_ntp_time_warning
   } else {
     $warning = '1'
   }
-  if $::nagios_check_ntp_time_critical != '' {
+  if $::nagios_check_ntp_time_critical != undef {
     $critical = $::nagios_check_ntp_time_critical
   } else {
     $critical = '2'
   }
-  if $ntp_server != '' {
+  if $ntp_server != undef {
     $target = $ntp_server
   } else {
     $target = '1.rhel.pool.ntp.org'

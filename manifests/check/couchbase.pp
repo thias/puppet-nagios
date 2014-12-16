@@ -1,6 +1,6 @@
 define nagios::check::couchbase (
     $ensure = undef,
-    $args = '',
+    $args = undef,
     $couchbase_data_file_name = '/tmp/couchbase_data_file_name',
     $couchbase_cbstats = '/opt/couchbase/bin/cbstats',
     $couchbase_host = '127.0.0.1',
@@ -8,15 +8,15 @@ define nagios::check::couchbase (
 ) {
 
     # Generic overrides
-    if $::nagios_check_couchbase_check_period != '' {
+    if $::nagios_check_couchbase_check_period != undef {
         Nagios_service { check_period => $::nagios_check_couchbase_check_period }
     }
-    if $::nagios_check_couchbase_notification_period != '' {
+    if $::nagios_check_couchbase_notification_period != undef {
         Nagios_service { notification_period => $::nagios_check_couchbase_notification_period }
     }
 
     # Service specific overrides
-    if $::nagios_check_couchbase_args != '' {
+    if $::nagios_check_couchbase_args != undef {
         $fullargs = $::nagios_check_couchbase_args
     } else {
         $fullargs = $args

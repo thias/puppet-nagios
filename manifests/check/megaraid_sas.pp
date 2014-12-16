@@ -1,20 +1,20 @@
 define nagios::check::megaraid_sas (
     $ensure = undef,
-    $args = '',
+    $args = undef,
     $pkg = true,
     $megaclibin = $::nagios::params::megaclibin,
 ) {
 
     # Generic overrides
-    if $::nagios_check_megaraid_sas_check_period != '' {
+    if $::nagios_check_megaraid_sas_check_period != undef {
         Nagios_service { check_period => $::nagios_check_megaraid_sas_check_period }
     }
-    if $::nagios_check_megaraid_sas_notification_period != '' {
+    if $::nagios_check_megaraid_sas_notification_period != undef {
         Nagios_service { notification_period => $::nagios_check_megaraid_sas_notification_period }
     }
 
     # Service specific overrides
-    if $::nagios_check_megaraid_sas_args != '' {
+    if $::nagios_check_megaraid_sas_args != undef {
         $fullargs = $::nagios_check_megaraid_sas_args
     } else {
         $fullargs = $args
@@ -43,7 +43,7 @@ define nagios::check::megaraid_sas (
             'Gentoo' => 'sys-block/megacli',
              default => 'megacli',
         }
-        if $::nagios_check_megaraid_sas_version != '' {
+        if $::nagios_check_megaraid_sas_version != undef {
           $ensure_value = $::nagios_check_megaraid_sas_version
         } else {
           $ensure_value = 'installed'

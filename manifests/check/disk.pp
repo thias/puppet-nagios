@@ -23,15 +23,15 @@ define nagios::check::disk (
         # binfmt_misc : Denied by default, not useful to monitor
         # rpc_pipefs  : Denied by default, not useful to monitor
         # cgroup      : Denied by default, not useful to monitor
-        ''      => '-l -X binfmt_misc -X rpc_pipefs -X cgroup',
+        undef   => '-l -X binfmt_misc -X rpc_pipefs -X cgroup',
         default => $original_args,
     }
     $final_args = $args ? {
-        ''      => ' -w 5% -c 2%',
+        undef   => ' -w 5% -c 2%',
         default => " ${args}",
     }
     $final_extra_args = $extra_args ? {
-        ''      => '',
+        undef   => '',
         default => " ${extra_args}",
     }
     nagios::client::nrpe_file { 'check_disk':

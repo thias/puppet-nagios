@@ -16,7 +16,7 @@ class nagios::check::load (
   }
 
   # We choose defaults based on the number of CPU cores.
-  if $args == '' {
+  if $args == undef {
     if ( $::processorcount > 16 ) {
       $final_args = '-w 60,40,40 -c 90,70,70'
     } elsif ( $::processorcount > 8 ) and ( $::processorcount <= 16 ) {

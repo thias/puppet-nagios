@@ -1,18 +1,18 @@
 define nagios::check::moxi (
     $ensure = undef,
-    $args = ''
+    $args = undef
 ) {
 
     # Generic overrides
-    if $::nagios_check_moxi_check_period != '' {
+    if $::nagios_check_moxi_check_period != undef {
         Nagios_service { check_period => $::nagios_check_moxi_check_period }
     }
-    if $::nagios_check_moxi_notification_period != '' {
+    if $::nagios_check_moxi_notification_period != undef {
         Nagios_service { notification_period => $::nagios_check_moxi_notification_period }
     }
 
     # Service specific overrides
-    if $::nagios_check_moxi_args != '' {
+    if $::nagios_check_moxi_args != undef {
         $fullargs = $::nagios_check_moxi_args
     } else {
         $fullargs = $args
