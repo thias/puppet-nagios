@@ -43,7 +43,7 @@ class nagios::params {
   ]
 
   case $::operatingsystem {
-    'RedHat', 'Fedora', 'CentOS', 'Scientific': {
+    'RedHat', 'Fedora', 'CentOS', 'Scientific', 'Amazon': {
       $nrpe_package       = [ 'nrpe', 'nagios-plugins' ]
       $nrpe_service       = 'nrpe'
       $nrpe_user          = 'nrpe'

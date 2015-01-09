@@ -1,3 +1,5 @@
+* Add Amazon Linux support (#45).
+
 #### 2014-12-16 - 1.0.3
 * Add sshd check (#30, @alexharv074).
 * Update apache_httpd to the recent class (requires 0.5.0+).
