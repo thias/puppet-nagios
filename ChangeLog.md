@@ -1,5 +1,6 @@
 * Add Amazon Linux support (#45).
 * Fix Debian defaults and enable hiera overrides (#42, @davideagle).
+* Fix some more '' vs. undef in default parameters from facts.
 
 #### 2014-12-16 - 1.0.3
 * Add sshd check (#30, @alexharv074).

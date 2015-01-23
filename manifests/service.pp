@@ -22,18 +22,22 @@ define nagios::service (
     # Work around being passed undefined variables resulting in ''
     $final_check_period = $check_period ? {
         ''      => $nagios::client::service_check_period,
+        undef   => $nagios::client::service_check_period,
         default => $check_period,
     }
     $final_max_check_attempts = $max_check_attempts ? {
         ''      => $nagios::client::service_max_check_attempts,
+        undef   => $nagios::client::service_max_check_attempts,
         default => $max_check_attempts,
     }
     $final_notification_period = $notification_period ? {
         ''      => $nagios::client::service_notification_period,
+        undef   => $nagios::client::service_notification_period,
         default => $notification_period,
     }
     $final_use = $use ? {
         ''      => $nagios::client::service_use,
+        undef   => $nagios::client::service_use,
         default => $use,
     }
 
