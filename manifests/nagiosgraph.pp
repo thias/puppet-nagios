@@ -30,8 +30,8 @@ class nagios::nagiosgraph (
   }
 
   # Set a default content template if no content/source is specified
-  if $apache_httpd_conf_source == '' {
-    if $apache_httpd_conf_content == '' {
+  if $apache_httpd_conf_source == undef {
+    if $apache_httpd_conf_content == undef {
       $apache_httpd_conf_content_final = template('nagios/apache_httpd/httpd-nagiosgraph.conf.erb')
     } else {
       $apache_httpd_conf_content_final = $apache_httpd_conf_content
