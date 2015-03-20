@@ -12,7 +12,9 @@ The server part is still very Red Hat Enterprise Linux specific. The client
 part is much more generic and has been tested on both RHEL and Gentoo.
 
 Please note that this module is not for the faint of heart. Even I (the author)
-have my head hurt each time I have to make modificiations to it...
+have my head hurt each time I have to make modificiations to it... but it is
+worth it, as it enables to have monitoring automatically enabled by default
+for all services detected on the nagios clients.
 
 ## Requirements
 
