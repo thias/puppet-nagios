@@ -56,6 +56,7 @@ class nagios::server (
   $service_perfdata_file_mode     = 'a',
   $service_perfdata_file_processing_interval = '0',
   $service_perfdata_file_processing_command  = false,
+  $enable_flap_detection = '1',
   $date_format = 'iso8601',
   $admin_email = 'root@localhost',
   $admin_pager = 'pagenagios@localhost',
