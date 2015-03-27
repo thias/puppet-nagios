@@ -127,6 +127,7 @@ class nagios::client (
     class { '::nagios::defaultchecks': }
     # New style with hiera overrides
     class { '::nagios::check::cpu': }
+    class { '::nagios::check::ram': }
     class { '::nagios::check::load': }
     class { '::nagios::check::conntrack': }
     if $::nagios_mysqld == 'true' {

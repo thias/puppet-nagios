@@ -3,6 +3,7 @@
 * Fix some more '' vs. undef in default parameters from facts.
 * Fix some more '' vs. undef in server and nagiosgraph classes.
 * Add enable_flap_detection server parameter.
+* Update check::ram to be a class, for hiera or ENC overrides.
 
 #### 2014-12-16 - 1.0.3
 * Add sshd check (#30, @alexharv074).

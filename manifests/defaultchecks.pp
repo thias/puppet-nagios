@@ -24,9 +24,9 @@ class nagios::defaultchecks {
   if $::nagios_check_ntp_time_disable != 'true' {
     nagios::check::ntp_time { $nagios::client::host_name: }
   }
-  if $::nagios_check_ram_disable != 'true' {
-    nagios::check::ram { $nagios::client::host_name: }
-  }
+#  if $::nagios_check_ram_disable != 'true' {
+#    nagios::check::ram { $nagios::client::host_name: }
+#  }
   # Conditional checks, enabled based on custom facts
   if $::nagios_check_httpd_disable != 'true' and
      $::nagios_httpd == 'true' {

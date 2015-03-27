@@ -1,42 +1,41 @@
-define nagios::check::ram ( $args = undef ) {
+class nagios::check::ram (
+  $ensure                   = undef,
+  $args                     = '-w 10% -c 5%',
+  $check_title              = $::nagios::client::host_name,
+  $servicegroups            = undef,
+  $check_period             = $::nagios::client::service_check_period,
+  $contact_groups           = $::nagios::client::service_contact_groups,
+  $first_notification_delay = $::nagios::client::first_notification_delay,
+  $max_check_attempts       = $::nagios::client::service_max_check_attempts,
+  $notification_period      = $::nagios::client::service_notification_period,
+  $use                      = $::nagios::client::service_use,
+) {
 
-    # Generic overrides
-    if $::nagios_check_ram_check_period != undef {
-        Nagios_service { check_period => $::nagios_check_ram_check_period }
-    }
-    if $::nagios_check_ram_notification_period != undef {
-        Nagios_service { notification_period => $::nagios_check_ram_notification_period }
-    }
+  # Service specific script
+  file { "${nagios::client::plugin_dir}/check_ram":
+    ensure  => $ensure,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0755',
+    content => template('nagios/plugins/check_ram'),
+  }
 
-    # Service specific overrides
-    if $::nagios_check_ram_warning != undef {
-        $warning = $::nagios_check_ram_warning
-    } else {
-        $warning = '10%'
-    }
-    if $::nagios_check_ram_critical != undef {
-        $critical = $::nagios_check_ram_critical
-    } else {
-        $critical = '5%'
-    }
+  nagios::client::nrpe_file { 'check_ram':
+    ensure => $ensure,
+    args   => $args,
+  }
 
-    file { "${nagios::client::plugin_dir}/check_ram":
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0755',
-        content => template('nagios/plugins/check_ram'),
-        ensure  => $ensure,
-    }
-
-    nagios::client::nrpe_file { 'check_ram':
-        args => "-w ${warning} -c ${critical} ${args}",
-    }
-
-    nagios::service { "check_ram_${title}":
-        check_command       => 'check_nrpe_ram',
-        service_description => 'ram',
-        #servicegroups       => 'ram',
-    }
+  nagios::service { "check_ram_${check_title}":
+    ensure                   => $ensure,
+    check_command            => 'check_nrpe_ram',
+    service_description      => 'ram',
+    servicegroups            => $servicegroups,
+    check_period             => $check_period,
+    contact_groups           => $contact_groups,
+    first_notification_delay => $first_notification_delay,
+    notification_period      => $notification_period,
+    max_check_attempts       => $max_check_attempts,
+    use                      => $use,
+  }
 
 }
-
