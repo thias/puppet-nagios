@@ -5,6 +5,7 @@
 * Fix some more '' vs. undef in default parameters from facts.
 * Fix some more '' vs. undef in server and nagiosgraph classes.
 * Add enable_flap_detection server parameter.
+* Change ntp_time to become UNKNOWN instead of CRITICAL when it times out.
 
 #### 2014-12-16 - 1.0.3
 * Add sshd check (#30, @alexharv074).
