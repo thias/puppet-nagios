@@ -1,47 +1,38 @@
-define nagios::check::ntp_time (
-  $args       = undef,
-  $ntp_server = $::nagios_check_ntp_time_target,
+class nagios::check::ntp_time (
+  $ensure                   = undef,
+  $args                     = '-H 0.pool.ntp.org -w 1 -c 2',
+  $ntp_server               = undef,
+  $check_title              = $::nagios::client::host_name,
+  $servicegroups            = undef,
+  $check_period             = $::nagios::client::service_check_period,
+  $contact_groups           = $::nagios::client::service_contact_groups,
+  $first_notification_delay = $::nagios::client::first_notification_delay,
+  $max_check_attempts       = $::nagios::client::service_max_check_attempts,
+  $notification_period      = $::nagios::client::service_notification_period,
+  $use                      = $::nagios::client::service_use,
 ) {
 
   # Required plugin
-  if $::nagios_check_ntp_time_ensure != 'absent' {
+  if $ensure != 'absent' {
     Package <| tag == 'nagios-plugins-ntp' |>
   }
 
-  # Generic overrides
-  if $::nagios_check_ntp_time_check_period != undef {
-    Nagios_service { check_period => $::nagios_check_ntp_time_check_period }
-  }
-  if $::nagios_check_ntp_time_notification_period != undef {
-    Nagios_service { notification_period => $::nagios_check_ntp_time_notification_period }
-  }
-
-  # Service specific overrides
-  if $::nagios_check_ntp_time_warning != undef {
-    $warning = $::nagios_check_ntp_time_warning
-  } else {
-    $warning = '1'
-  }
-  if $::nagios_check_ntp_time_critical != undef {
-    $critical = $::nagios_check_ntp_time_critical
-  } else {
-    $critical = '2'
-  }
-  if $ntp_server != undef {
-    $target = $ntp_server
-  } else {
-    $target = '1.rhel.pool.ntp.org'
-  }
-
   nagios::client::nrpe_file { 'check_ntp_time':
-    args => "-H ${target} -w ${warning} -c ${critical} ${args}",
+    ensure => $ensure,
+    args   => $args,
   }
 
-  nagios::service { "check_ntp_time_${title}":
-    check_command       => 'check_nrpe_ntp_time',
-    service_description => 'ntp_time',
-    #servicegroups       => 'ntp_time',
+  nagios::service { "check_ntp_time_${check_title}":
+    ensure                   => $ensure,
+    check_command            => 'check_nrpe_ntp_time',
+    service_description      => 'ntp_time',
+    servicegroups            => $servicegroups,
+    check_period             => $check_period,
+    contact_groups           => $contact_groups,
+    first_notification_delay => $first_notification_delay,
+    notification_period      => $notification_period,
+    max_check_attempts       => $max_check_attempts,
+    use                      => $use,
   }
 
 }
-

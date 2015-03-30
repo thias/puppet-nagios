@@ -126,10 +126,11 @@ class nagios::client (
     # Old style with facts overrides
     class { '::nagios::defaultchecks': }
     # New style with hiera overrides
-    class { '::nagios::check::cpu': }
-    class { '::nagios::check::ram': }
-    class { '::nagios::check::load': }
     class { '::nagios::check::conntrack': }
+    class { '::nagios::check::cpu': }
+    class { '::nagios::check::load': }
+    class { '::nagios::check::ntp_time': }
+    class { '::nagios::check::ram': }
     if $::nagios_mysqld == 'true' {
       class { '::nagios::check::mysql_health': }
     }

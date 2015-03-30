@@ -6,27 +6,15 @@ class nagios::defaultchecks {
   # We are checking facts, which are strings (not booleans!)
   # lint:ignore:quoted_booleans lint:ignore:2sp_soft_tabs
 
-#  if $::nagios_check_cpu_disable != 'true' {
-#    nagios::check::cpu { $nagios::client::host_name: }
-#  }
   if $::nagios_check_disk_disable != 'true' {
     nagios::check::disk { $nagios::client::host_name: }
   }
-#  if $::nagios_check_load_disable != 'true' {
-#    nagios::check::load { $nagios::client::host_name: }
-#  }
   if $::nagios_check_ping_disable != 'true' {
     nagios::check::ping { $nagios::client::host_name: }
   }
   if $::nagios_check_swap_disable != 'true' {
     nagios::check::swap { $nagios::client::host_name: }
   }
-  if $::nagios_check_ntp_time_disable != 'true' {
-    nagios::check::ntp_time { $nagios::client::host_name: }
-  }
-#  if $::nagios_check_ram_disable != 'true' {
-#    nagios::check::ram { $nagios::client::host_name: }
-#  }
   # Conditional checks, enabled based on custom facts
   if $::nagios_check_httpd_disable != 'true' and
      $::nagios_httpd == 'true' {
