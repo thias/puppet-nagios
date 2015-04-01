@@ -19,27 +19,27 @@ define nagios::check::mysql_health::mode () {
   $args_mode = getvar("nagios::check::mysql_health::args_${mode_u}")
 
   if ( ( $modes_enabled == [] and $modes_disabled == [] ) or
-       ( $modes_enabled != [] and $mode_u in $modes_enabled ) or
-       ( $modes_disabled != [] and ! ( $mode_u in $modes_disabled ) ) )
+    ( $modes_enabled != [] and $mode_u in $modes_enabled ) or
+    ( $modes_disabled != [] and ! ( $mode_u in $modes_disabled ) ) )
   {
     nagios::client::nrpe_file { "check_mysql_health_${mode_u}":
+      ensure => $ensure,
       plugin => 'check_mysql_health',
       args   => "${args} --mode ${title} ${args_mode}",
-      ensure => $ensure,
     }
     nagios::service { "check_mysql_health_${mode_u}_${check_title}":
+      ensure              => $ensure,
       check_command       => "check_nrpe_mysql_health_${mode_u}",
       service_description => "mysql_health_${mode_u}",
       servicegroups       => 'mysql_health',
-      ensure              => $ensure,
     }
   } else {
     nagios::client::nrpe_file { "check_mysql_health_${mode_u}":
-      ensure => absent,
+      ensure => 'absent',
     }
     nagios::service { "check_mysql_health_${mode_u}_${check_title}":
+      ensure        => 'absent',
       check_command => 'foo',
-      ensure        => absent,
     }
   }
 

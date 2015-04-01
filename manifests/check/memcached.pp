@@ -13,7 +13,7 @@ class nagios::check::memcached (
 
   # Service specific script
   if $ensure != 'absent' {
-    package { $::nagios::params::perl_memcached: ensure => installed }
+    package { $::nagios::params::perl_memcached: ensure => 'installed' }
   }
   file { "${nagios::client::plugin_dir}/check_memcached":
     ensure  => $ensure,
@@ -29,8 +29,8 @@ class nagios::check::memcached (
   $fullargs = "${arg_host}${arg_port}${args}"
 
   nagios::client::nrpe_file { 'check_memcached':
-    ensure  => $ensure,
-    args    => $fullargs,
+    ensure => $ensure,
+    args   => $fullargs,
   }
 
   nagios::service { "check_memcached_${check_title}":

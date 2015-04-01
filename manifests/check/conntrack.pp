@@ -21,8 +21,8 @@ class nagios::check::conntrack (
   }
 
   nagios::client::nrpe_file { 'check_conntrack':
-    ensure  => $ensure,
-    args    => $args,
+    ensure => $ensure,
+    args   => $args,
   }
 
   nagios::service { "check_conntrack_${check_title}":
@@ -39,4 +39,3 @@ class nagios::check::conntrack (
   }
 
 }
-

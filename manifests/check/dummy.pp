@@ -6,21 +6,18 @@
 # The executable could be potentially placed anywhere.
 # If you include nagios::client before, you then have access to all its parameters.
 
-class nagios::check::dummy (
-) {
+class nagios::check::dummy {
 
-    # Write the check
-    file { "/tmp/check_dummy.sh":
-        ensure  => file,
-        owner   => 'root',
-        group   => 'root',
-        mode    => '0755',
-        content => "#!/bin/bash\necho OK \nexit 0\n",
-    }
+  # Write the check
+  file { '/tmp/check_dummy.sh':
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0755',
+    content => "#!/bin/bash\necho OK \nexit 0\n",
+  }
 
-    nagios::check {'dummy':
-        executable   => '/tmp/check_dummy.sh',
-    }
+  nagios::check {'dummy':
+    executable => '/tmp/check_dummy.sh',
+  }
         
 }
-

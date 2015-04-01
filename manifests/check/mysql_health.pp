@@ -44,14 +44,13 @@ class nagios::check::mysql_health (
   if $pkg {
     $pkgname = $::operatingsystem ? {
       'Gentoo' => 'net-analyzer/nagios-check_mysql_health',
-       default => 'nagios-plugins-mysql_health',
+      default  => 'nagios-plugins-mysql_health',
     }
-    package { $pkgname:
-      ensure => $ensure ? {
-        'absent' => 'absent',
-         default => 'installed',
-      }
+    $pkgensure = $ensure ? {
+      'absent' => 'absent',
+      default  => 'installed',
     }
+    package { $pkgname: ensure => $pkgensure }
   }
 
   Package <| tag == 'nagios-plugins-perl' |>

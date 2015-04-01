@@ -1,54 +1,54 @@
 define nagios::check::disk (
-    # We want to be able to manipulate the arguments in 3 parts :
-    # original_args : useful default set for all nodes
-    # args : the main warning and critical values
-    # extra_args : optional additional arguments
-    $original_args       = $::nagios_check_disk_original_args,
-    $args                = $::nagios_check_disk_args,
-    $extra_args          = $::nagios_check_disk_extra_args,
-    $servicegroups       = $::nagios_check_disk_servicegroups,
-    $check_period        = $::nagios_check_disk_check_period,
-    $max_check_attempts  = $::nagios_check_disk_max_check_attempts,
-    $notification_period = $::nagios_check_disk_notification_period,
-    $use                 = $::nagios_check_disk_use,
-    $ensure              = $::nagios_check_disk_ensure
+  $ensure              = $::nagios_check_disk_ensure,
+  # We want to be able to manipulate the arguments in 3 parts :
+  # original_args : useful default set for all nodes
+  # args : the main warning and critical values
+  # extra_args : optional additional arguments
+  $original_args       = $::nagios_check_disk_original_args,
+  $args                = $::nagios_check_disk_args,
+  $extra_args          = $::nagios_check_disk_extra_args,
+  $servicegroups       = $::nagios_check_disk_servicegroups,
+  $check_period        = $::nagios_check_disk_check_period,
+  $max_check_attempts  = $::nagios_check_disk_max_check_attempts,
+  $notification_period = $::nagios_check_disk_notification_period,
+  $use                 = $::nagios_check_disk_use,
 ) {
 
-    if $ensure != 'absent' {
-        Package <| tag == 'nagios-plugins-disk' |>
-    }
+  if $ensure != 'absent' {
+    Package <| tag == 'nagios-plugins-disk' |>
+  }
 
-    $final_original_args = $original_args ? {
-        # -l : Don't check network mounts, local (and checked) elsewhere
-        # binfmt_misc : Denied by default, not useful to monitor
-        # rpc_pipefs  : Denied by default, not useful to monitor
-        # cgroup      : Denied by default, not useful to monitor
-        undef   => '-l -X binfmt_misc -X rpc_pipefs -X cgroup',
-        default => $original_args,
-    }
-    $final_args = $args ? {
-        undef   => ' -w 5% -c 2%',
-        default => " ${args}",
-    }
-    $final_extra_args = $extra_args ? {
-        undef   => '',
-        default => " ${extra_args}",
-    }
-    nagios::client::nrpe_file { 'check_disk':
-        args   => "${final_original_args}${final_args}${final_extra_args}",
-        ensure => $ensure,
-    }
+  $final_original_args = $original_args ? {
+    # -l : Don't check network mounts, local (and checked) elsewhere
+    # binfmt_misc : Denied by default, not useful to monitor
+    # rpc_pipefs  : Denied by default, not useful to monitor
+    # cgroup      : Denied by default, not useful to monitor
+    undef   => '-l -X binfmt_misc -X rpc_pipefs -X cgroup',
+    default => $original_args,
+  }
+  $final_args = $args ? {
+    undef   => ' -w 5% -c 2%',
+    default => " ${args}",
+  }
+  $final_extra_args = $extra_args ? {
+    undef   => '',
+    default => " ${extra_args}",
+  }
+  nagios::client::nrpe_file { 'check_disk':
+    ensure => $ensure,
+    args   => "${final_original_args}${final_args}${final_extra_args}",
+  }
 
-    nagios::service { "check_disk_${title}":
-        check_command       => 'check_nrpe_disk',
-        service_description => 'disk',
-        servicegroups       => $servicegroups,
-        check_period        => $check_period,
-        max_check_attempts  => $max_check_attempts,
-        notification_period => $notification_period,
-        use                 => $use,
-        ensure              => $ensure,
-    }
+  nagios::service { "check_disk_${title}":
+    ensure              => $ensure,
+    check_command       => 'check_nrpe_disk',
+    service_description => 'disk',
+    servicegroups       => $servicegroups,
+    check_period        => $check_period,
+    max_check_attempts  => $max_check_attempts,
+    notification_period => $notification_period,
+    use                 => $use,
+  }
 
 }
 

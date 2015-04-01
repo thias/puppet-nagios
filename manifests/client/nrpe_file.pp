@@ -3,23 +3,22 @@
 # Install check-specific client nrpe configuration snippet files.
 #
 define nagios::client::nrpe_file (
-    $plugin     = $name,
-    $template   = 'check_generic',
-    $command    = $name,
-    $sudo       = false,
-    $sudo_user  = undef,
-    $args       = false,
-    $ensure     = undef
+  $ensure    = undef,
+  $plugin    = $name,
+  $template  = 'check_generic',
+  $command   = $name,
+  $sudo      = false,
+  $sudo_user = undef,
+  $args      = false,
 ) {
 
-    file { "${nagios::params::nrpe_cfg_dir}/nrpe-${title}.cfg":
-        owner   => 'root',
-        group   => $nagios::client::nrpe_group,
-        mode    => '0640',
-        content => template("nagios/nrpe-${template}.cfg.erb"),
-        notify  => Service[$nagios::params::nrpe_service],
-        ensure  => $ensure,
-    }
+  file { "${nagios::params::nrpe_cfg_dir}/nrpe-${title}.cfg":
+    ensure  => $ensure,
+    owner   => 'root',
+    group   => $nagios::client::nrpe_group,
+    mode    => '0640',
+    content => template("nagios/nrpe-${template}.cfg.erb"),
+    notify  => Service[$nagios::params::nrpe_service],
+  }
 
 }
-
