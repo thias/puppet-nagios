@@ -1,3 +1,6 @@
+#### 2015-04-01 - 1.0.5
+* Code cleanups to make puppet lint a bit happier.
+
 #### 2015-04-01 - 1.0.4
 * Update check::ram to be a class, for hiera or ENC overrides.
 * Update check::ntp_time to be a class, use more generic 0.pool.ntp.org.
