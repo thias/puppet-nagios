@@ -81,9 +81,9 @@ define nagios::check (
 #  }
 
   @@nagios_command { "check_${title}":
-#   command_line        => "${nrpe} -c check_${title} $command_parameters",
-    command_line        => "${nrpe} -c check_${title}",
-    tag                 => regsubst($server,'^(.+)$','nagios-\1'),
+#   command_line => "${nrpe} -c check_${title} $command_parameters",
+    command_line => "${nrpe} -c check_${title}",
+    tag          => regsubst($server,'^(.+)$','nagios-\1'),
   }
 
 }

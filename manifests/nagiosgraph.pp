@@ -1,3 +1,5 @@
+# Nagiosgraph class
+#
 class nagios::nagiosgraph (
   # The 'nagios_command' and 'nagios_service' we add
   $nagios_command_name       = 'process-service-perfdata-nagiosgraph',
@@ -81,8 +83,8 @@ class nagios::nagiosgraph (
   # Server-Side Include nagios CGI snippet for mouseover js code
   if $ssi {
     file { '/usr/share/nagios/html/ssi/common-header.ssi':
-      ensure => link,
-      target => '/usr/share/nagiosgraph/examples/nagiosgraph.ssi',
+      ensure  => 'link',
+      target  => '/usr/share/nagiosgraph/examples/nagiosgraph.ssi',
       require => Package['nagios'],
     }
   }
@@ -90,7 +92,7 @@ class nagios::nagiosgraph (
   # Overwrite the original action image, as suggested in the INSTALL
   if $gif {
     file { '/usr/share/nagios/html/images/action.gif':
-      ensure  => link,
+      ensure  => 'link',
       target  => '/usr/share/nagiosgraph/examples/graph.gif',
       require => Package['nagios'],
     }

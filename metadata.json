@@ -24,7 +24,6 @@
     "version_requirement": ">=2.7.20 <4.0.0"
     }
   ],
-  "description": "Install and configure one or more nagios servers to monitor all of your puppet-managed nodes.",
   "dependencies": [
     {
     "name": "puppetlabs/stdlib",

@@ -1,3 +1,5 @@
+# Nagios Server class
+#
 class nagios::server (
   # For the tag of the stored configuration to realize
   $nagios_server        = 'default',
@@ -125,7 +127,6 @@ class nagios::server (
   # Custom plugin scripts required on the server
   if $plugin_nginx {
     file { "${plugin_dir}/check_nginx":
-      ensure  => $ensure,
       owner   => 'root',
       group   => 'root',
       mode    => '0755',
@@ -138,7 +139,6 @@ class nagios::server (
   }
   if $plugin_xcache {
     file { "${plugin_dir}/check_xcache":
-      ensure  => $ensure,
       owner   => 'root',
       group   => 'root',
       mode    => '0755',
@@ -151,14 +151,12 @@ class nagios::server (
   }
 
   # Other packages
-  package { [
-    'mailx', # For the default email notifications to work
-  ]:
-    ensure => installed,
+  # For the default email notifications to work
+  package { 'mailx': ensure => 'installed' }
   }
 
   service { 'nagios':
-    ensure    => running,
+    ensure    => 'running',
     enable    => true,
     # "service nagios status" returns 0 when "nagios is not running" :-(
     hasstatus => false,

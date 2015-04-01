@@ -73,7 +73,7 @@ define nagios::nrpe_service (
   # we use the nagios client host_name because the service name needs to
   # be unique over all clients on the server
   if ($use_extra) {
-    $use_extra_string = join($user_extra,',')
+    $use_extra_string = join($use_extra,',')
     $use = "nrpe-service,${use_extra_string}"
   } else {
     $use = 'nrpe-service'
