@@ -17,7 +17,7 @@ class nagios::check::ntp_time (
     Package <| tag == 'nagios-plugins-ntp' |>
   }
   # Include default host (-H) if no override in $args
-  if $args !~ /-H/ { $arg_host = '-H 0.pool.ntp.org' } else { $arg_host = '' }
+  if $args !~ /-H/ { $arg_host = '-H 0.pool.ntp.org ' } else { $arg_host = '' }
   $fullargs = "${arg_host}${args}"
 
   nagios::client::nrpe_file { 'check_ntp_time':

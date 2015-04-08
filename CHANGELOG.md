@@ -1,3 +1,5 @@
+* Fix check::ntp_type when no -H is in args (#50, @raiblue).
+
 #### 2015-04-01 - 1.0.5
 * Code cleanups to make puppet lint a bit happier.
 
