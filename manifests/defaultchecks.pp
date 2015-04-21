@@ -17,43 +17,43 @@ class nagios::defaultchecks {
   }
   # Conditional checks, enabled based on custom facts
   if $::nagios_check_httpd_disable != 'true' and
-     $::nagios_httpd == 'true' {
+     $::nagios_httpd {
     nagios::check::httpd { $nagios::client::host_name: }
   } else {
     nagios::check::httpd { $nagios::client::host_name: ensure => absent }
   }
   if $::nagios_check_megaraid_sas_disable != 'true' and
-     $::nagios_pci_megaraid_sas == 'true' {
+     $::nagios_pci_megaraid_sas {
     nagios::check::megaraid_sas { $nagios::client::host_name: }
   } else {
     nagios::check::megaraid_sas { $nagios::client::host_name: ensure => absent }
   }
   if $::nagios_check_mptsas_disable != 'true' and
-     $::nagios_pci_mptsas == 'true' {
+     $::nagios_pci_mptsas {
     nagios::check::mptsas { $nagios::client::host_name: }
   } else {
     nagios::check::mptsas { $nagios::client::host_name: ensure => absent }
   }
   if $::nagios_check_nginx_disable != 'true' and
-     $::nagios_httpd_nginx == 'true' {
+     $::nagios_httpd_nginx {
     nagios::check::nginx { $nagios::client::host_name: }
   } else {
     nagios::check::nginx { $nagios::client::host_name: ensure => absent }
   }
   if $::nagios_check_membase_disable != 'true' and
-     $::nagios_membase == 'true' {
+     $::nagios_membase {
     nagios::check::membase { $nagios::client::host_name: }
   } else {
     nagios::check::membase { $nagios::client::host_name: ensure => absent }
   }
   if $::nagios_check_couchbase_disable != 'true' and
-     $::nagios_couchbase == 'true' {
+     $::nagios_couchbase {
     nagios::check::couchbase { $nagios::client::host_name: }
   } else {
     nagios::check::couchbase { $nagios::client::host_name: ensure => absent }
   }
   if $::nagios_check_moxi_disable != 'true' and
-     $::nagios_moxi == 'true' {
+     $::nagios_moxi {
     nagios::check::moxi { $nagios::client::host_name: }
   } else {
     nagios::check::moxi { $nagios::client::host_name: ensure => absent }

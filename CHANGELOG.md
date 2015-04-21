@@ -1,3 +1,5 @@
+* Convert all 'true' facts to booleans, keep compat with legacy paser.
+
 #### 2015-04-01 - 1.0.5
 * Code cleanups to make puppet lint a bit happier.
 

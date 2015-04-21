@@ -179,7 +179,7 @@ since we use nrpe for execution. Example :
 
 ```puppet
 # This could go in site.pp, the fact is true only if mysqld is found
-if $::nagios_mysqld == 'true' {
+if $::nagios_mysqld {
   mysql_user { 'nagios@localhost':
     ensure        => 'present',
     password_hash => mysql_password('mysupersecretpassword'),

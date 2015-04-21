@@ -703,7 +703,8 @@ class nagios::server (
 
   # With selinux, adjustements are needed for nagiosgraph
   # lint:ignore:quoted_booleans
-  if $selinux == 'true' and $::selinux_enforced == 'true' {
+  if ( ( $selinux == true and $::selinux_enforced == true ) or
+  ( $selinux == 'true' and $::selinux_enforced == 'true' ) ) {
     selinux::audit2allow { 'nagios':
       source => "puppet:///modules/${module_name}/messages.nagios",
     }

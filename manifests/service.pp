@@ -41,6 +41,8 @@ define nagios::service (
         default => $use,
     }
 
+    # Support an array of tags for multiple nagios servers
+    $service_tag = regsubst($server,'^(.+)$','nagios-\1')
     @@nagios_service { $title:
         ensure                   => $ensure,
         host_name                => $host_name,
@@ -53,8 +55,7 @@ define nagios::service (
         max_check_attempts       => $final_max_check_attempts,
         notification_period      => $final_notification_period,
         use                      => $final_use,
-        # Support an arrays of tags for multiple nagios servers
-        tag                      => regsubst($server,'^(.+)$','nagios-\1'),
+        tag                      => $service_tag,
     }
 
 }

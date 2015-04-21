@@ -131,10 +131,10 @@ class nagios::client (
     class { '::nagios::check::load': }
     class { '::nagios::check::ntp_time': }
     class { '::nagios::check::ram': }
-    if $::nagios_mysqld == 'true' {
+    if $::nagios_mysqld {
       class { '::nagios::check::mysql_health': }
     }
-    if $::nagios_memcached == 'true' {
+    if $::nagios_memcached {
       class { '::nagios::check::memcached': }
     }
 
