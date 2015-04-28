@@ -1,9 +1,9 @@
 {
   "name": "thias-nagios",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "author": "Matthias Saou",
   "license": "Apache-2.0",
-  "summary": "Nagios client and server module",
+  "summary": "Nagios client and server module.",
   "source": "https://github.com/thias/puppet-nagios",
   "project_page": "https://forge.puppetlabs.com/thias/nagios",
   "issues_url": "https://github.com/thias/puppet-nagios/issues",
@@ -25,7 +25,7 @@
     },
     {
     "name": "puppet",
-    "version_requirement": ">=2.7.20 <4.0.0"
+    "version_requirement": ">=2.7.20 <4.1.0"
     }
   ],
   "dependencies": [

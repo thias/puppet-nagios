@@ -1,3 +1,4 @@
+#### 2015-04-28 - 1.0.6
 * Fix check::ntp_type when no -H is in args (#50, @raiblue).
 * Convert all 'true' facts to booleans, keep compat with legacy paser.
 
