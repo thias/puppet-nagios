@@ -23,6 +23,7 @@ class nagios::server (
   $apache_httpd_conf_source     = undef,
   $apache_allowed_from          = [],   # Allow access in default template
   $apache_httpd_htpasswd_source = "puppet:///modules/${module_name}/apache_httpd/htpasswd",
+  $htpasswd_replace = true,
   $php     = true,
   $php_apc = true,
   # cgi.cfg
@@ -188,6 +189,7 @@ class nagios::server (
       owner   => 'root',
       group   => 'apache',
       mode    => '0640',
+      replace => $htpasswd_replace,
       source  => $apache_httpd_htpasswd_source,
       require => Package['nagios'],
     }
