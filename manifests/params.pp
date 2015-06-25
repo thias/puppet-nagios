@@ -77,7 +77,7 @@ class nagios::params {
         tag    => $nagios_plugins_packages,
       }
     }
-    'Debian': {
+    'Debian', 'Ubuntu': {
       $nrpe_package       = [ 'nagios-nrpe-server' ]
       $nrpe_package_alias = 'nrpe'
       $nrpe_service       = 'nagios-nrpe-server'
