@@ -19,6 +19,7 @@ class nagios::client (
   $nrpe_connection_timeout     = '300',
   # host defaults
   $host_address                = $::nagios_host_address,
+  $host_address6               = $::nagios_host_address6,
   $host_alias                  = $::nagios_host_alias,
   $host_check_period           = $::nagios_host_check_period,
   $host_check_command          = $::nagios_host_check_command,
@@ -127,6 +128,7 @@ class nagios::client (
   class { '::nagios::check::cpu': }
   class { '::nagios::check::load': }
   class { '::nagios::check::ntp_time': }
+  class { '::nagios::check::ping6': }
   class { '::nagios::check::ram': }
   if $::nagios_mysqld {
     class { '::nagios::check::mysql_health': }

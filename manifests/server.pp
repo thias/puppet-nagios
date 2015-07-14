@@ -385,6 +385,9 @@ class nagios::server (
   nagios_command { 'check_ping':
     command_line => '$USER1$/check_ping -H $HOSTADDRESS$ $ARG1$',
   }
+  nagios_command { 'check_ping6':
+    command_line => '$USER1$/check_ping -6 $ARG1$',
+  }
   nagios_command { 'check_pop':
     command_line => '$USER1$/check_pop -H $HOSTADDRESS$ $ARG1$',
   }

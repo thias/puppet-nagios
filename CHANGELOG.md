@@ -1,3 +1,5 @@
+* Include ping6 check, enable by default when a public IPv6 address is found.
+
 #### 2015-04-28 - 1.0.6
 * Fix check::ntp_type when no -H is in args (#50, @raiblue).
 * Convert all 'true' facts to booleans, keep compat with legacy paser.
