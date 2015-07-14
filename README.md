@@ -13,8 +13,8 @@ part is much more generic and has been tested on both RHEL and Gentoo.
 
 Please note that this module is not for the faint of heart. Even I (the author)
 have my head hurt each time I have to make modificiations to it... but it is
-worth it, as it enables to have monitoring automatically enabled by default
-for all services detected on the nagios clients.
+worth it, as it allows having monitoring automatically enabled by default
+on all nodes as well as for all standard services detected on them.
 
 ## Requirements
 
@@ -23,7 +23,7 @@ for all services detected on the nagios clients.
 
 The `apache_httpd` and `php` modules are required for the server part, though
 optionally since it is also possible to use an existing non-puppet managed web
-server or different module modules. For a new empty node, configuring it as a
+server or different puppet modules. For a new empty node, configuring it as a
 nagios server will be much quicker if those modules can be used.
 
 Stored configurations are essential on the puppetmaster for the module to work
@@ -31,9 +31,8 @@ at all, since it relies on having all nodes create their own exported nagios
 host and service resources, which the nagios server node then realizes to
 build its configuration.
 
-The plugin packages used for RHEL with selinux enabled should have the
-libexecdir directory properly set to `/usr/libexec` in order to avoid selinux
-denials. Such packages can be found on http://dl.marmotte.net/rpms/
+For RHEL, any packages which might be required but are not part of the
+official repositories or EPEL can be found on http://dl.marmotte.net/rpms/
 
 When SELinux is enforcing, the `selinux::audit2allow` definition is required
 to allow some basic nagios/nrpe accesses, though it can also be disabled.
