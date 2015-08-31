@@ -1344,3 +1344,8 @@ debug_file=/var/log/nagios/nagios.debug
 max_debug_file_size=1000000
 
 
+<% if @cfg_append -%>
+  <%- @cfg_append.sort_by{ |k, v| }.each do |key,value| -%>
+<%= key %>=<%= value %>
+  <%- end -%>
+<% end -%>
