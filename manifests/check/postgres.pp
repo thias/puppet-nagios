@@ -26,13 +26,13 @@ class nagios::check::postgres (
     Nagios_service { notification_period => $::nagios_check_postgres_notification_period }
   }
 
-  # The check executes MegaCli using sudo
+  # The check is being executed via sudo
   file { '/etc/sudoers.d/nagios_check_postgres':
     ensure  => $ensure,
     owner   => 'root',
     group   => 'root',
     mode    => '0440',
-    # We customize the user and the nagios plugin dir
+    # We customize the user, the nagios plugin dir and few other things
     content => template('nagios/plugins/check_postgres-sudoers.erb'),
   }
 

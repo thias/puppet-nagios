@@ -1,4 +1,4 @@
-# Create custom nagios_mysqld fact
+# Create custom nagios_postgres fact
 
 binaries = [
   '/opt/citusdb/4.0/bin/postgres',
