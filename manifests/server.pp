@@ -536,6 +536,12 @@ class nagios::server (
   nagios_command { 'check_nrpe_mysql_health_open_files':
     command_line => "${nrpe} -c check_mysql_health_open_files",
   }
+  nagios_command { 'check_nrpe_postgres_backends':
+    command_line => "${nrpe} -c check_postgres_backends",
+  }
+  nagios_command { 'check_nrpe_postgres_bloat':
+    command_line => "${nrpe} -c check_postgres_bloat",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
@@ -702,6 +708,9 @@ class nagios::server (
   # Additional useful resources
   nagios_servicegroup { 'mysql_health':
     alias => 'MySQL Health service checks',
+  }
+  nagios_servicegroup { 'postgres':
+    alias => 'PostgreSQL service checks',
   }
 
   # With selinux, adjustements are needed for nagiosgraph

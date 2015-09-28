@@ -136,6 +136,9 @@ class nagios::client (
   if $::nagios_memcached {
     class { '::nagios::check::memcached': }
   }
+  if $::nagios_postgres {
+    class { '::nagios::check::postgres': }
+  }
 
   # With selinux, some nrpe plugins require additional rules to work
   if $selinux and $::selinux_enforced {
