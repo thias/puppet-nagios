@@ -1,0 +1,2 @@
+Defaults !requiretty
+<%= scope['nagios::client::nrpe_user'] %> ALL = (<%= @privileged_user %>) NOPASSWD: <%= scope['nagios::client::plugin_dir'] %>/<%= @plugin %>

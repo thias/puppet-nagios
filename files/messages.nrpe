@@ -37,3 +37,5 @@ avc:  denied  { write } for  pid=2112 comm="check_mysql_hea" name="mysql.sock" d
 avc:  denied  { connectto } for  pid=3551 comm="check_mysql_hea" path="/var/lib/mysql/mysql.sock" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:system_r:mysqld_t:s0 tclass=unix_stream_socket
 avc:  denied  { create add_name write } for  pid=19390 comm="check_mysql_hea" name="tmp" dev=vda2 ino=5111844 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:tmp_t:s0 tclass=dir
 avc:  denied  { create write open getattr ioctl read } for  pid=22861 comm="check_mysql_hea" name="tmp" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:tmp_t:s0 tclass=file
+# check_postgres
+avc:  denied  { getattr } for  pid=22555 comm="sh" path="/usr/bin/sudo" dev="dm-0" ino=33753012 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:sudo_exec_t:s0 tclass=file
