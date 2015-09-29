@@ -48,7 +48,11 @@ class nagios::params {
       $nrpe_service       = 'nrpe'
       $nrpe_user          = 'nrpe'
       $nrpe_group         = 'nrpe'
-      $nrpe_pid_file      = hiera('nagios::params::nrpe_pid_file','/var/run/nrpe.pid')
+      if ( $::operatingsystem != 'Fedora' and versioncmp($::operatingsystemrelease, '7') >= 0 ) {
+        $nrpe_pid_file    = hiera('nagios::params::nrpe_pid_file','/run/nrpe/nrpe.pid')
+      } else {
+        $nrpe_pid_file    = hiera('nagios::params::nrpe_pid_file','/var/run/nrpe/nrpe.pid')
+      }
       $nrpe_cfg_dir       = hiera('nagios::params::nrpe_cfg_dir','/etc/nrpe.d')
       $plugin_dir         = hiera('nagios::params::plugin_dir',"/usr/${libdir}/nagios/plugins")
       $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios.pid')
