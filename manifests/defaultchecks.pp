@@ -12,9 +12,6 @@ class nagios::defaultchecks {
   if $::nagios_check_ping_disable != 'true' {
     nagios::check::ping { $nagios::client::host_name: }
   }
-  if $::nagios_check_swap_disable != 'true' {
-    nagios::check::swap { $nagios::client::host_name: }
-  }
   # Conditional checks, enabled based on custom facts
   if $::nagios_check_httpd_disable != 'true' and
      $::nagios_httpd {

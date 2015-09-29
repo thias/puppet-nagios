@@ -130,6 +130,7 @@ class nagios::client (
   class { '::nagios::check::ntp_time': }
   class { '::nagios::check::ping6': }
   class { '::nagios::check::ram': }
+  class { '::nagios::check::swap': }
   if $::nagios_mysqld {
     class { '::nagios::check::mysql_health': }
   }
