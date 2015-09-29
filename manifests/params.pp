@@ -55,7 +55,7 @@ class nagios::params {
       }
       $nrpe_cfg_dir       = hiera('nagios::params::nrpe_cfg_dir','/etc/nrpe.d')
       $plugin_dir         = hiera('nagios::params::plugin_dir',"/usr/${libdir}/nagios/plugins")
-      $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios.pid')
+      $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios/nagios.pid')
       $megaclibin         = '/usr/sbin/MegaCli'
       $perl_memcached     = 'perl-Cache-Memcached'
       @package { $nagios_plugins_packages:
