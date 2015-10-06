@@ -536,11 +536,152 @@ class nagios::server (
   nagios_command { 'check_nrpe_mysql_health_open_files':
     command_line => "${nrpe} -c check_mysql_health_open_files",
   }
+  nagios_command { 'check_nrpe_postgres_archive_ready':
+    command_line => "${nrpe} -c check_postgres_archive_ready",
+  }
+  nagios_command { 'check_nrpe_postgres_autovac_freeze':
+    command_line => "${nrpe} -c check_postgres_autovac_freeze",
+  }
   nagios_command { 'check_nrpe_postgres_backends':
     command_line => "${nrpe} -c check_postgres_backends",
   }
   nagios_command { 'check_nrpe_postgres_bloat':
     command_line => "${nrpe} -c check_postgres_bloat",
+  }
+  nagios_command { 'check_nrpe_postgres_checkpoint':
+    command_line => "${nrpe} -c check_postgres_checkpoint",
+  }
+  nagios_command { 'check_nrpe_postgres_cluster_id':
+    command_line => "${nrpe} -c check_postgres_cluster_id",
+  }
+  nagios_command { 'check_nrpe_postgres_commitratio':
+    command_line => "${nrpe} -c check_postgres_commitratio",
+  }
+  nagios_command { 'check_nrpe_postgres_connection':
+    command_line => "${nrpe} -c check_postgres_connection",
+  }
+  nagios_command { 'check_nrpe_postgres_database_size':
+    command_line => "${nrpe} -c check_postgres_database_size",
+  }
+  nagios_command { 'check_nrpe_postgres_disabled_triggers':
+    command_line => "${nrpe} -c check_postgres_disabled_triggers",
+  }
+  nagios_command { 'check_nrpe_postgres_disk_space':
+    command_line => "${nrpe} -c check_postgres_disk_space",
+  }
+  nagios_command { 'check_nrpe_postgres_fsm_pages':
+    command_line => "${nrpe} -c check_postgres_fsm_pages",
+  }
+  nagios_command { 'check_nrpe_postgres_fsm_relations':
+    command_line => "${nrpe} -c check_postgres_fsm_relations",
+  }
+  nagios_command { 'check_nrpe_postgres_hitratio':
+    command_line => "${nrpe} -c check_postgres_hitratio",
+  }
+  nagios_command { 'check_nrpe_postgres_hot_standby_delay':
+    command_line => "${nrpe} -c check_postgres_hot_standby_delay",
+  }
+  nagios_command { 'check_nrpe_postgres_last_analyze':
+    command_line => "${nrpe} -c check_postgres_last_analyze",
+  }
+  nagios_command { 'check_nrpe_postgres_last_vacuum':
+    command_line => "${nrpe} -c check_postgres_last_vacuum",
+  }
+  nagios_command { 'check_nrpe_postgres_last_autoanalyze':
+    command_line => "${nrpe} -c check_postgres_last_autoanalyze",
+  }
+  nagios_command { 'check_nrpe_postgres_last_autovacuum':
+    command_line => "${nrpe} -c check_postgres_last_autovacuum",
+  }
+  nagios_command { 'check_nrpe_postgres_listener':
+    command_line => "${nrpe} -c check_postgres_listener",
+  }
+  nagios_command { 'check_nrpe_postgres_locks':
+    command_line => "${nrpe} -c check_postgres_locks",
+  }
+  nagios_command { 'check_nrpe_postgres_logfile':
+    command_line => "${nrpe} -c check_postgres_logfile",
+  }
+  nagios_command { 'check_nrpe_postgres_new_version_bc':
+    command_line => "${nrpe} -c check_postgres_new_version_bc",
+  }
+  nagios_command { 'check_nrpe_postgres_new_version_box':
+    command_line => "${nrpe} -c check_postgres_new_version_box",
+  }
+  nagios_command { 'check_nrpe_postgres_new_version_cp':
+    command_line => "${nrpe} -c check_postgres_new_version_cp",
+  }
+  nagios_command { 'check_nrpe_postgres_new_version_pg':
+    command_line => "${nrpe} -c check_postgres_new_version_pg",
+  }
+  nagios_command { 'check_nrpe_postgres_new_version_tnm':
+    command_line => "${nrpe} -c check_postgres_new_version_tnm",
+  }
+  nagios_command { 'check_nrpe_postgres_pgb_pool_cl_active':
+    command_line => "${nrpe} -c check_postgres_pgb_pool_cl_active",
+  }
+  nagios_command { 'check_nrpe_postgres_pgb_pool_cl_waiting':
+    command_line => "${nrpe} -c check_postgres_pgb_pool_cl_waiting",
+  }
+  nagios_command { 'check_nrpe_postgres_pgb_pool_sv_active':
+    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_active",
+  }
+  nagios_command { 'check_nrpe_postgres_pgb_pool_sv_idle':
+    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_idle",
+  }
+  nagios_command { 'check_nrpe_postgres_pgb_pool_sv_used':
+    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_used",
+  }
+  nagios_command { 'check_nrpe_postgres_pgb_pool_sv_tested':
+    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_tested",
+  }
+  nagios_command { 'check_nrpe_postgres_pgb_pool_sv_login':
+    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_login",
+  }
+  nagios_command { 'check_nrpe_postgres_pgb_pool_sv_maxwait':
+    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_maxwait",
+  }
+  nagios_command { 'check_nrpe_postgres_pgbouncer_backends':
+    command_line => "${nrpe} -c check_postgres_pgbouncer_backends",
+  }
+  nagios_command { 'check_nrpe_postgres_pgbouncer_checksum':
+    command_line => "${nrpe} -c check_postgres_pgbouncer_checksum",
+  }
+  nagios_command { 'check_nrpe_postgres_pgagent_jobs':
+    command_line => "${nrpe} -c check_postgres_pgagent_jobs",
+  }
+  nagios_command { 'check_nrpe_postgres_prepared_txns':
+    command_line => "${nrpe} -c check_postgres_prepared_txns",
+  }
+  nagios_command { 'check_nrpe_postgres_query_time':
+    command_line => "${nrpe} -c check_postgres_query_time",
+  }
+  nagios_command { 'check_nrpe_postgres_same_schema':
+    command_line => "${nrpe} -c check_postgres_same_schema",
+  }
+  nagios_command { 'check_nrpe_postgres_sequence':
+    command_line => "${nrpe} -c check_postgres_sequence",
+  }
+  nagios_command { 'check_nrpe_postgres_settings_checksum':
+    command_line => "${nrpe} -c check_postgres_settings_checksum",
+  }
+  nagios_command { 'check_nrpe_postgres_slony_status':
+    command_line => "${nrpe} -c check_postgres_slony_status",
+  }
+  nagios_command { 'check_nrpe_postgres_txn_idle':
+    command_line => "${nrpe} -c check_postgres_txn_idle",
+  }
+  nagios_command { 'check_nrpe_postgres_txn_time':
+    command_line => "${nrpe} -c check_postgres_txn_time",
+  }
+  nagios_command { 'check_nrpe_postgres_txn_wraparound':
+    command_line => "${nrpe} -c check_postgres_txn_wraparound",
+  }
+  nagios_command { 'check_nrpe_postgres_version':
+    command_line => "${nrpe} -c check_postgres_version",
+  }
+  nagios_command { 'check_nrpe_postgres_wal_files':
+    command_line => "${nrpe} -c check_postgres_wal_files",
   }
 
   # Nagios contacts and contactgroups

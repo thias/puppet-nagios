@@ -229,6 +229,61 @@ warning and critical values as needed :
 nagios::check::mysql_health::args_connection_time: '--warning 5 --critical 10'
 ```
 
+## postgres
+
+The postgres part is very similar to the mysql_health:
+* Relies on using automatic hiera class parameter lookups.
+* Requires the puppetlabs-stdlib module because it uses getvar().
+
+The single postgres script has many 'actions' ('modes'), which are
+enabled by default.
+
+You can either selectively disable some :
+
+```yaml
+# Disable some checks (modes)
+nagios::check::postgres::modes_disabled:
+  - 'new_version_pg'
+  - 'new_version_tnm'
+  - 'pgb_pool_cl_active'
+```
+
+Or selectively enable some :
+
+```yaml
+# Enable only the following checks (modes)
+nagios::check::postgres::modes_enabled:
+  - 'locks'
+  - 'logfile'
+  - 'query_time'
+```
+
+Then for each mode, you can also pass some arguments, typically to change the
+warning and critical values as needed :
+
+```yaml
+# Tweak some check values
+nagios::check::postgres::args_query_time: '--warning=20s --critical=2m'
+```
+
+It is also possible to specify some custom query checks :
+
+```yaml
+nagios::check::postgres::custom_queries:
+  custom_query_1:
+    query: 'SELECT SUBSTRING(version(), 12, 5)'
+    valtype: 'string'
+    warning: '9.4.4'
+  custom_query_2:
+    query: "SELECT SUBSTRING(version(), 12, 1) AS result"
+    warning: 9
+    valtype: 'integer'
+    reverse: true
+```
+
+For more info please refer to the check_postgres nagios plugin documentation:
+https://bucardo.org/check_postgres/check_postgres.pl.html.
+
 ## Removing hosts
 
 If you decommission a Nagios-monitored host a couple of manual steps are
