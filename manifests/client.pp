@@ -132,7 +132,18 @@ class nagios::client (
   class { '::nagios::check::ram': }
   class { '::nagios::check::swap': }
   if $::nagios_mysqld {
-    class { '::nagios::check::mysql_health': }
+    case $::operatingsystem {
+      'RedHat', 'Fedora', 'CentOS', 'Scientific', 'Amazon': {
+        class { '::nagios::check::mysql_health': }
+      }
+      'Debian', 'Ubuntu': {
+        # nagios-plugins-mysql_health doesn't exist for Trusty
+        # https://launchpad.net/ubuntu/trusty/+search?text=nagios-plugins
+      }
+      default: {
+        class { '::nagios::check::mysql_health': }
+      }
+    }
   }
   if $::nagios_memcached {
     class { '::nagios::check::memcached': }
