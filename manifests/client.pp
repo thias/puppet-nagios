@@ -15,7 +15,7 @@ class nagios::client (
   $nrpe_allowed_hosts          = '127.0.0.1',
   $nrpe_dont_blame_nrpe        = '0',
   $nrpe_command_prefix         = undef,
-  $nrpe_debug                  = 0,
+  $nrpe_debug                  = '0',
   $nrpe_command_timeout        = '60',
   $nrpe_connection_timeout     = '300',
   # host defaults
