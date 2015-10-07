@@ -1,7 +1,13 @@
+#### 2015-10-06 - 1.0.7
 * Include ping6 check, enable by default when a public IPv6 address is found.
 * Include postgres checks (#59, @lisuml).
 * Update/Fix nagios and nrpe default pid file location for Fedora/RHEL.
 * Update check::swap to be a class, for hiera or ENC overrides.
+* Support ppc64 architecture (#56, @hamzy).
+* Disable missing nagios-plugins-mysql_health on Debian/Ubuntu (#56, @hamzy).
+* Add nrpe_debug parameter (#57, @mmedvede).
+* Add cfg_append param for appending lines to nagios.cfg (#58, @zxjinn).
+* Decouple management of Apache virtual host (#61).
 
 #### 2015-04-28 - 1.0.6
 * Fix check::ntp_type when no -H is in args (#50, @raiblue).

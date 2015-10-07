@@ -47,7 +47,7 @@ define nagios::check::postgres::custom_query () {
 
   # Enable standby mode if needed
   if $standby_mode {
-    $args_standby = "--assume-standby-mode"
+    $args_standby = '--assume-standby-mode'
   }
 
   if ($query_ensure == 'present') {

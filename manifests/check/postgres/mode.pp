@@ -21,7 +21,7 @@ define nagios::check::postgres::mode () {
 
   # Enable standby mode if needed
   if $standby_mode {
-    $args_standby = "--assume-standby-mode"
+    $args_standby = '--assume-standby-mode'
   }
 
   if ( ( $modes_enabled == [] and $modes_disabled == [] ) or

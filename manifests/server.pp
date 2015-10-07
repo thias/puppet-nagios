@@ -62,6 +62,7 @@ class nagios::server (
   $date_format = 'iso8601',
   $admin_email = 'root@localhost',
   $admin_pager = 'pagenagios@localhost',
+  $cfg_append  = undef,
   # private/resource.cfg for $USERx$ macros (from 1 to 32)
   $user = {
     '1' => $::nagios::params::plugin_dir,
@@ -166,38 +167,38 @@ class nagios::server (
     require   => Package['nagios'],
   }
 
-  # Set a default content template if no content/source is specified
-  if $apache_httpd_conf_source == undef {
-    if $apache_httpd_conf_content == undef {
-      $apache_httpd_conf_content_final = template("${module_name}/apache_httpd/httpd-nagios.conf.erb")
-    } else {
-      $apache_httpd_conf_content_final = $apache_httpd_conf_content
-    }
-  }
-  file { '/etc/httpd/conf.d/nagios.conf':
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    content => $apache_httpd_conf_content_final,
-    source  => $apache_httpd_conf_source,
-    notify  => Service['httpd'],
-    require => Package['nagios'],
-  }
-  if $apache_httpd_htpasswd_source != false {
-    file { '/etc/nagios/.htpasswd':
-      owner   => 'root',
-      group   => 'apache',
-      mode    => '0640',
-      source  => $apache_httpd_htpasswd_source,
-      require => Package['nagios'],
-    }
-  }
-
   if $apache_httpd {
     class { '::apache_httpd':
       ssl       => $apache_httpd_ssl,
       modules   => $apache_httpd_modules,
       keepalive => 'On',
+    }
+
+    # Set a default content template if no content/source is specified
+    if $apache_httpd_conf_source == undef {
+      if $apache_httpd_conf_content == undef {
+        $apache_httpd_conf_content_final = template("${module_name}/apache_httpd/httpd-nagios.conf.erb")
+      } else {
+        $apache_httpd_conf_content_final = $apache_httpd_conf_content
+      }
+    }
+    file { '/etc/httpd/conf.d/nagios.conf':
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0644',
+      content => $apache_httpd_conf_content_final,
+      source  => $apache_httpd_conf_source,
+      notify  => Service['httpd'],
+      require => Package['nagios'],
+    }
+    if $apache_httpd_htpasswd_source != false {
+      file { '/etc/nagios/.htpasswd':
+        owner   => 'root',
+        group   => 'apache',
+        mode    => '0640',
+        source  => $apache_httpd_htpasswd_source,
+        require => Package['nagios'],
+      }
     }
   }
 
@@ -208,6 +209,9 @@ class nagios::server (
   }
 
   # Configuration files
+  if ($cfg_append != undef) {
+    validate_hash($cfg_append)
+  }
   file { '/etc/nagios/cgi.cfg':
     owner   => 'root',
     group   => 'root',
@@ -865,4 +869,3 @@ class nagios::server (
   # lint:endignore
 
 }
-
