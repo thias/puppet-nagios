@@ -38,7 +38,8 @@ class nagios::client (
   $service_use                 = 'generic-service',
   # other
   $plugin_dir                  = $nagios::params::plugin_dir,
-  $selinux                     = true
+  $selinux                     = true,
+  $defaultchecks               = true
 ) inherits ::nagios::params {
 
   # Set the variables to be used, including scoped from elsewhere, based on
@@ -121,36 +122,38 @@ class nagios::client (
     use => 'generic-service,nagiosgraph-service',
   }
 
-  # Enable all default checks by... default
-  # Old style with facts overrides
-  class { '::nagios::defaultchecks': }
-  # New style with hiera overrides
-  class { '::nagios::check::conntrack': }
-  class { '::nagios::check::cpu': }
-  class { '::nagios::check::load': }
-  class { '::nagios::check::ntp_time': }
-  class { '::nagios::check::ping6': }
-  class { '::nagios::check::ram': }
-  class { '::nagios::check::swap': }
-  if $::nagios_mysqld {
-    case $::operatingsystem {
-      'RedHat', 'Fedora', 'CentOS', 'Scientific', 'Amazon': {
-        class { '::nagios::check::mysql_health': }
-      }
-      'Debian', 'Ubuntu': {
-        # nagios-plugins-mysql_health doesn't exist for Trusty
-        # https://launchpad.net/ubuntu/trusty/+search?text=nagios-plugins
-      }
-      default: {
-        class { '::nagios::check::mysql_health': }
+  if $defaultchecks {
+    # Enable all default checks by... default
+    # Old style with facts overrides
+    class { '::nagios::defaultchecks': }
+    # New style with hiera overrides
+    class { '::nagios::check::conntrack': }
+    class { '::nagios::check::cpu': }
+    class { '::nagios::check::load': }
+    class { '::nagios::check::ntp_time': }
+    class { '::nagios::check::ping6': }
+    class { '::nagios::check::ram': }
+    class { '::nagios::check::swap': }
+    if $::nagios_mysqld {
+      case $::operatingsystem {
+        'RedHat', 'Fedora', 'CentOS', 'Scientific', 'Amazon': {
+          class { '::nagios::check::mysql_health': }
+        }
+        'Debian', 'Ubuntu': {
+          # nagios-plugins-mysql_health doesn't exist for Trusty
+          # https://launchpad.net/ubuntu/trusty/+search?text=nagios-plugins
+        }
+        default: {
+          class { '::nagios::check::mysql_health': }
+        }
       }
     }
-  }
-  if $::nagios_memcached {
-    class { '::nagios::check::memcached': }
-  }
-  if $::nagios_postgres {
-    class { '::nagios::check::postgres': }
+    if $::nagios_memcached {
+      class { '::nagios::check::memcached': }
+    }
+    if $::nagios_postgres {
+      class { '::nagios::check::postgres': }
+    }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
