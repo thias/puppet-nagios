@@ -1,3 +1,5 @@
+* Add parameter to disable the default checks (#64, @rwf14f).
+
 #### 2015-10-06 - 1.0.7
 * Include ping6 check, enable by default when a public IPv6 address is found.
 * Include postgres checks (#59, @lisuml).
