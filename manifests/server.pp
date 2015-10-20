@@ -63,6 +63,12 @@ class nagios::server (
   $admin_email = 'root@localhost',
   $admin_pager = 'pagenagios@localhost',
   $cfg_append  = undef,
+  $service_check_timeout = '60',
+  $host_check_timeout    = '30',
+  $event_handler_timeout = '30',
+  $notification_timeout  = '30',
+  $ocsp_timeout          = '5',
+  $perfdata_timeout      = '5',
   # private/resource.cfg for $USERx$ macros (from 1 to 32)
   $user = {
     '1' => $::nagios::params::plugin_dir,

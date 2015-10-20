@@ -612,12 +612,12 @@ sleep_time=0.25
 # ocsp command, and performance data commands.  All values are in
 # seconds.
 
-service_check_timeout=60
-host_check_timeout=30
-event_handler_timeout=30
-notification_timeout=30
-ocsp_timeout=5
-perfdata_timeout=5
+service_check_timeout=<%= @service_check_timeout %>
+host_check_timeout=<%= @host_check_timeout %>
+event_handler_timeout=<%= @event_handler_timeout %>
+notification_timeout=<%= @notification_timeout %>
+ocsp_timeout=<%= @ocsp_timeout %>
+perfdata_timeout=<%= @perfdata_timeout %>
 
 
 
