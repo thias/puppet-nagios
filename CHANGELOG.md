@@ -1,6 +1,7 @@
 * Add parameter to disable the default checks (#64, @rwf14f).
 * Update ntp_time check to better handle defaults.
 * Add server *_timeout parameters (#65, @zxjinn).
+* Use ensure_packages for mailx server package (#70, @vchepkov).
 
 #### 2015-10-06 - 1.0.7
 * Include ping6 check, enable by default when a public IPv6 address is found.
