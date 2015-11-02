@@ -105,8 +105,6 @@ class nagios::server (
   $services         = {},
   $servicegroups    = {},
   $timeperiods      = {},
-  $hostgroups       = {},
-  $servicegroups    = {},
 ) inherits ::nagios::params {
 
   # Full nrpe command to run, with default options
