@@ -1,5 +1,5 @@
 # Create nagios_pci_<modname> facts for these modules, if found
-modnames = [ 'megaraid', 'megaraid_sas', 'mptsas' ]
+modnames = [ 'megaraid', 'megaraid_sas', 'mptsas', 'hpsa' ]
 
 if File.exist?('/proc/bus/pci/devices')
   File.open('/proc/bus/pci/devices') do |io|

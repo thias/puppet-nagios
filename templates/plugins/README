@@ -17,3 +17,5 @@ check_membase / check_couchbase : https://github.com/appfirst/membase_stats
 check_memcached : http://exchange.nagios.org/directory/Plugins/Software/check_memcached-2Epl/details
 
 check_conntrack : http://exchange.nagios.org/directory/Plugins/Security/Firewall-Software/check_netfilter-2Enf_conntrack-2Esh/details
+
+check_hpsa : https://exchange.nagios.org/directory/Plugins/Hardware/Storage-Systems/RAID-Controllers/check_hpraid/details
