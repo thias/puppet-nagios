@@ -691,6 +691,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_postgres_wal_files':
     command_line => "${nrpe} -c check_postgres_wal_files",
   }
+  nagios_command {'check_nrpe_hpsa':
+    command_line => "${nrpe} -c check_hpsa",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg

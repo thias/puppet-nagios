@@ -154,6 +154,9 @@ class nagios::client (
     if $::nagios_postgres {
       class { '::nagios::check::postgres': }
     }
+    if $::nagios_pci_hpsa {
+      class { '::nagios::check::hpsa': }
+    }
   }
 
   # With selinux, some nrpe plugins require additional rules to work

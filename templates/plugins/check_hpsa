@@ -1,0 +1,207 @@
+#! /usr/bin/perl
+# Check HP Smart Array with hpacucli
+# anders@fupp.net, 2011-03-30
+
+# -d: debug
+# -f: ignore firmware update nag
+# -b: ignore battery&cache failures
+# -s: ignore cache status problem
+
+use Getopt::Std;
+use POSIX qw(uname);
+$ENV{'PATH'} = "/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/sbin";
+
+$sysname = (uname)[0];
+$release = (uname)[2];
+
+$warntxt = "";
+$crittxt = "";
+$oktxt = "";
+@arrays = ();
+getopts('dbfs');
+$line = "";
+
+if ($< == 0) {
+	$cmd = "";
+} else {
+	$cmd = "sudo ";
+}
+
+if (-f "/usr/sbin/hpacucli") {
+	$arcmd = "/usr/sbin/hpacucli";
+} else {
+	$arcmd = "/usr/sbin/hpssacli";
+}
+
+if ($sysname eq "Linux" && $release =~ /^3.2/) {
+	$cmd .= "uname26 $arcmd";
+} else {
+	$cmd .= "$arcmd";
+}
+
+sub myerror {
+	my $ret = shift;
+	my $txt = shift;
+	print $txt . "\n";
+	exit($ret);
+}
+
+sub doslottxt {
+	if ($slotwarntxt eq "") {
+		$slotoktxt =~ s@\s+$@@;
+		$oktxt .= "$arraytype in slot $slot ($slotoktxt) ";
+	} else {
+		$slotwarntxt =~ s@\s+$@@;
+		$warntxt .= "$arraytype in slot $slot ($slotwarntxt) ";
+	}
+}
+
+# Check arrays
+$slot = "";
+
+# Open hpacucli and check carefully
+if ($pid = open(CMD, "$cmd controller all show status 2>&1 |")) {
+	waitpid ($pid, 0);
+	unless ($? == 0) {
+		@output = <CMD>;
+		$outputtxt = join('', @output);
+		$outputtxt =~ s@\n@@g;
+		myerror(3, "Running hpaucli failed: $outputtxt");
+	}
+} else {
+	myerror(3, "Could not run command $cmd: $!");
+}
+
+while(<CMD>) {
+	if (/Another instance of .* running/) {
+		myerror(3, "Another instance of hpacucli is already running.");
+	} elsif (/array (.+) in slot (\d+)/i) {
+		doslottxt unless ($slot == "");
+		$arraytype = $1;
+		$slot = $2;
+		$slotoktxt = "";
+		$slotwarntxt = "";
+		push(@arrays, $slot);
+	} elsif (/\s+(.+) Status: (.*)\s*/) {
+		$statustype = $1;
+		$status = $2;
+		chomp($status);
+
+		if ($opt_b && $statustype =~ /^(Cache|Battery\/Capacitor)$/) {
+			$slotoktxt .= "$statustype $status (IGNORED) ";
+			next;
+		}
+
+		if ($status eq "OK") {
+			$slotoktxt .= "$statustype $status ";
+		} else {
+			if ($statustype eq "Cache" && $status eq "Not Configured") {
+				$slotoktxt .= "$statustype $status (cache not configured) ";
+			} else {
+				$slotwarntxt .= "$statustype $status ";
+			}
+		}
+	} elsif (/^([A-Z].+)/) {
+		$oddtext = $1;
+		$oddtext =~ s@\:.*@@;
+		if ($opt_f && $oddtext =~ /^FIRMWARE UPGRADE REQUIRED/) {
+			$oktxt .= "$oddtext (IGNORED) ";
+		} elsif ($opt_s && $oddtext =~ /^CACHE STATUS PROBLEM DETECTED/) {
+			$oktxt .= "$oddtext (IGNORED) ";
+		} else {
+			$warntxt .= "$oddtext ";
+		}
+	}
+}
+close(CMD) if (fileno CMD);
+doslottxt;
+
+# Check logical volumes
+foreach $slot (@arrays) {
+	# Open hpacucli and check carefully
+	if ($pid = open(CMD, "$cmd controller slot=$slot logicaldrive all show status 2>&1 |")) {
+		waitpid ($pid, 0);
+		unless ($? == 0) {
+			@output = <CMD>;
+			$outputtxt = join('', @output);
+			$outputtxt =~ s@\n@@g;
+			if ($outputtxt =~ /The specified device does not have any logical drives/) {
+				close(CMD) if (fileno CMD);
+				next;
+			} else {
+				myerror(3, "Running hpaucli (slot=$slot) failed: $outputtxt");
+			}
+		}
+	} else {
+		myerror(3, "Could not run command $cmd: $!");
+	}
+
+	while(<CMD>) {
+		if ($opt_d) { print "DEBUG volumes: $_"; }
+		if (/Another instance of .* running/) {
+			myerror(3, "Another instance of hpacucli is already running.");
+		} elsif (/\s*logicaldrive (\d+) .*\: (.*)\s*/) {
+			$vol = $1;
+			$status = $2;
+			chomp($status);
+			if ($opt_d) { print "DEBUG volume vol=$vol status=$status\n"; }
+			if ($status eq "OK") {
+				$oktxt .= "RAID volume $vol ($status) ";
+			} else {
+				$warntxt .= "RAID volume $vol ($status) ";
+			}
+		}
+	}
+	close(CMD) if (fileno CMD);
+}
+
+# Check physical drives
+foreach $slot (@arrays) {
+	# Open hpacucli and check carefully
+	if ($pid = open(CMD, "$cmd controller slot=$slot physicaldrive all show status 2>&1 |")) {
+		waitpid ($pid, 0);
+		unless ($? == 0) {
+			@output = <CMD>;
+			$outputtxt = join('', @output);
+			$outputtxt =~ s@\n@@g;
+			if ($outputtxt =~ /The specified controller does not have any physical drives on it/) {
+				close(CMD) if (fileno CMD);
+				next;
+			} else {
+				myerror(3, "Running hpaucli (slot=$slot) failed: $outputtxt");
+			}
+		}
+	} else {
+		myerror(3, "Could not run command $cmd: $!");
+	}
+
+	while(<CMD>) {
+		if ($opt_d) { print "DEBUG disks: $_"; }
+		if (/Another instance of .* running/) {
+			myerror(3, "Another instance of hpacucli is already running.");
+		} elsif (/\s*physicaldrive ([\w\:]+) \((.*)\)\: (.*)\s*/) {
+			$disk = $1;
+			$size = $2;
+			$status = $3;
+			$size =~ s@.*,@@;
+			$size =~ s@^\s+@@;
+			chomp($status);
+			if ($opt_d) { print "DEBUG drive disk=$disk status=$status\n"; }
+			if ($status eq "OK") {
+				$oktxt .= "Disk $disk ($size, $status) ";
+			} else {
+				$warntxt .= "Disk $disk ($size, $status) ";
+			}
+		}
+	}
+	close(CMD) if (fileno CMD);
+}
+
+$warntxt =~ s@\s+$@@;
+$oktxt =~ s@\s+$@@;
+
+if ($warntxt eq "") {
+	myerror(0, "All OK| $oktxt");
+} else {
+	myerror(1, "$warntxt| $oktxt");
+}
