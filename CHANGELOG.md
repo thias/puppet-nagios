@@ -2,6 +2,7 @@
 * Update ntp_time check to better handle defaults.
 * Add server *_timeout parameters (#65, @zxjinn).
 * Use ensure_packages for mailx server package (#70, @vchepkov).
+* Include hpsa check for HP Smart Array RAID controllers (#73, @forgodssake).
 * Exclude all loopback addresses from nagios_ipaddress6 fact.
 
 #### 2015-10-06 - 1.0.7

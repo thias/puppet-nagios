@@ -1,7 +1,7 @@
 class nagios::check::hpsa (
   $ensure                   = undef,
   $args                     = '',
-  $pkg                      = true,
+  $package                  = 'hpssacli',
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
@@ -12,38 +12,12 @@ class nagios::check::hpsa (
   $use                      = $::nagios::client::service_use,
 ) {
 
-  # The check is being executed via sudo
-  file { "/etc/sudoers.d/nagios_check_hpsa":
-    ensure  => $ensure,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0440',
-    # We customize the user, the nagios plugin dir and few other things
-    content => template("${module_name}/plugins/hpsa-sudoers.erb"),
-  }
-
-  # Service specific script, taken from:
-  file { "${nagios::client::plugin_dir}/check_hpsa":
-    ensure  => $ensure,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template("${module_name}/plugins/check_hpsa"),
-  }
-
-  # Optional package containing the script
-  if $pkg {
-    $pkgname = 'hpssacli'
-    $pkgensure = $ensure ? {
-      'absent' => 'absent',
-      default  => 'installed',
-    }
-    ensure_packages($pkgname,{'ensure' => $pkgensure })
-
-    # Required plugin
-    if $pkgensure != 'absent' {
-      Package <| tag == 'nagios-plugins-perl' |>
-    }
+  nagios::client::nrpe_plugin { 'hpsa':
+    ensure   => $ensure,
+    perl     => true,
+    # Main HP package and command, used by the check script
+    package  => $package,
+    sudo_cmd => '/usr/sbin/hpssacli',
   }
 
   nagios::client::nrpe_file { 'check_hpsa':
@@ -63,4 +37,5 @@ class nagios::check::hpsa (
     max_check_attempts       => $max_check_attempts,
     use                      => $use,
   }
+
 }
