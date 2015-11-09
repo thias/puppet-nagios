@@ -1,10 +1,10 @@
-# Based on the original ipaddress6 fact, but we also exclude RFC4193 local
-# (private) IPv6 addresses and pick the shortest address to prefer static over
-# autoconfiguration.
+# Based on the original ipaddress6 fact, but we also exclude addresses on the
+# loopback interface and RFC4193 local (private) IPv6 addresses, then pick the
+# shortest address to prefer static over autoconfiguration.
 
 # Aux funcion to filter RFC4193 addresses
 def valid_addr?(addr)
-  not (addr =~ /^fe80.*/ or addr =~ /^fd.*/ or addr == "::1")
+  not (addr =~ /^fe80.*/ or addr =~ /^fd.*/)
 end
 
 if Facter.version.to_f < 3.0
@@ -21,7 +21,7 @@ if Facter.version.to_f < 3.0
 
   Facter.add(:nagios_ipaddress6) do
     setcode do
-      output = Facter::Util::IP.exec_ifconfig(["2>/dev/null"])
+      output=Facter::Util::IP.get_interfaces.reject { |i,_| i =~ /lo.*/ }.map { |i| Facter::Util::IP::get_single_interface_output(i) }.join("\n")
       get_address_after_token(output, 'inet6(?: addr:)?')
     end
   end
@@ -30,6 +30,7 @@ else
   Facter.add(:nagios_ipaddress6) do
     setcode do
       Facter.value(:networking)['interfaces'].
+        reject { |i,_| i =~ /lo.*/ }.
         values.
         map { |x| x['bindings6'] }.
         flatten.
