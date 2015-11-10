@@ -7,7 +7,7 @@ define nagios::client::nrpe_plugin (
 
   # The check executes some command(s) using sudo
   if $sudo_cmd {
-    file { "/etc/sudoers.d/nagios_check_${title}":
+    file { "/etc/sudoers.d/nagios_${title}":
       ensure  => $ensure,
       owner   => 'root',
       group   => 'root',
@@ -27,12 +27,12 @@ define nagios::client::nrpe_plugin (
   }
 
   # Service specific check script
-  file { "${nagios::client::plugin_dir}/check_${title}":
+  file { "${nagios::client::plugin_dir}/${title}":
     ensure  => $ensure,
     owner   => 'root',
     group   => 'root',
     mode    => '0755',
-    content => template("${module_name}/plugins/check_${title}"),
+    content => template("${module_name}/plugins/${title}"),
   }
 
 }

@@ -12,7 +12,7 @@ class nagios::check::hpsa (
   $use                      = $::nagios::client::service_use,
 ) {
 
-  nagios::client::nrpe_plugin { 'hpsa':
+  nagios::client::nrpe_plugin { 'check_hpsa':
     ensure   => $ensure,
     perl     => true,
     # Main HP package and command, used by the check script
