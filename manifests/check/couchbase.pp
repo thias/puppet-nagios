@@ -1,46 +1,42 @@
-define nagios::check::couchbase (
+class nagios::check::couchbase (
   $ensure                   = undef,
-  $args                     = undef,
+  $args                     = '',
   $couchbase_data_file_name = '/tmp/couchbase_data_file_name',
   $couchbase_cbstats        = '/opt/couchbase/bin/cbstats',
   $couchbase_host           = '127.0.0.1',
   $couchbase_port           = '11211',
-) {
+  $check_title              = $::nagios::client::host_name,
+  $servicegroups            = undef,
+  $check_period             = $::nagios::client::service_check_period,
+  $contact_groups           = $::nagios::client::service_contact_groups,
+  $first_notification_delay = $::nagios::client::first_notification_delay,
+  $max_check_attempts       = $::nagios::client::service_max_check_attempts,
+  $notification_period      = $::nagios::client::service_notification_period,
+  $use                      = $::nagios::client::service_use,
+) inherits ::nagios::client {
 
-  # Generic overrides
-  if $::nagios_check_couchbase_check_period != undef {
-    Nagios_service { check_period => $::nagios_check_couchbase_check_period }
-  }
-  if $::nagios_check_couchbase_notification_period != undef {
-    Nagios_service { notification_period => $::nagios_check_couchbase_notification_period }
-  }
-
-  # Service specific overrides
-  if $::nagios_check_couchbase_args != undef {
-    $fullargs = $::nagios_check_couchbase_args
-  } else {
-    $fullargs = $args
-  }
-
-  file { "${nagios::client::plugin_dir}/check_couchbase":
-    ensure  => $ensure,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template('nagios/plugins/check_couchbase.erb'),
+  nagios::client::nrpe_plugin { 'check_couchbase':
+    ensure => $ensure,
+    # We use all of the $couchbase_* parameters inside the template
+    erb    => true,
   }
 
   nagios::client::nrpe_file { 'check_couchbase':
     ensure => $ensure,
-    args   => $fullargs,
+    args   => $args,
   }
 
-  nagios::service { "check_couchbase_${title}":
-    ensure              => $ensure,
-    check_command       => 'check_nrpe_couchbase',
-    service_description => 'couchbase',
-    #servicegroups       => 'couchbase',
+  nagios::service { "check_couchbase_${check_title}":
+    ensure                   => $ensure,
+    check_command            => 'check_nrpe_couchbase',
+    service_description      => 'couchbase',
+    servicegroups            => $servicegroups,
+    check_period             => $check_period,
+    contact_groups           => $contact_groups,
+    first_notification_delay => $first_notification_delay,
+    notification_period      => $notification_period,
+    max_check_attempts       => $max_check_attempts,
+    use                      => $use,
   }
 
 }
-

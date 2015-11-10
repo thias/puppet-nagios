@@ -9,15 +9,10 @@ class nagios::check::conntrack (
   $max_check_attempts       = $::nagios::client::service_max_check_attempts,
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
-) {
+) inherits ::nagios::client {
 
-  # Service specific script
-  file { "${nagios::client::plugin_dir}/check_conntrack":
-    ensure  => $ensure,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template('nagios/plugins/check_conntrack'),
+  nagios::client::nrpe_plugin { 'check_conntrack':
+    ensure => $ensure,
   }
 
   nagios::client::nrpe_file { 'check_conntrack':

@@ -1,6 +1,7 @@
 class nagios::check::memcached (
   $ensure                   = undef,
-  $args                     = '-U 75,90 -f',
+  $args                     = '',
+  $package                  = $::nagios::params::perl_memcached,
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
@@ -9,24 +10,18 @@ class nagios::check::memcached (
   $max_check_attempts       = $::nagios::client::service_max_check_attempts,
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
-) {
+) inherits ::nagios::client {
 
-  # Service specific script
-  if $ensure != 'absent' {
-    package { $::nagios::params::perl_memcached: ensure => 'installed' }
-  }
-  file { "${nagios::client::plugin_dir}/check_memcached":
+  nagios::client::nrpe_plugin { 'check_memcached':
     ensure  => $ensure,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template('nagios/plugins/check_memcached'),
+    package => $package,
   }
 
-  # Include default host (-H) and port (-p) if no override in $args
-  if $args !~ /-H/ { $arg_host = '-H 127.0.0.1 ' }
-  if $args !~ /-p/ { $arg_port = '-p 11211 ' }
-  $fullargs = "${arg_host}${arg_port}${args}"
+  # Include defaults if no overrides in $args
+  if $args !~ /-H/ { $arg_h = '-H 127.0.0.1 ' } else { $arg_h = '' }
+  if $args !~ /-p/ { $arg_p = '-p 11211 ' }     else { $arg_p = '' }
+  if $args !~ /-U/ { $arg_u = '-U 75,90 ' }     else { $arg_u = '' }
+  $fullargs = strip("${arg_h}${arg_p}${arg_u}-f ${args}")
 
   nagios::client::nrpe_file { 'check_memcached':
     ensure => $ensure,
@@ -47,4 +42,3 @@ class nagios::check::memcached (
   }
 
 }
-

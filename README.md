@@ -16,6 +16,24 @@ have my head hurt each time I have to make modificiations to it... but it is
 worth it, as it allows having monitoring automatically enabled by default
 on all nodes as well as for all standard services detected on them.
 
+## Upgrading
+
+Version 2 of the module has updated all default checks to become classes, in
+order to work better with hiera's class parameters automatic lookup. The
+drawback is that overrides which were set from manifests possibly need to be
+moved to hieradata.
+
+When upgrading from version 1, if you see checks changing arguments or getting
+added or removed, look at the check's parameters and migrate your exsting
+overrides, typically :
+
+```yaml
+# Override the critical value for check foo
+nagios::check::foo::args: '-c 10%'
+# Disable the bar check completely
+nagios::check::bar::ensure: 'absent'
+```
+
 ## Requirements
 
 * Stored configurations enabled on the puppetmaster (mandatory)

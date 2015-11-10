@@ -1,3 +1,4 @@
+* Convert all relevant checks to classes, improving hiera override support.
 * Add parameter to disable the default checks (#64, @rwf14f).
 * Update ntp_time check to better handle defaults.
 * Add server *_timeout parameters (#65, @zxjinn).

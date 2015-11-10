@@ -10,15 +10,15 @@ class nagios::check::ping6 (
   $max_check_attempts       = $::nagios::client::service_max_check_attempts,
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
-) {
+) inherits ::nagios::client {
 
   if $address6 or $args =~ /-H/ {
 
-    # Include default arguments if no overrides in $args
-    if $args !~ /-H/ { $arg_h = "-H ${address6} " }   else { $arg_h = '' }
-    if $args !~ /-w/ { $arg_w = '-w 2000,50% ' }      else { $arg_w = '' }
-    if $args !~ /-c/ { $arg_c = '-c 5000,100% ' }     else { $arg_c = '' }
-    if $args !~ /-p/ { $arg_p = '-p 5 ' }             else { $arg_p = '' }
+    # Include defaults if no overrides in $args
+    if $args !~ /-H/ { $arg_h = "-H ${address6} " } else { $arg_h = '' }
+    if $args !~ /-w/ { $arg_w = '-w 2000,50% ' }    else { $arg_w = '' }
+    if $args !~ /-c/ { $arg_c = '-c 5000,100% ' }   else { $arg_c = '' }
+    if $args !~ /-p/ { $arg_p = '-p 5 ' }           else { $arg_p = '' }
     $fullargs = strip("${arg_h}${arg_w}${arg_c}${arg_p}${args}")
 
     nagios::service { "check_ping6_${check_title}":

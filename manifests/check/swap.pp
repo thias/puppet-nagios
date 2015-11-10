@@ -9,9 +9,11 @@ class nagios::check::swap (
   $max_check_attempts       = $::nagios::client::service_max_check_attempts,
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
-) {
+) inherits ::nagios::client {
 
-  Package <| tag == 'nagios-plugins-swap' |>
+  if $ensure != 'absent' {
+    Package <| tag == 'nagios-plugins-swap' |>
+  }
 
   # Include default arguments if no overrides in $args
   if $args !~ /-w/ { $arg_w = '-w 5% ' } else { $arg_w = '' }

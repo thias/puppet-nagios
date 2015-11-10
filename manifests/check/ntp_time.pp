@@ -9,14 +9,13 @@ class nagios::check::ntp_time (
   $max_check_attempts       = $::nagios::client::service_max_check_attempts,
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
-) {
+) inherits ::nagios::client {
 
-  # Required plugin
   if $ensure != 'absent' {
     Package <| tag == 'nagios-plugins-ntp' |>
   }
 
-  # Include default working options if no override in $args
+  # Include defaults if no overrides in $args
   if $args !~ /-H/ { $arg_h = '-H 0.pool.ntp.org ' } else { $arg_h = '' }
   if $args !~ /-w/ { $arg_w = '-w 1 '              } else { $arg_w = '' }
   if $args !~ /-c/ { $arg_c = '-c 2 '              } else { $arg_c = '' }

@@ -32,7 +32,7 @@
 
 use strict;
 use Getopt::Std;
-use lib qw(<%= scope.lookupvar('nagios::client::plugin_dir') %>); # possible pathes to your Nagios plugins and utils.pm
+use lib qw(<%= scope['::nagios::client::plugin_dir'] %>); # possible pathes to your Nagios plugins and utils.pm
 use utils qw(%ERRORS);
 
 our($opt_h, $opt_s, $opt_o, $opt_m, $opt_p);
@@ -49,7 +49,7 @@ if ( $opt_h ) {
 	exit;
 }
 
-my $megaclibin = '<%= @megaclibin %>';  # the full path to your MegaCli binary
+my $megaclibin = '<%= scope['::nagios::check::megaraid_sas::megaclibin'] %>';  # the full path to your MegaCli binary
 my $megacli = "sudo $megaclibin";      # how we actually call MegaCli
 my $megapostopt = '-NoLog';            # additional options to call at the end of MegaCli arguments
 

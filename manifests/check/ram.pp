@@ -1,6 +1,6 @@
 class nagios::check::ram (
   $ensure                   = undef,
-  $args                     = '-w 10% -c 5%',
+  $args                     = '',
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
@@ -9,20 +9,20 @@ class nagios::check::ram (
   $max_check_attempts       = $::nagios::client::service_max_check_attempts,
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
-) {
+) inherits ::nagios::client {
 
-  # Service specific script
-  file { "${nagios::client::plugin_dir}/check_ram":
-    ensure  => $ensure,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template('nagios/plugins/check_ram'),
+  nagios::client::nrpe_plugin { 'check_ram':
+    ensure => $ensure,
   }
+
+  # Include defaults if no overrides in $args
+  if $args !~ /-w/ { $arg_w = '-w 10% ' } else { $arg_w = '' }
+  if $args !~ /-c/ { $arg_c = '-c 5% ' }  else { $arg_c = '' }
+  $fullargs = strip("${arg_w}${arg_c}${args}")
 
   nagios::client::nrpe_file { 'check_ram':
     ensure => $ensure,
-    args   => $args,
+    args   => $fullargs,
   }
 
   nagios::service { "check_ram_${check_title}":

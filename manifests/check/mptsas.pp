@@ -1,67 +1,45 @@
-define nagios::check::mptsas (
-  $ensure     = undef,
-  $args       = undef,
-  $pkg        = true,
-  $lsiutilbin = '/usr/sbin/lsiutil',
+class nagios::check::mptsas (
+  $ensure                   = undef,
+  $args                     = '',
+  $package                  = 'lsiutil',
+  $lsiutilbin               = '/usr/sbin/lsiutil',
+  $check_title              = $::nagios::client::host_name,
+  $servicegroups            = undef,
+  $check_period             = $::nagios::client::service_check_period,
+  $contact_groups           = $::nagios::client::service_contact_groups,
+  $first_notification_delay = $::nagios::client::first_notification_delay,
+  $max_check_attempts       = $::nagios::client::service_max_check_attempts,
+  $notification_period      = $::nagios::client::service_notification_period,
+  $use                      = $::nagios::client::service_use,
 ) {
 
-  # Generic overrides
-  if $::nagios_check_mptsas_check_period != undef {
-    Nagios_service { check_period => $::nagios_check_mptsas_check_period }
+  nagios::client::nrpe_plugin { 'check_mptsas':
+    ensure   => $ensure,
+    perl     => true,
+    # We customize the lsiutil path, plugin path
+    erb      => true,
+    # Main LSI package and command, used by the check script
+    package  => $package,
+    # The check executes lsiutil using sudo
+    sudo_cmd => $lsiutilbin,
   }
-  if $::nagios_check_mptsas_notification_period != undef {
-    Nagios_service { notification_period => $::nagios_check_mptsas_notification_period }
-  }
-
-  # Service specific overrides
-  if $::nagios_check_mptsas_args != undef {
-    $fullargs = $::nagios_check_mptsas_args
-  } else {
-    $fullargs = $args
-  }
-
-  file { "${nagios::client::plugin_dir}/check_mptsas":
-    ensure  => $ensure,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    # We customize the MegaCli path, plugin path
-    content => template('nagios/plugins/check_mptsas.erb'),
-  }
-  # The check executes MegaCli using sudo
-  file { '/etc/sudoers.d/nagios_check_mptsas':
-    ensure  => $ensure,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0440',
-    # We customize the MegaCli path and the user
-    content => template('nagios/plugins/check_mptsas-sudoers.erb'),
-  }
-  # Optional package containing MegaCli
-  if $pkg {
-    $pkgname = $::operatingsystem ? {
-      'Gentoo' => 'sys-block/lsiutil',
-      default  => 'lsiutil',
-    }
-    $pkgensure = $ensure ? {
-      'absent' => 'absent',
-      default  => 'installed',
-    }
-    package { $pkgname: ensure => $pkgensure }
-  }
-
-  Package <| tag == 'nagios-plugins-perl' |>
 
   nagios::client::nrpe_file { 'check_mptsas':
     ensure => $ensure,
     args   => $fullargs,
   }
 
-  nagios::service { "check_mptsas_${title}":
-    ensure              => $ensure,
-    check_command       => 'check_nrpe_mptsas',
-    service_description => 'mptsas',
-    #servicegroups       => 'mptsas',
+  nagios::service { "check_mptsas_${check_title}":
+    ensure                   => $ensure,
+    check_command            => 'check_nrpe_mptsas',
+    service_description      => 'mptsas',
+    servicegroups            => $servicegroups,
+    check_period             => $check_period,
+    contact_groups           => $contact_groups,
+    first_notification_delay => $first_notification_delay,
+    notification_period      => $notification_period,
+    max_check_attempts       => $max_check_attempts,
+    use                      => $use,
   }
 
 }

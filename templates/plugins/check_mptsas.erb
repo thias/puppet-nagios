@@ -20,10 +20,10 @@
 # 02110-1301, USA.
 
 use strict;
-use lib qw(<%= scope.lookupvar('nagios::client::plugin_dir') %>);
+use lib qw(<%= scope['::nagios::client::plugin_dir'] %>);
 use utils qw(%ERRORS);
 
-my $lsiutil = '<%= @lsiutilbin %>';
+my $lsiutil = '<%= scope['::nagios::check::mptsas::lsiutilbin'] %>';
 my $status = $ERRORS{'OK'};
 my $output;
 my @controllers;
