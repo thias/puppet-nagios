@@ -4,6 +4,7 @@
 * Use ensure_packages for mailx server package (#70, @vchepkov).
 * Include hpsa check for HP Smart Array RAID controllers (#73, @forgodssake).
 * Exclude all loopback addresses from nagios_ipaddress6 fact.
+* Remove obsolete membase check, product has been renamed to couchbase.
 
 #### 2015-10-06 - 1.0.7
 * Include ping6 check, enable by default when a public IPv6 address is found.
