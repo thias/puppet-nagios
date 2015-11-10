@@ -1,2 +1,2 @@
 Defaults !requiretty
-<%= scope['nagios::client::nrpe_user'] %> ALL=(root) NOPASSWD: <%= @sudo_cmd %>
+<%= scope['nagios::client::nrpe_user'] %> ALL=(<%= @sudo_user %>) NOPASSWD: <%= @sudo_cmd %>

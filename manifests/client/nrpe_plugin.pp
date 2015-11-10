@@ -1,9 +1,10 @@
 define nagios::client::nrpe_plugin (
-  $ensure   = 'present',
-  $erb      = false,
-  $perl     = false,
-  $package  = false,
-  $sudo_cmd = undef,
+  $ensure    = 'present',
+  $erb       = false,
+  $perl      = false,
+  $package   = false,
+  $sudo_cmd  = undef,
+  $sudo_user = 'root',
 ) {
 
   # The check executes some command(s) using sudo
