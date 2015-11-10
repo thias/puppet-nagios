@@ -1,5 +1,6 @@
 define nagios::client::nrpe_plugin (
   $ensure   = 'present',
+  $erb      = false,
   $perl     = false,
   $package  = false,
   $sudo_cmd = undef,
@@ -27,12 +28,16 @@ define nagios::client::nrpe_plugin (
   }
 
   # Service specific check script
+  $suffix = $erb ? {
+    true    => '.erb',
+    default => '',
+  }
   file { "${nagios::client::plugin_dir}/${title}":
     ensure  => $ensure,
     owner   => 'root',
     group   => 'root',
     mode    => '0755',
-    content => template("${module_name}/plugins/${title}"),
+    content => template("${module_name}/plugins/${title}${suffix}"),
   }
 
 }
