@@ -19,3 +19,5 @@ check_memcached : http://exchange.nagios.org/directory/Plugins/Software/check_me
 check_conntrack : http://exchange.nagios.org/directory/Plugins/Security/Firewall-Software/check_netfilter-2Enf_conntrack-2Esh/details
 
 check_hpsa : https://exchange.nagios.org/directory/Plugins/Hardware/Storage-Systems/RAID-Controllers/check_hpraid/details
+
+check_mongodb : https://github.com/mzupan/nagios-plugin-mongodb + PR #184

@@ -152,6 +152,7 @@ class nagios::client (
     if $::nagios_httpd {            class { '::nagios::check::httpd': } }
     if $::nagios_pci_megaraid_sas { class { '::nagios::check::megaraid_sas': } }
     if $::nagios_memcached {        class { '::nagios::check::memcached': } }
+    if $::nagios_mongod {           class { '::nagios::check::mongodb': } }
     if $::nagios_moxi {             class { '::nagios::check::moxi': } }
     if $::nagios_httpd_nginx {      class { '::nagios::check::nginx': } }
     if $::nagios_pci_mptsas {       class { '::nagios::check::mptsas': } }

@@ -185,17 +185,14 @@ another for the client configuration to take the new fact into account, then
 the server run to update the nagios configuration. This might take a little
 while depending on how often puppet is run on the nodes.
 
-## mysql_health
+## MySQL
 
-The mysql_health part is more recent than the rest, and :
-* Relies on using automatic hiera class parameter lookups.
-* Requires the puppetlabs-stdlib module because it uses getvar().
-
-You will need to create the MySQL user on your servers, allowed for localhost
-since we use nrpe for execution. Example :
+For the `mysql_health` based checks to work, you will need to create the MySQL
+user on your servers, allowed for localhost since we use nrpe for execution.
+Example :
 
 ```puppet
-# This could go in site.pp, the fact is true only if mysqld is found
+# This could go in site.pp, the fact is present only if mysqld is found
 if $::nagios_mysqld {
   mysql_user { 'nagios@localhost':
     ensure        => 'present',
@@ -215,7 +212,7 @@ if $::nagios_mysqld {
 nagios::check::mysql_health::args: '--username nagios --password mysupersecretpassword'
 ```
 
-The single mysql_health script has many different 'modes', which are all
+The single `mysql_health` script has many different 'modes', which are all
 enabled by default. Because hyphens shouldn't be used in puppet variable names,
 we use underscores instead in their names.
 
@@ -247,14 +244,10 @@ warning and critical values as needed :
 nagios::check::mysql_health::args_connection_time: '--warning 5 --critical 10'
 ```
 
-## postgres
+## PostgreSQL
 
-The postgres part is very similar to the mysql_health:
-* Relies on using automatic hiera class parameter lookups.
-* Requires the puppetlabs-stdlib module because it uses getvar().
-
-The single postgres script has many 'actions' ('modes'), which are
-enabled by default.
+The `postgres` checks are very similar to the `mysql_health` ones. The single
+`postgres` script has many 'actions' ('modes'), which are enabled by default.
 
 You can either selectively disable some :
 
@@ -299,8 +292,94 @@ nagios::check::postgres::custom_queries:
     reverse: true
 ```
 
-For more info please refer to the check_postgres nagios plugin documentation:
-https://bucardo.org/check_postgres/check_postgres.pl.html.
+For more info please refer to the `check_postgres` nagios plugin
+documentation : https://bucardo.org/check_postgres/check_postgres.pl.html
+
+## MongoDB
+
+The `mongodb` checks are very similar to the `mysql_health` ones. The single
+`mongodb` script has many 'actions' ('modes'), which are enabled by default.
+They may be enabled and disabled individually, or in groups of relevant
+checks, for instance all replication checks at once.
+
+You will need to create the monitoring user and set the information :
+
+```yaml
+nagios::check::mongodb::user: 'nagios'
+nagios::check::mongodb::pass: 'mysupersecretpassword'
+```
+
+```
+db.createUser(
+  {
+    user: "nagios",
+    pwd: "mysupersecretpassword",
+    roles:
+      [
+        "readAnyDatabase",
+        "clusterMonitor",
+        { role: "readWrite", db: "local" },
+        { role: "readWrite", db: "nagios" }
+      ]
+   }
+)
+```
+
+You can completely disable MongoDB monitoring for some nodes :
+
+```yaml
+nagios::check::mongodb::ensure: 'absent'
+```
+
+You can selectively disable some :
+
+```yaml
+# Disable some checks (modes)
+nagios::check::mongodb::modes_disabled:
+  - 'oplog'
+  - 'queries_per_second'
+  - 'queues'
+```
+
+Or selectively enable some :
+
+```yaml
+# Enable only the following checks (modes)
+nagios::check::mongodb::modes_enabled:
+  - 'connect'
+  - 'page_faults'
+```
+
+Or disable entire groups of non-relevant checks :
+
+```yaml
+# Disable non relevant checks
+nagios::check::mongodb::mmapv1: false
+nagios::check::mongodb::v2: false
+nagios::check::mongodb::replication: false
+nagios::check::mongodb::sharding: false
+```
+
+For an arbiter, you can disable all non-relevant checks :
+
+```yaml
+nagios::check::mongodb::arbiter: true
+```
+
+Then for each mode, you can also pass some arguments, typically to change the
+warning and critical values as needed :
+
+```yaml
+# Tweak some check values
+nagios::check::mongodb::args_connect: '-W 2 -C 4'
+nagios::check::mongodb::args_connections: '-W 70 -C 80'
+nagios::check::mongodb::args_memory: '-W 8 -C 16'
+nagios::check::mongodb::args_opcounters: '-W 10000 -C 50000'
+nagios::check::mongodb::args_replication_lag: '-W 15 -C 30'
+```
+
+For more info please refer to the `nagios-plugin-mongodb` documentation :
+https://github.com/mzupan/nagios-plugin-mongodb
 
 ## Removing hosts
 
@@ -313,7 +392,7 @@ puppet node deactivate <my_host>
 
 # On the Nagios server
 puppet agent -t
-service nagios restart
+service nagios reload|restart
 ```
 
 See [Issue #21](https://github.com/thias/puppet-nagios/issues/21) on why the
