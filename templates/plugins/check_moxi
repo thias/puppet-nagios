@@ -17,10 +17,12 @@ Mandatory arguments to long options are mandatory for short options too.
   -s, --socket=FILE     UNIX socket to use to connect to moxi. Default: off
   -H, --host=HOST       Connection hostname or IP address. Default: 127.0.0.1
   -p, --port=PORT       TCP port to use to connect to moxi. Default: 11211
+  -k, --key=KEY         Try to SET and GET a key instead of performing STATS command
 
 Examples:
   check_moxi -s /opt/moxi/moxi.sock
   check_moxi -p 11219
+  check_moxi -k
 "
 }
 
@@ -29,6 +31,9 @@ exitstatus=$STATE_UNKNOWN
 socket=
 host="127.0.0.1"
 port="11211"
+key_enabled=true
+
+key="check_moxi_nagios_${HOSTNAME}"
 
 # Grab the command line arguments.
 while test -n "$1"; do
@@ -49,6 +54,10 @@ while test -n "$1"; do
             port=$2
             shift
             ;;
+        --key|-k)
+            key_enabled=true
+            shift
+            ;;
         *)
             echo "Unknown argument: $1"
             print_usage
@@ -66,20 +75,48 @@ if [ -n "$socket" ]; then
     # sanity check
     which socat >/dev/null || message="socat not found. "
     # socat check
-    message="${message}Socket ${socket}"
-    STATS="`echo 'stats' | socat - UNIX-CONNECT:${socket} 2>/dev/null`"
-    RETVAL=$?
+    if [ $key_enabled = true ]; then
+      # key SET and GET method
+      message="${message}SET and GET key via ${socket}"
+      printf "set ${key} 0 15 4\r\ntest\r\n" | socat - UNIX-CONNECT:${socket} &>/dev/null
+      RESULT=$(echo "get ${key}" | socat - UNIX-CONNECT:${socket} 2> /dev/null | grep -v '^VALUE\|^END$')
+      RETVAL=$?
+    else
+      # STATS method
+      message="${message}Socket ${socket}"
+      STATS="`echo 'stats' | socat - UNIX-CONNECT:${socket} 2>/dev/null`"
+      RETVAL=$?
+    fi
 else
     # nc check
-    message="TCP ${host}:${port}"
-    STATS="`echo 'stats' | nc ${host} ${port} 2>/dev/null`"
-    RETVAL=$?
+    if [ $key_enabled = true ]; then
+      # key SET and GET method
+      message="${message}SET and GET key via ${host}:${port}"
+      printf "set ${key} 0 15 4\r\ntest\r\n" | nc ${host} ${port} &>/dev/null
+      RESULT=$(echo "get ${key}" | nc ${host} ${port} 2> /dev/null | grep -v '^VALUE\|^END$')
+      RETVAL=$?
+    else
+      # STATS method
+      message="TCP ${host}:${port}"
+      STATS="`echo 'stats' | nc ${host} ${port} 2>/dev/null`"
+      RETVAL=$?
+    fi
 fi
-if [ $RETVAL -eq 0 -a "${STATS:0:5}" == "STAT " ]; then
-    exitmessage="OK: ${message} returning stats."
+
+if [ $key_enabled = true ]; then
+  if [ $RETVAL -eq 0 -a "${RESULT:0:4}" == "test" ]; then
+    exitmessage="OK: ${message} were successful."
     exitstatus=$STATE_OK
+  else
+    exitmessage="CRITICAL: ${message} were not successful."
+  fi
 else
-    exitmessage="CRITICAL: ${message} not returning stats."
+  if [ $RETVAL -eq 0 -a "${STATS:0:5}" == "STAT " ]; then
+      exitmessage="OK: ${message} returning stats."
+      exitstatus=$STATE_OK
+  else
+      exitmessage="CRITICAL: ${message} not returning stats."
+  fi
 fi
 
 echo $exitmessage
