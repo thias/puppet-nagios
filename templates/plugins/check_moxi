@@ -17,7 +17,7 @@ Mandatory arguments to long options are mandatory for short options too.
   -s, --socket=FILE     UNIX socket to use to connect to moxi. Default: off
   -H, --host=HOST       Connection hostname or IP address. Default: 127.0.0.1
   -p, --port=PORT       TCP port to use to connect to moxi. Default: 11211
-  -k, --key=KEY         Try to SET and GET a key instead of performing STATS command
+  -S, --stats           Perform check by sending STATS command and parse the output (disables default SET / GET key method)
 
 Examples:
   check_moxi -s /opt/moxi/moxi.sock
@@ -31,9 +31,12 @@ exitstatus=$STATE_UNKNOWN
 socket=
 host="127.0.0.1"
 port="11211"
-key_enabled=true
+stats_enabled=false
 
+# Specify a key and a random value to set
+value_length=10
 key="check_moxi_nagios_${HOSTNAME}"
+value=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w $value_length | head -n 1)
 
 # Grab the command line arguments.
 while test -n "$1"; do
@@ -54,8 +57,8 @@ while test -n "$1"; do
             port=$2
             shift
             ;;
-        --key|-k)
-            key_enabled=true
+        --stats|-S)
+            stats_enabled=true
             shift
             ;;
         *)
@@ -75,10 +78,10 @@ if [ -n "$socket" ]; then
     # sanity check
     which socat >/dev/null || message="socat not found. "
     # socat check
-    if [ $key_enabled = true ]; then
+    if [ $stats_enabled = false ]; then
       # key SET and GET method
       message="${message}SET and GET key via ${socket}"
-      printf "set ${key} 0 15 4\r\ntest\r\n" | socat - UNIX-CONNECT:${socket} &>/dev/null
+      printf "set ${key} 0 15 ${value_length}\r\n${value}\r\n" | socat - UNIX-CONNECT:${socket} &>/dev/null
       RESULT=$(echo "get ${key}" | socat - UNIX-CONNECT:${socket} 2> /dev/null | grep -v '^VALUE\|^END$')
       RETVAL=$?
     else
@@ -89,10 +92,10 @@ if [ -n "$socket" ]; then
     fi
 else
     # nc check
-    if [ $key_enabled = true ]; then
+    if [ $stats_enabled = false ]; then
       # key SET and GET method
       message="${message}SET and GET key via ${host}:${port}"
-      printf "set ${key} 0 15 4\r\ntest\r\n" | nc ${host} ${port} &>/dev/null
+      printf "set ${key} 0 15 ${value_lemgth}\r\n${value}\r\n" | nc ${host} ${port} &>/dev/null
       RESULT=$(echo "get ${key}" | nc ${host} ${port} 2> /dev/null | grep -v '^VALUE\|^END$')
       RETVAL=$?
     else
@@ -103,8 +106,8 @@ else
     fi
 fi
 
-if [ $key_enabled = true ]; then
-  if [ $RETVAL -eq 0 -a "${RESULT:0:4}" == "test" ]; then
+if [ $stats_enabled = false ]; then
+  if [ $RETVAL -eq 0 -a "${RESULT:0:$value_length}" == "${value}" ]; then
     exitmessage="OK: ${message} were successful."
     exitstatus=$STATE_OK
   else
