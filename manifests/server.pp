@@ -23,8 +23,9 @@ class nagios::server (
   $apache_httpd_conf_source     = undef,
   $apache_allowed_from          = [],   # Allow access in default template
   $apache_httpd_htpasswd_source = "puppet:///modules/${module_name}/apache_httpd/htpasswd",
-  $php     = true,
-  $php_apc = true,
+  $php                          = true,
+  $php_apc                      = true,
+  $php_apc_module               = 'pecl-apc',
   # cgi.cfg
   $cgi_authorized_for_system_information        = 'nagiosadmin',
   $cgi_authorized_for_configuration_information = 'nagiosadmin',
@@ -209,7 +210,7 @@ class nagios::server (
   if $php {
     class { '::php::mod_php5': }
     php::ini { '/etc/php.ini': }
-    if $php_apc { php::module { 'pecl-apc': } }
+    if $php_apc { php::module { $php_apc_module: } }
   }
 
   # Configuration files
