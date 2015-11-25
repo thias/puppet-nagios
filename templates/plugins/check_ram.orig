@@ -41,31 +41,22 @@ def check_ram(warning_threshold,critical_threshold,percent,verbosity,nocache):
         return CRITICAL
     
     output = f.readlines()
-
-    memtotal     = None
-    memfree      = None
-    memcached    = None
-    memavailable = None
     
     for x in range(len(output)):
         y = output[x].split()
         if y[0] == "MemTotal:":
-            memtotal     = int(y[1])
+            memtotal  = int(y[1])
         elif y[0] == "MemFree:":
-            memfree      = int(y[1])
+            memfree   = int(y[1])
         elif y[0] == "Cached:":
-            memcached    = int(y[1])
-        elif y[0] == "MemAvailable:":
-            memavailable = int(y[1])
+            memcached = int(y[1])
   
     for x in memtotal,memfree,memcached:
         if x == None:
             print "UNKNOWN: failed to get mem stats" 
             return UNKNOWN
 
-    if memavailable != None:
-        total_free = memavailable
-    elif nocache == True:
+    if nocache == True:
         total_free = memfree
     else:
         total_free = memfree + memcached
