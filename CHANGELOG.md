@@ -8,6 +8,7 @@
 * Remove obsolete membase check, product has been renamed to couchbase.
 * Include mongodb checks.
 * Update check_ram to use MemAvailable when available (RHEL7+).
+* Update check_moxi to perform a deeper key SET+GET check by default.
 
 #### 2015-10-06 - 1.0.7
 * Include ping6 check, enable by default when a public IPv6 address is found.

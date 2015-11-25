@@ -17,12 +17,12 @@ Mandatory arguments to long options are mandatory for short options too.
   -s, --socket=FILE     UNIX socket to use to connect to moxi. Default: off
   -H, --host=HOST       Connection hostname or IP address. Default: 127.0.0.1
   -p, --port=PORT       TCP port to use to connect to moxi. Default: 11211
-  -S, --stats           Perform check by sending STATS command and parse the output (disables default SET / GET key method)
+  -S, --stats           Use simple STATS command instead of key SET+GET
 
 Examples:
   check_moxi -s /opt/moxi/moxi.sock
   check_moxi -p 11219
-  check_moxi -k
+  check_moxi -S
 "
 }
 
@@ -59,7 +59,6 @@ while test -n "$1"; do
             ;;
         --stats|-S)
             stats_enabled=true
-            shift
             ;;
         *)
             echo "Unknown argument: $1"
