@@ -21,3 +21,6 @@ check_conntrack : http://exchange.nagios.org/directory/Plugins/Security/Firewall
 check_hpsa : https://exchange.nagios.org/directory/Plugins/Hardware/Storage-Systems/RAID-Controllers/check_hpraid/details
 
 check_mongodb : https://github.com/mzupan/nagios-plugin-mongodb + PR #184
+
+check_mountpoints : https://github.com/echocat/nagios-plugin-check_mountpoints
+

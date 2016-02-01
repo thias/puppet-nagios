@@ -796,6 +796,9 @@ class nagios::server (
   nagios_command {'check_nrpe_hpsa':
     command_line => "${nrpe} -c check_hpsa",
   }
+  nagios_command {'check_nrpe_mountpoints':
+    command_line => "${nrpe} -c check_mountpoints",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
