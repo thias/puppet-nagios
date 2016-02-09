@@ -1,3 +1,5 @@
+* Require socat package for the moxi check.
+
 #### 2016-02-01 - 1.0.8
 * Convert all relevant checks to classes, improving hiera override support.
 * Add parameter to disable the default checks (#64, @rwf14f).

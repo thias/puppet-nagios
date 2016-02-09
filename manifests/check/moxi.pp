@@ -11,6 +11,9 @@ class nagios::check::moxi (
   $use                      = $::nagios::client::service_use,
 ) inherits ::nagios::client {
 
+  # Required by the check script when a UNIX socket is used
+  ensure_packages('socat')
+
   nagios::client::nrpe_plugin { 'check_moxi':
     ensure => $ensure,
   }
