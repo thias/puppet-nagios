@@ -1,4 +1,5 @@
 * Require socat package for the moxi check.
+* Include SELinux messages for moxi check through UNIX socket.
 
 #### 2016-02-01 - 1.0.8
 * Convert all relevant checks to classes, improving hiera override support.

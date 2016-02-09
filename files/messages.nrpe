@@ -39,3 +39,7 @@ avc:  denied  { create add_name write } for  pid=19390 comm="check_mysql_hea" na
 avc:  denied  { create write open getattr ioctl read } for  pid=22861 comm="check_mysql_hea" name="tmp" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:tmp_t:s0 tclass=file
 # check_postgres
 avc:  denied  { getattr } for  pid=22555 comm="sh" path="/usr/bin/sudo" dev="dm-0" ino=33753012 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:sudo_exec_t:s0 tclass=file
+# check_moxi
+avc:  denied  { write } for  pid=31159 comm="socat" name="moxi.sock" dev=sda2 ino=917520 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:usr_t:s0 tclass=sock_file
+avc:  denied  { connectto } for  pid=31677 comm="socat" path="/opt/moxi/moxi.sock" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 tclass=unix_stream_socket
+avc:  denied  { connectto } for  pid=3895 comm="socat" path="/opt/moxi/moxi.sock" scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:system_r:initrc_t:s0 tclass=unix_stream_socket
