@@ -12,7 +12,9 @@
 # The CGIs will read the main and host config files for any other
 # data they might need.
 
-main_config_file=/etc/nagios/nagios.cfg
+main_config_file=<%= cfg_path %>/nagios.cfg
+
+
 
 
 
@@ -21,9 +23,7 @@ main_config_file=/etc/nagios/nagios.cfg
 # value is used to locate the logo images needed by the statusmap
 # and statuswrl CGIs.
 
-physical_html_path=/usr/share/nagios/html
-
-
+physical_html_path=<%= share_path %>
 
 # URL HTML PATH
 # This is the path portion of the URL that corresponds to the
@@ -33,7 +33,7 @@ physical_html_path=/usr/share/nagios/html
 # http://www.myhost.com/nagios, this value should be '/nagios'
 # (without the quotes).
 
-url_html_path=/nagios
+url_html_path=<%= url_path %>
 
 
 
@@ -55,7 +55,23 @@ show_context_help=0
 
 use_pending_states=1
 
-
+# NAGIOS PROCESS CHECK COMMAND
+# This is the full path and filename of the program used to check
+# the status of the Nagios process.  It is used only by the CGIs
+# and is completely optional.  However, if you don't use it, you'll
+# see warning messages in the CGIs about the Nagios process
+# not running and you won't be able to execute any commands from
+# the web interface.  The program should follow the same rules
+# as plugins; the return codes are the same as for the plugins,
+# it should have timeout protection, it should output something
+# to STDIO, etc.
+#
+# Note: The command line for the check_nagios plugin below may
+# have to be tweaked a bit, as different versions of the plugin
+# use different command line arguments/syntaxes.
+ 
+nagios_check_command=/usr/lib/nagios/plugins/check_nagios /var/cache/nagios3/status.dat 5 '/usr/sbin/nagios3'
+ 
 
 
 # AUTHENTICATION USAGE

@@ -16,9 +16,7 @@
 # for historical purposes.  This should be the first option specified 
 # in the config file!!!
 
-log_file=/var/log/nagios/nagios.log
-
-
+log_file=<%= log_path %>/nagios.log
 
 # OBJECT CONFIGURATION FILE(S)
 # These are the object configuration files in which you define hosts,
@@ -70,7 +68,7 @@ cfg_dir=<%= dir %>
 # directly) in order to prevent inconsistencies that can occur
 # when the config files are modified after Nagios starts.
 
-object_cache_file=/var/log/nagios/objects.cache
+object_cache_file=<%= log_path %>/objects.cache
 
 
 
@@ -86,7 +84,7 @@ object_cache_file=/var/log/nagios/objects.cache
 # Read the documentation section on optimizing Nagios to find our more
 # about how this feature works.
 
-precached_object_file=/var/log/nagios/objects.precache
+precached_object_file=<%= log_path %>/objects.precache
 
 
 
@@ -99,7 +97,7 @@ precached_object_file=/var/log/nagios/objects.precache
 # defined as macros in this file and restrictive permissions (600)
 # can be placed on this file.
 
-resource_file=/etc/nagios/private/resource.cfg
+resource_file=<%= cfg_path %>/private/resource.cfg
 
 
 
@@ -109,7 +107,7 @@ resource_file=/etc/nagios/private/resource.cfg
 # The contents of the status file are deleted every time Nagios
 #  restarts.
 
-status_file=/var/log/nagios/status.dat
+status_file=<%= log_path %>/status.dat
 
 
 
@@ -176,7 +174,7 @@ command_check_interval=-1
 # directory level instead of on the file, as the file is deleted every
 # time its contents are processed.
 
-command_file=/var/spool/nagios/cmd/nagios.cmd
+command_file=<%= cmd_path %>
 
 
 
@@ -204,7 +202,7 @@ lock_file=<%= @pid_file %>
 # is created, used, and deleted throughout the time that Nagios is
 # running.
 
-temp_file=/var/log/nagios/nagios.tmp
+temp_file=<%= log_path %>/nagios.tmp
 
 
 
@@ -270,7 +268,7 @@ log_rotation_method=d
 # This is the directory where archived (rotated) log files should be 
 # placed (assuming you've chosen to do log rotation).
 
-log_archive_path=/var/log/nagios/archives
+log_archive_path=<%= log_path %>/archives
 
 
 
@@ -468,7 +466,7 @@ max_check_result_reaper_time=30
 # Note: Make sure that only one instance of Nagios has access
 # to this directory!  
 
-check_result_path=/var/log/nagios/spool/checkresults
+check_result_path=<%= check_result_path %>
 
 
 
@@ -643,7 +641,7 @@ retain_state_information=1
 # This file is used only if the retain_state_information
 # variable is set to 1.
 
-state_retention_file=/var/log/nagios/retention.dat
+state_retention_file=<%= log_path %>/retention.dat
 
 
 
@@ -1138,7 +1136,7 @@ date_format=<%= @date_format %>
 # embedded Perl interpreter) is located.  If you didn't compile
 # Nagios with embedded Perl support, this option has no effect.
 
-p1_file=/usr/sbin/p1.pl
+p1_file=<%= usr_path %>/p1.pl
 
 
 
@@ -1330,7 +1328,7 @@ debug_verbosity=1
 # DEBUG FILE
 # This option determines where Nagios should write debugging information.
 
-debug_file=/var/log/nagios/nagios.debug
+debug_file=<%= log_path %>/nagios.debug
 
 
 
