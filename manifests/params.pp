@@ -91,7 +91,7 @@ class nagios::params {
       $nrpe_pid_file      = hiera('nagios::params::nrpe_pid_file','/var/run/nagios/nrpe.pid')
       $nrpe_cfg_dir       = hiera('nagios::params::nrpe_cfg_dir','/etc/nagios/nrpe.d')
       $plugin_dir         = hiera('nagios::params::plugin_dir','/usr/lib/nagios/plugins')
-      $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios/nagios.pid')
+      $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios3/nagios.pid')
       $megaclibin         = '/opt/bin/MegaCli'
       $perl_memcached     = 'libcache-memcached-perl'
       # No package splitting in Debian
