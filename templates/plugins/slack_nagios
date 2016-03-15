@@ -5,23 +5,49 @@ SLACK_CHANNEL='<%= @plugin_slack_channel %>'
 SLACK_BOTNAME='<%= @plugin_slack_botname %>'
 WEBHOOK_URL='<%= @plugin_slack_webhook %>' #Get it from Slack Incoming WebHooks setup instruction
 
-#Set the message icon based on Nagios service state
-if [ "$NAGIOS_SERVICESTATE" = "OK" ]
+#Set the message icon based on Nagios service state and notification type
+if [ "$NAGIOS_NOTIFICATIONTYPE" = "ACKNOWLEDGEMENT" ]
 then
-    ICON_EMOJI=":thumbsup:"
-elif [ "$NAGIOS_SERVICESTATE" = "WARNING" ]
-then
-    ICON_EMOJI=":loundspeaker:"
-elif [ "$NAGIOS_SERVICESTATE" = "CRITICAL" ]
-then
-    ICON_EMOJI=":broken_heart:"
-elif [ "$NAGIOS_SERVICESTATE" = "UNKNOWN" ]
-then
-    ICON_EMOJI=":troll:"
+  ICON_EMOJI=":heavy_check_mark:"
 else
-    ICON_EMOJI=":octocat:"
+  if [ -z "$NAGIOS_SERVICESTATE" ]
+  then
+    if [ "$NAGIOS_HOSTSTATE" = "UP" ]
+    then
+      ICON_EMOJI=":thumbsup:"
+    elif [ "$NAGIOS_HOSTSTATE" = "DOWN" ]
+    then
+      ICON_EMOJI=":broken_heart:"
+    elif [ "$NAGIOS_HOSTSTATE" = "UNREACHABLE" ]
+    then
+      ICON_EMOJI=":troll:"
+    else
+      ICON_EMOJI=":octocat:"
+    fi
+  else
+    if [ "$NAGIOS_SERVICESTATE" = "OK" ]
+    then
+      ICON_EMOJI=":thumbsup:"
+    elif [ "$NAGIOS_SERVICESTATE" = "WARNING" ]
+    then
+      ICON_EMOJI=":loudspeaker:"
+    elif [ "$NAGIOS_SERVICESTATE" = "CRITICAL" ]
+    then
+      ICON_EMOJI=":broken_heart:"
+    elif [ "$NAGIOS_SERVICESTATE" = "UNKNOWN" ]
+    then
+      ICON_EMOJI=":troll:"
+    else
+      ICON_EMOJI=":octocat:"
+    fi
+  fi
 fi
 
 
 #request for posting to a channel
-curl -X POST --data "payload={\"channel\": \"${SLACK_CHANNEL}\", \"username\": \"${SLACK_BOTNAME}\", \"text\": \"${ICON_EMOJI} HOST: ${NAGIOS_HOSTNAME}   SERVICE: ${NAGIOS_SERVICEDISPLAYNAME} STATE: ${NAGIOS_SERVICESTATE} MESSAGE: ${NAGIOS_SERVICEOUTPUT} <${WEBHOST_NAGIOS}/cgi-bin/extinfo.cgi?host=${NAGIOS_HOSTNAME}|See Nagios>\"}" ${WEBHOOK_URL}
+if [ -z "$NAGIOS_SERVICESTATE" ]
+then
+  curl -X POST --data "payload={\"channel\": \"${SLACK_CHANNEL}\", \"username\": \"${SLACK_BOTNAME}\", \"text\": \"${ICON_EMOJI} HOST: ${NAGIOS_HOSTNAME}, STATE: ${NAGIOS_HOSTSTATE}, MESSAGE: ${NAGIOS_HOSTOUTPUT} <${WEBHOST_NAGIOS}/cgi-bin/extinfo.cgi?host=${NAGIOS_HOSTNAME}|See Nagios>\"}" ${WEBHOOK_URL}
+else
+  curl -X POST --data "payload={\"channel\": \"${SLACK_CHANNEL}\", \"username\": \"${SLACK_BOTNAME}\", \"text\": \"${ICON_EMOJI} HOST: ${NAGIOS_HOSTNAME}, SERVICE: ${NAGIOS_SERVICEDISPLAYNAME}, STATE: ${NAGIOS_SERVICESTATE}, MESSAGE: ${NAGIOS_SERVICEOUTPUT} <${WEBHOST_NAGIOS}/cgi-bin/extinfo.cgi?host=${NAGIOS_HOSTNAME}|See Nagios>\"}" ${WEBHOOK_URL}
+fi
