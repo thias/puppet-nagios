@@ -5,34 +5,6 @@ SLACK_CHANNEL='<%= @plugin_slack_channel %>'
 SLACK_BOTNAME='<%= @plugin_slack_botname %>'
 WEBHOOK_URL='<%= @plugin_slack_webhook %>' # Get it from Slack Incoming WebHooks setup instruction
 
-# Templates
-read -d '' template_host <<"EOF"
-payload={
-  "channel": "[CHANNEL]",
-  "username": "[BOTNAME]",
-  "attachments": [
-    {
-      "color": "[COLOR]",
-      "text": "[TITLE] [HOSTNAME] [STATE] - [INFO] <[WEBHOST_NAGIOS]/cgi-bin/extinfo.cgi?type=1%26host=[HOSTNAME]|See Nagios>",
-      "mrkdwn_in": ["text"]
-    }
-  ]
-}
-EOF
-read -d '' template_service <<"EOF"
-payload={
-  "channel": "[CHANNEL]",
-  "username": "[BOTNAME]",
-  "attachments": [
-    {
-      "color": "[COLOR]",
-      "text": "[TITLE] [HOSTNAME] [SERVICE] [STATE] - [INFO] <[WEBHOST_NAGIOS]/cgi-bin/extinfo.cgi?type=2%26host=[HOSTNAME]%26service=[SERVICE]|See Nagios>",
-      "mrkdwn_in": ["text"]
-    }
-  ]
-}
-EOF
-
 # Message parameters
 if [ -z "$NAGIOS_SERVICESTATE" ]
 then
@@ -82,29 +54,33 @@ else
   esac
 fi
 
-# Request data
+# Build request data
+WEBHOST_NAGIOS=${WEBHOST_NAGIOS//\//\\/}
 if [ -z "$NAGIOS_SERVICESTATE" ]
 then
   # Host event
   NAGIOS_HOSTOUTPUT=${NAGIOS_HOSTOUTPUT//\"/\'}
   NAGIOS_HOSTOUTPUT=${NAGIOS_HOSTOUTPUT//\//\\/}
-  data=$(echo $template_host | sed "s/\[STATE\]/${NAGIOS_HOSTSTATE}/g")
-  data=$(echo $data | sed "s/\[INFO\]/${NAGIOS_HOSTOUTPUT}/g")
+  text="${title} ${NAGIOS_HOSTNAME} ${NAGIOS_HOSTSTATE} - ${NAGIOS_HOSTOUTPUT} <${WEBHOST_NAGIOS}/cgi-bin/extinfo.cgi?type=1%26host=${NAGIOS_HOSTNAME}|See Nagios>"
 else
   # Service event
   NAGIOS_SERVICEOUTPUT=${NAGIOS_SERVICEOUTPUT//\"/\'}
   NAGIOS_SERVICEOUTPUT=${NAGIOS_SERVICEOUTPUT//\//\\/}
-  data=$(echo $template_service | sed "s/\[STATE\]/${NAGIOS_SERVICESTATE}/g")
-  data=$(echo $data | sed "s/\[INFO\]/${NAGIOS_SERVICEOUTPUT}/g")
-  data=$(echo $data | sed "s/\[SERVICE\]/${NAGIOS_SERVICEDISPLAYNAME}/g")
+  text="${title} ${NAGIOS_HOSTNAME} ${NAGIOS_SERVICEDISPLAYNAME} ${NAGIOS_SERVICESTATE} - ${NAGIOS_SERVICEOUTPUT} <${WEBHOST_NAGIOS}/cgi-bin/extinfo.cgi?type=2%26host=${NAGIOS_HOSTNAME}%26service=${NAGIOS_SERVICEDISPLAYNAME}|See Nagios>"
 fi
-# Common for both: service and host events
-data=$(echo $data | sed "s/\[CHANNEL\]/${SLACK_CHANNEL}/g")
-data=$(echo $data | sed "s/\[BOTNAME\]/${SLACK_BOTNAME}/g")
-data=$(echo $data | sed "s/\[COLOR\]/${color}/")
-data=$(echo $data | sed "s/\[HOSTNAME\]/${NAGIOS_HOSTNAME}/g")
-data=$(echo $data | sed "s/\[TITLE\]/${title}/g")
-data=$(echo $data | sed "s/\[WEBHOST_NAGIOS\]/${WEBHOST_NAGIOS//\//\\/}/g")
+read -d '' data <<EOF
+payload={
+  "channel": "${SLACK_CHANNEL}",
+  "username": "${SLACK_BOTNAME}",
+  "attachments": [
+    {
+      "color": "${color}",
+      "text": "${text}",
+      "mrkdwn_in": ["text"]
+    }
+  ]
+}
+EOF
 
 # Request
 curl -X POST --data "${data}" ${WEBHOOK_URL}
