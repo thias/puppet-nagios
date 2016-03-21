@@ -3,51 +3,108 @@
 WEBHOST_NAGIOS='<%= @plugin_slack_webhost %>'
 SLACK_CHANNEL='<%= @plugin_slack_channel %>'
 SLACK_BOTNAME='<%= @plugin_slack_botname %>'
-WEBHOOK_URL='<%= @plugin_slack_webhook %>' #Get it from Slack Incoming WebHooks setup instruction
+WEBHOOK_URL='<%= @plugin_slack_webhook %>' # Get it from Slack Incoming WebHooks setup instruction
 
-#Set the message icon based on Nagios service state and notification type
-if [ "$NAGIOS_NOTIFICATIONTYPE" = "ACKNOWLEDGEMENT" ]
-then
-  ICON_EMOJI=":heavy_check_mark:"
-else
-  if [ -z "$NAGIOS_SERVICESTATE" ]
-  then
-    if [ "$NAGIOS_HOSTSTATE" = "UP" ]
-    then
-      ICON_EMOJI=":thumbsup:"
-    elif [ "$NAGIOS_HOSTSTATE" = "DOWN" ]
-    then
-      ICON_EMOJI=":broken_heart:"
-    elif [ "$NAGIOS_HOSTSTATE" = "UNREACHABLE" ]
-    then
-      ICON_EMOJI=":troll:"
-    else
-      ICON_EMOJI=":octocat:"
-    fi
-  else
-    if [ "$NAGIOS_SERVICESTATE" = "OK" ]
-    then
-      ICON_EMOJI=":thumbsup:"
-    elif [ "$NAGIOS_SERVICESTATE" = "WARNING" ]
-    then
-      ICON_EMOJI=":loudspeaker:"
-    elif [ "$NAGIOS_SERVICESTATE" = "CRITICAL" ]
-    then
-      ICON_EMOJI=":broken_heart:"
-    elif [ "$NAGIOS_SERVICESTATE" = "UNKNOWN" ]
-    then
-      ICON_EMOJI=":troll:"
-    else
-      ICON_EMOJI=":octocat:"
-    fi
-  fi
-fi
+# Templates
+read -d '' template_host <<"EOF"
+payload={
+  "channel": "[CHANNEL]",
+  "username": "[BOTNAME]",
+  "attachments": [
+    {
+      "color": "[COLOR]",
+      "text": "[TITLE] [HOSTNAME] [STATE] - [INFO] <[WEBHOST_NAGIOS]/cgi-bin/extinfo.cgi?type=1%26host=[HOSTNAME]|See Nagios>",
+      "mrkdwn_in": ["text"]
+    }
+  ]
+}
+EOF
+read -d '' template_service <<"EOF"
+payload={
+  "channel": "[CHANNEL]",
+  "username": "[BOTNAME]",
+  "attachments": [
+    {
+      "color": "[COLOR]",
+      "text": "[TITLE] [HOSTNAME] [SERVICE] [STATE] - [INFO] <[WEBHOST_NAGIOS]/cgi-bin/extinfo.cgi?type=2%26host=[HOSTNAME]%26service=[SERVICE]|See Nagios>",
+      "mrkdwn_in": ["text"]
+    }
+  ]
+}
+EOF
 
-
-#request for posting to a channel
+# Message parameters
 if [ -z "$NAGIOS_SERVICESTATE" ]
 then
-  curl -X POST --data "payload={\"channel\": \"${SLACK_CHANNEL}\", \"username\": \"${SLACK_BOTNAME}\", \"text\": \"${ICON_EMOJI} HOST: ${NAGIOS_HOSTNAME}, STATE: ${NAGIOS_HOSTSTATE}, MESSAGE: ${NAGIOS_HOSTOUTPUT} <${WEBHOST_NAGIOS}/cgi-bin/extinfo.cgi?host=${NAGIOS_HOSTNAME}|See Nagios>\"}" ${WEBHOOK_URL}
+  # Host event
+  case "$NAGIOS_NOTIFICATIONTYPE" in
+    ACKNOWLEDGEMENT)
+      color='#ffff'
+      title='ACK:'
+      ;;
+    *)
+      case "$NAGIOS_HOSTSTATE" in
+        UP)
+          color='good'
+          ;;
+        DOWN)
+          color='danger'
+          ;;
+        UNREACHABLE)
+          color='#e5c4a6'
+          ;;
+      esac
+      ;;
+  esac
 else
-  curl -X POST --data "payload={\"channel\": \"${SLACK_CHANNEL}\", \"username\": \"${SLACK_BOTNAME}\", \"text\": \"${ICON_EMOJI} HOST: ${NAGIOS_HOSTNAME}, SERVICE: ${NAGIOS_SERVICEDISPLAYNAME}, STATE: ${NAGIOS_SERVICESTATE}, MESSAGE: ${NAGIOS_SERVICEOUTPUT} <${WEBHOST_NAGIOS}/cgi-bin/extinfo.cgi?host=${NAGIOS_HOSTNAME}|See Nagios>\"}" ${WEBHOOK_URL}
+  # Service event
+  case "$NAGIOS_NOTIFICATIONTYPE" in
+    ACKNOWLEDGEMENT)
+      color='#ffff'
+      title='ACK:'
+      ;;
+    *)
+      case "$NAGIOS_SERVICESTATE" in
+        OK)
+          color='good'
+          ;;
+        WARNING)
+          color='warning'
+          ;;
+        UNKNOWN)
+          color='#e5c4a6'
+          ;;
+        CRITICAL)
+          color='danger'
+          ;;
+      esac
+      ;;
+  esac
 fi
+
+# Request data
+if [ -z "$NAGIOS_SERVICESTATE" ]
+then
+  # Host event
+  NAGIOS_HOSTOUTPUT=${NAGIOS_HOSTOUTPUT//\"/\'}
+  NAGIOS_HOSTOUTPUT=${NAGIOS_HOSTOUTPUT//\//\\/}
+  data=$(echo $template_host | sed "s/\[STATE\]/${NAGIOS_HOSTSTATE}/g")
+  data=$(echo $data | sed "s/\[INFO\]/${NAGIOS_HOSTOUTPUT}/g")
+else
+  # Service event
+  NAGIOS_SERVICEOUTPUT=${NAGIOS_SERVICEOUTPUT//\"/\'}
+  NAGIOS_SERVICEOUTPUT=${NAGIOS_SERVICEOUTPUT//\//\\/}
+  data=$(echo $template_service | sed "s/\[STATE\]/${NAGIOS_SERVICESTATE}/g")
+  data=$(echo $data | sed "s/\[INFO\]/${NAGIOS_SERVICEOUTPUT}/g")
+  data=$(echo $data | sed "s/\[SERVICE\]/${NAGIOS_SERVICEDISPLAYNAME}/g")
+fi
+# Common for both: service and host events
+data=$(echo $data | sed "s/\[CHANNEL\]/${SLACK_CHANNEL}/g")
+data=$(echo $data | sed "s/\[BOTNAME\]/${SLACK_BOTNAME}/g")
+data=$(echo $data | sed "s/\[COLOR\]/${color}/")
+data=$(echo $data | sed "s/\[HOSTNAME\]/${NAGIOS_HOSTNAME}/g")
+data=$(echo $data | sed "s/\[TITLE\]/${title}/g")
+data=$(echo $data | sed "s/\[WEBHOST_NAGIOS\]/${WEBHOST_NAGIOS//\//\\/}/g")
+
+# Request
+curl -X POST --data "${data}" ${WEBHOOK_URL}
