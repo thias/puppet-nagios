@@ -1,3 +1,6 @@
+#### 2016-03-22 - 1.0.10
+* Include slack_plugin (#77, @lisuml).
+
 #### 2016-02-09 - 1.0.9
 * Require socat package for the moxi check.
 * Include SELinux messages for moxi check through UNIX socket.
