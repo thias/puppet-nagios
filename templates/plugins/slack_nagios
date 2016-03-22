@@ -1,0 +1,86 @@
+#!/bin/bash
+
+WEBHOST_NAGIOS='<%= @plugin_slack_webhost %>'
+SLACK_CHANNEL='<%= @plugin_slack_channel %>'
+SLACK_BOTNAME='<%= @plugin_slack_botname %>'
+WEBHOOK_URL='<%= @plugin_slack_webhook %>' # Get it from Slack Incoming WebHooks setup instruction
+
+# Message parameters
+if [ -z "$NAGIOS_SERVICESTATE" ]
+then
+  # Host event
+  case "$NAGIOS_NOTIFICATIONTYPE" in
+    ACKNOWLEDGEMENT)
+      color='#ffff'
+      title='ACK:'
+      ;;
+    *)
+      case "$NAGIOS_HOSTSTATE" in
+        UP)
+          color='good'
+          ;;
+        DOWN)
+          color='danger'
+          ;;
+        UNREACHABLE)
+          color='#e5c4a6'
+          ;;
+      esac
+      ;;
+  esac
+else
+  # Service event
+  case "$NAGIOS_NOTIFICATIONTYPE" in
+    ACKNOWLEDGEMENT)
+      color='#ffff'
+      title='ACK:'
+      ;;
+    *)
+      case "$NAGIOS_SERVICESTATE" in
+        OK)
+          color='good'
+          ;;
+        WARNING)
+          color='warning'
+          ;;
+        UNKNOWN)
+          color='#e5c4a6'
+          ;;
+        CRITICAL)
+          color='danger'
+          ;;
+      esac
+      ;;
+  esac
+fi
+
+# Build request data
+WEBHOST_NAGIOS=${WEBHOST_NAGIOS//\//\\/}
+if [ -z "$NAGIOS_SERVICESTATE" ]
+then
+  # Host event
+  NAGIOS_HOSTOUTPUT=${NAGIOS_HOSTOUTPUT//\"/\'}
+  NAGIOS_HOSTOUTPUT=${NAGIOS_HOSTOUTPUT//\//\\/}
+  text="${title} ${NAGIOS_HOSTNAME} ${NAGIOS_HOSTSTATE} - ${NAGIOS_HOSTOUTPUT} <${WEBHOST_NAGIOS}/cgi-bin/extinfo.cgi?type=1%26host=${NAGIOS_HOSTNAME}|See Nagios>"
+else
+  # Service event
+  NAGIOS_SERVICEOUTPUT=${NAGIOS_SERVICEOUTPUT//\"/\'}
+  NAGIOS_SERVICEOUTPUT=${NAGIOS_SERVICEOUTPUT//\//\\/}
+  text="${title} ${NAGIOS_HOSTNAME} ${NAGIOS_SERVICEDISPLAYNAME} ${NAGIOS_SERVICESTATE} - ${NAGIOS_SERVICEOUTPUT} <${WEBHOST_NAGIOS}/cgi-bin/extinfo.cgi?type=2%26host=${NAGIOS_HOSTNAME}%26service=${NAGIOS_SERVICEDISPLAYNAME}|See Nagios>"
+fi
+read -d '' data <<EOF
+payload={
+  "channel": "${SLACK_CHANNEL}",
+  "username": "${SLACK_BOTNAME}",
+  "attachments": [
+    {
+      "color": "${color}",
+      "text": "${text}",
+      "mrkdwn_in": ["text"]
+    }
+  ]
+}
+EOF
+
+# Request
+curl -X POST --data "${data}" ${WEBHOOK_URL}

@@ -381,6 +381,40 @@ nagios::check::mongodb::args_replication_lag: '-W 15 -C 30'
 For more info please refer to the `nagios-plugin-mongodb` documentation :
 https://github.com/mzupan/nagios-plugin-mongodb
 
+## Slack messaging integration
+
+If you want to have your nagios notifications in Slack, enable the slack plugin
+by setting `$plugin_slack` parameter to `true`.
+
+Additional parameters:
+* `$plugin_slack_webhost` (mandatory): an IP or FQDN for the host you installed nagios web interface
+* `$plugin_slack_webhook` (mandatory): Slack Web Hook url (grab it from Integration page at Slack Web Hook setup instruction section)
+* `$plugin_slack_channel` (default: '#alerts'): the channel where the bot will post in
+* `$plugin_slack_botname` (default: 'nagios'): the bot name
+
+Sample Slack contact and commands configuration:
+
+```puppet
+  nagios_contact { 'slack':
+    alias                         => 'Slack',
+    service_notification_period   => '24x7',
+    host_notification_period      => '24x7',
+    service_notification_options  => 'w,u,c,r',
+    host_notification_options     => 'd,r',
+    service_notification_commands => 'notify-service-by-slack',
+    host_notification_commands    => 'notify-host-by-slack',
+  }
+  nagios_command { 'notify-service-by-slack':
+    command_line => '$USER1$/slack_nagios > /tmp/slack.log 2>&1',
+  }
+  nagios_command { 'notify-host-by-slack':
+    command_line => '$USER1$/slack_nagios > /tmp/slack.log 2>&1',
+  }
+```
+
+Then the `slack` contact should be added to the `$admins_members` parameter of
+the main `nagios::server` class.
+
 ## Removing hosts
 
 If you decommission a Nagios-monitored host a couple of manual steps are

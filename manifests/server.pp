@@ -86,6 +86,11 @@ class nagios::server (
   $plugin_dir           = $::nagios::params::plugin_dir,
   $plugin_nginx         = false,
   $plugin_xcache        = false,
+  $plugin_slack         = false,
+  $plugin_slack_webhost = undef,
+  $plugin_slack_channel = '#alerts',
+  $plugin_slack_botname = 'nagios',
+  $plugin_slack_webhook = undef,
   $selinux              = $::selinux,
   # Original template entries
   $template_generic_contact = {},
@@ -153,6 +158,21 @@ class nagios::server (
   } else {
     file { "${plugin_dir}/check_xcache":
       ensure => absent,
+    }
+  }
+  if $plugin_slack {
+    if ! $plugin_slack_webhost or ! $plugin_slack_webhook {
+      fail('$plugin_slack_webhost and $plugin_slack_webhook must be pass when $plugin_slack is enabled.')
+    }
+    file { "${plugin_dir}/slack_nagios":
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template('nagios/plugins/slack_nagios'),
+    }
+  } else {
+    file { "${plugin_dir}/slack_nagios":
+      ensure => 'absent',
     }
   }
 
