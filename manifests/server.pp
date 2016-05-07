@@ -819,6 +819,9 @@ class nagios::server (
   nagios_command {'check_nrpe_mountpoints':
     command_line => "${nrpe} -c check_mountpoints",
   }
+  nagios_command {'check_nrpe_smartmon':
+    command_line => "${nrpe} -c check_smartmon -a \$ARG1\$ \$ARG2\$",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg

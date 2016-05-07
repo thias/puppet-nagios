@@ -172,6 +172,9 @@ class nagios::client (
       }
     }
     if $::nagios_postgres {         class { '::nagios::check::postgres': } }
+    if $::nagios_smartmon and ($::is_virtual != true) {
+      class { '::nagios::check::smartmon': }
+    }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
