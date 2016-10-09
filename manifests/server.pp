@@ -188,7 +188,7 @@ class nagios::server (
     # Don't get fooled by any process with "nagios" in its command line
     pattern   => '/usr/sbin/nagios',
     # Work around files created root:root mode 600 (known issue)
-    restart   => '/bin/chgrp nagios /etc/nagios/nagios_*.cfg && /bin/chmod 640 /etc/nagios/nagios_*.cfg && /sbin/service nagios reload',
+    restart   => '/bin/chgrp nagios /etc/nagios/nagios_*.cfg && /bin/chmod 640 /etc/nagios/nagios_*.cfg && /bin/kill -HUP `cat /var/run/nagios/nagios.pid`',
     require   => Package['nagios'],
   }
 
