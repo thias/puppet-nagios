@@ -249,7 +249,7 @@ class nagios::server (
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    content => template('nagios/nagios.cfg.erb'),
+    content => template($::nagios::params::cfg_template),
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
