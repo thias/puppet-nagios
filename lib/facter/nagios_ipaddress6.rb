@@ -33,7 +33,7 @@ else
         reject { |i,_| i =~ /lo.*/ }.
         values.
         map { |x| x['bindings6'] }.
-        reject { |x| x.nil? }.
+        compact.
         flatten.
         map { |x| x['address'] }.
         select { |x| valid_addr? x }.
