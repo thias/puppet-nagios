@@ -711,23 +711,23 @@ class nagios::server (
   nagios_command { 'check_nrpe_postgres_wal_files':
     command_line => "${nrpe} -c check_postgres_wal_files",
   }
-  nagios_command { 'check_nrpe_zookeeper_zk_avg_latency':
-    command_line => "${nrpe} -c check_zookeeper_zk_avg_latency",
+  nagios_command { 'check_nrpe_zk_avg_latency':
+    command_line => "${nrpe} -c check_zk_avg_latency",
   }
-  nagios_command { 'check_nrpe_zookeeper_zk_max_latency':
-    command_line => "${nrpe} -c check_zookeeper_zk_max_latency",
+  nagios_command { 'check_nrpe_zk_max_latency':
+    command_line => "${nrpe} -c check_zk_max_latency",
   }
-  nagios_command { 'check_nrpe_zookeeper_zk_outstanding_requests':
-    command_line => "${nrpe} -c check_zookeeper_zk_outstanding_requests",
+  nagios_command { 'check_nrpe_zk_outstanding_requests':
+    command_line => "${nrpe} -c check_zk_outstanding_requests",
   }
-  nagios_command { 'check_nrpe_zookeeper_zk_open_file_descriptor_count':
-    command_line => "${nrpe} -c check_zookeeper_zk_open_file_descriptor_count",
+  nagios_command { 'check_nrpe_zk_open_file_descriptor_count':
+    command_line => "${nrpe} -c check_zk_open_file_descriptor_count",
   }
-  nagios_command { 'check_nrpe_zookeeper_zk_pending_syncs':
-    command_line => "${nrpe} -c check_zookeeper_zk_pending_syncs",
+  nagios_command { 'check_nrpe_zk_pending_syncs':
+    command_line => "${nrpe} -c check_zk_pending_syncs",
   }
-  nagios_command { 'check_nrpe_zookeeper_zk_followers':
-    command_line => "${nrpe} -c check_zookeeper_zk_followers",
+  nagios_command { 'check_nrpe_zk_followers':
+    command_line => "${nrpe} -c check_zk_followers",
   }
   nagios_command {'check_nrpe_mongodb_asserts':
     command_line => "${nrpe} -c check_mongodb_asserts",

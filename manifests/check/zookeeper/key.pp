@@ -31,22 +31,22 @@ define nagios::check::zookeeper::key () {
     ( $keys_enabled != [] and $key in $keys_enabled ) or
     ( $keys_disabled_final != [] and ! ( $key in $keys_disabled_final ) ) )
   {
-    nagios::client::nrpe_file { "check_zookeeper_${key}":
+    nagios::client::nrpe_file { "check_${key}":
       ensure    => $ensure,
       plugin    => $plugin,
       args      => "${args} --output=nagios --key=${title} ${args_key}",
     }
-    nagios::service { "check_zookeeper_${key}_${check_title}":
+    nagios::service { "check_${key}_${check_title}":
       ensure              => $ensure,
-      check_command       => "check_nrpe_zookeeper_${key}",
-      service_description => "zookeeper_${key}",
+      check_command       => "check_nrpe_${key}",
+      service_description => "${key}",
       servicegroups       => 'zookeeper',
     }
   } else {
-    nagios::client::nrpe_file { "check_zookeeper_${key}":
+    nagios::client::nrpe_file { "check_${key}":
       ensure => 'absent',
     }
-    nagios::service { "check_zookeeper_${key}_${check_title}":
+    nagios::service { "check_${key}_${check_title}":
       ensure        => 'absent',
       check_command => 'foo',
     }
