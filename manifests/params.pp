@@ -51,8 +51,10 @@ class nagios::params {
       $nrpe_group         = 'nrpe'
       if ( $::operatingsystem != 'Fedora' and versioncmp($::operatingsystemrelease, '7') >= 0 ) {
         $nrpe_pid_file    = hiera('nagios::params::nrpe_pid_file','/run/nrpe/nrpe.pid')
-      } else {
+        $cfg_template     = 'nagios/nagios-4.cfg.erb'
+} else {
         $nrpe_pid_file    = hiera('nagios::params::nrpe_pid_file','/var/run/nrpe/nrpe.pid')
+        $cfg_template     = 'nagios/nagios.cfg.erb'
       }
       $nrpe_cfg_dir       = hiera('nagios::params::nrpe_cfg_dir','/etc/nrpe.d')
       $plugin_dir         = hiera('nagios::params::plugin_dir',"/usr/${libdir}/nagios/plugins")
@@ -71,6 +73,7 @@ class nagios::params {
       $nrpe_user          = 'nagios'
       $nrpe_group         = 'nagios'
       $nrpe_pid_file      = '/run/nrpe.pid'
+      $cfg_template       = 'nagios/nagios.cfg.erb'
       $nrpe_cfg_dir       = '/etc/nagios/nrpe.d'
       $plugin_dir         = "/usr/${libdir}/nagios/plugins"
       $pid_file           = '/run/nagios.pid'
@@ -89,6 +92,7 @@ class nagios::params {
       $nrpe_user          = 'nagios'
       $nrpe_group         = 'nagios'
       $nrpe_pid_file      = hiera('nagios::params::nrpe_pid_file','/var/run/nagios/nrpe.pid')
+      $cfg_template       = 'nagios/nagios.cfg.erb'
       $nrpe_cfg_dir       = hiera('nagios::params::nrpe_cfg_dir','/etc/nagios/nrpe.d')
       $plugin_dir         = hiera('nagios::params::plugin_dir','/usr/lib/nagios/plugins')
       $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios/nagios.pid')
@@ -106,6 +110,7 @@ class nagios::params {
       $nrpe_user          = 'nrpe'
       $nrpe_group         = 'nrpe'
       $nrpe_pid_file      = hiera('nagios::params::nrpe_pid_file','/var/run/nrpe.pid')
+      $cfg_template       = 'nagios/nagios.cfg.erb'
       $nrpe_cfg_dir       = hiera('nagios::params::nrpe_cfg_dir','/etc/nagios/nrpe.d')
       $plugin_dir         = hiera('nagios::params::plugin_dir','/usr/libexec/nagios/plugins')
       $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios.pid')
