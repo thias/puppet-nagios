@@ -729,116 +729,119 @@ class nagios::server (
   nagios_command { 'check_nrpe_zk_followers':
     command_line => "${nrpe} -c check_zk_followers",
   }
-  nagios_command {'check_nrpe_mongodb_asserts':
+  nagios_command { 'check_nrpe_mongodb_asserts':
     command_line => "${nrpe} -c check_mongodb_asserts",
   }
-  nagios_command {'check_nrpe_mongodb_chunks_balance':
+  nagios_command { 'check_nrpe_mongodb_chunks_balance':
     command_line => "${nrpe} -c check_mongodb_chunks_balance",
   }
-  nagios_command {'check_nrpe_mongodb_collection_indexes':
+  nagios_command { 'check_nrpe_mongodb_collection_indexes':
     command_line => "${nrpe} -c check_mongodb_collection_indexes",
   }
-  nagios_command {'check_nrpe_mongodb_collections':
+  nagios_command { 'check_nrpe_mongodb_collections':
     command_line => "${nrpe} -c check_mongodb_collections",
   }
-  nagios_command {'check_nrpe_mongodb_collection_size':
+  nagios_command { 'check_nrpe_mongodb_collection_size':
     command_line => "${nrpe} -c check_mongodb_collection_size",
   }
-  nagios_command {'check_nrpe_mongodb_collection_state':
+  nagios_command { 'check_nrpe_mongodb_collection_state':
     command_line => "${nrpe} -c check_mongodb_collection_state",
   }
-  nagios_command {'check_nrpe_mongodb_collection_storageSize':
+  nagios_command { 'check_nrpe_mongodb_collection_storageSize':
     command_line => "${nrpe} -c check_mongodb_collection_storageSize",
   }
-  nagios_command {'check_nrpe_mongodb_connect':
+  nagios_command { 'check_nrpe_mongodb_connect':
     command_line => "${nrpe} -c check_mongodb_connect",
   }
-  nagios_command {'check_nrpe_mongodb_connections':
+  nagios_command { 'check_nrpe_mongodb_connections':
     command_line => "${nrpe} -c check_mongodb_connections",
   }
-  nagios_command {'check_nrpe_mongodb_connect_primary':
+  nagios_command { 'check_nrpe_mongodb_connect_primary':
     command_line => "${nrpe} -c check_mongodb_connect_primary",
   }
-  nagios_command {'check_nrpe_mongodb_current_lock':
+  nagios_command { 'check_nrpe_mongodb_current_lock':
     command_line => "${nrpe} -c check_mongodb_current_lock",
   }
-  nagios_command {'check_nrpe_mongodb_database_indexes':
+  nagios_command { 'check_nrpe_mongodb_database_indexes':
     command_line => "${nrpe} -c check_mongodb_database_indexes",
   }
-  nagios_command {'check_nrpe_mongodb_databases':
+  nagios_command { 'check_nrpe_mongodb_databases':
     command_line => "${nrpe} -c check_mongodb_databases",
   }
-  nagios_command {'check_nrpe_mongodb_database_size':
+  nagios_command { 'check_nrpe_mongodb_database_size':
     command_line => "${nrpe} -c check_mongodb_database_size",
   }
-  nagios_command {'check_nrpe_mongodb_flushing':
+  nagios_command { 'check_nrpe_mongodb_flushing':
     command_line => "${nrpe} -c check_mongodb_flushing",
   }
-  nagios_command {'check_nrpe_mongodb_index_miss_ratio':
+  nagios_command { 'check_nrpe_mongodb_index_miss_ratio':
     command_line => "${nrpe} -c check_mongodb_index_miss_ratio",
   }
-  nagios_command {'check_nrpe_mongodb_journal_commits_in_wl':
+  nagios_command { 'check_nrpe_mongodb_journal_commits_in_wl':
     command_line => "${nrpe} -c check_mongodb_journal_commits_in_wl",
   }
-  nagios_command {'check_nrpe_mongodb_journaled':
+  nagios_command { 'check_nrpe_mongodb_journaled':
     command_line => "${nrpe} -c check_mongodb_journaled",
   }
-  nagios_command {'check_nrpe_mongodb_last_flush_time':
+  nagios_command { 'check_nrpe_mongodb_last_flush_time':
     command_line => "${nrpe} -c check_mongodb_last_flush_time",
   }
-  nagios_command {'check_nrpe_mongodb_lock':
+  nagios_command { 'check_nrpe_mongodb_lock':
     command_line => "${nrpe} -c check_mongodb_lock",
   }
-  nagios_command {'check_nrpe_mongodb_memory':
+  nagios_command { 'check_nrpe_mongodb_memory':
     command_line => "${nrpe} -c check_mongodb_memory",
   }
-  nagios_command {'check_nrpe_mongodb_memory_mapped':
+  nagios_command { 'check_nrpe_mongodb_memory_mapped':
     command_line => "${nrpe} -c check_mongodb_memory_mapped",
   }
-  nagios_command {'check_nrpe_mongodb_opcounters':
+  nagios_command { 'check_nrpe_mongodb_opcounters':
     command_line => "${nrpe} -c check_mongodb_opcounters",
   }
-  nagios_command {'check_nrpe_mongodb_oplog':
+  nagios_command { 'check_nrpe_mongodb_oplog':
     command_line => "${nrpe} -c check_mongodb_oplog",
   }
-  nagios_command {'check_nrpe_mongodb_page_faults':
+  nagios_command { 'check_nrpe_mongodb_page_faults':
     command_line => "${nrpe} -c check_mongodb_page_faults",
   }
-  nagios_command {'check_nrpe_mongodb_queries_per_second':
+  nagios_command { 'check_nrpe_mongodb_queries_per_second':
     command_line => "${nrpe} -c check_mongodb_queries_per_second",
   }
-  nagios_command {'check_nrpe_mongodb_queues':
+  nagios_command { 'check_nrpe_mongodb_queues':
     command_line => "${nrpe} -c check_mongodb_queues",
   }
-  nagios_command {'check_nrpe_mongodb_replica_primary':
+  nagios_command { 'check_nrpe_mongodb_replica_primary':
     command_line => "${nrpe} -c check_mongodb_replica_primary",
   }
-  nagios_command {'check_nrpe_mongodb_replication_lag':
+  nagios_command { 'check_nrpe_mongodb_replication_lag':
     command_line => "${nrpe} -c check_mongodb_replication_lag",
   }
-  nagios_command {'check_nrpe_mongodb_replication_lag_percent':
+  nagios_command { 'check_nrpe_mongodb_replication_lag_percent':
     command_line => "${nrpe} -c check_mongodb_replication_lag_percent",
   }
-  nagios_command {'check_nrpe_mongodb_replset_quorum':
+  nagios_command { 'check_nrpe_mongodb_replset_quorum':
     command_line => "${nrpe} -c check_mongodb_replset_quorum",
   }
-  nagios_command {'check_nrpe_mongodb_replset_state':
+  nagios_command { 'check_nrpe_mongodb_replset_state':
     command_line => "${nrpe} -c check_mongodb_replset_state",
   }
-  nagios_command {'check_nrpe_mongodb_row_count':
+  nagios_command { 'check_nrpe_mongodb_row_count':
     command_line => "${nrpe} -c check_mongodb_row_count",
   }
-  nagios_command {'check_nrpe_mongodb_write_data_files':
+  nagios_command { 'check_nrpe_mongodb_write_data_files':
     command_line => "${nrpe} -c check_mongodb_write_data_files",
   }
-  nagios_command {'check_nrpe_hpsa':
+  nagios_command { 'check_nrpe_hpsa':
     command_line => "${nrpe} -c check_hpsa",
   }
-  nagios_command {'check_nrpe_mountpoints':
+  nagios_command { 'check_nrpe_mountpoints':
     command_line => "${nrpe} -c check_mountpoints",
   }
-  nagios_command {'check_nrpe_mdraid':
+  nagios_command { 'check_nrpe_mdraid':
     command_line => "${nrpe} -c check_mdraid",
+  }
+  nagios_command { 'check_nrpe_mailq':
+    command_line => "${nrpe} -c check_mailq",
   }
 
   # Nagios contacts and contactgroups
