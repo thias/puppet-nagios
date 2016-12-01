@@ -381,6 +381,45 @@ nagios::check::mongodb::args_replication_lag: '-W 15 -C 30'
 For more info please refer to the `nagios-plugin-mongodb` documentation :
 https://github.com/mzupan/nagios-plugin-mongodb
 
+## Zookeeper
+
+The `zookeeper` checks are very similar to the `mysql_health` ones. The single
+`zookeeper` script has many 'actions' ('keys'), which are enabled by default.
+
+You can either selectively disable some :
+
+```yaml
+# Disable some checks (keys)
+nagios::check::zookeeper::keys_disabled:
+  - 'zk_max_latency'
+  - 'zk_outstanding_requests'
+```
+
+Or selectively enable some :
+
+```yaml
+# Enable only the following checks (keys)
+nagios::check::zookeeper::keys_enabled:
+  - 'zk_avg_latency'
+  - 'zk_open_file_descriptor_count'
+```
+
+Then for each key, you can also pass some arguments, typically to change the
+warning and critical values as needed :
+
+```yaml
+# Tweak some check values
+nagios::check::zookeeper::zk_avg_latency: '--warning=1 --critical=10'
+```
+
+When `nagios::check::zookeeper::leader` is set to `true`, the following
+additional checks are enabled by default:
+* `zk_pending_syncs`
+* `zk_followers`
+
+For more info please refer to the `check_zookeeper` nagios plugin
+documentation: https://github.com/andreisavu/zookeeper-monitoring
+
 ## Slack messaging integration
 
 If you want to have your nagios notifications in Slack, enable the slack plugin

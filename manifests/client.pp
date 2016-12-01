@@ -173,6 +173,7 @@ class nagios::client (
     }
     if $::nagios_postgres {         class { '::nagios::check::postgres': } }
     if $::nagios_mdraid {           class { '::nagios::check::mdraid': } }
+    if $::nagios_zookeeper {        class { '::nagios::check::zookeeper': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
