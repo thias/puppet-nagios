@@ -32,12 +32,11 @@ else
       Facter.value(:networking)['interfaces'].
         reject { |i,_| i =~ /lo.*/ }.
         values.
-        map { |x| x['bindings6'] }.
-        flatten.
+        flat_map { |x| x['bindings6'] }.
+        compact.
         map { |x| x['address'] }.
         select { |x| valid_addr? x }.
-        sort_by { |x| x.length }.
-        shift
+        min_by(&:length)
     end
   end
 end
