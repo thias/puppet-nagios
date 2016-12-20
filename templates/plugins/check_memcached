@@ -365,6 +365,7 @@ use Getopt::Long qw(:config no_ignore_case);
 # default hostname, port, database, user and password, see NOTES above
 my $HOSTNAME= 'localhost';
 my $PORT=     11211;
+my $SOCKET;
 
 # Add path to additional libraries if necessary
 use lib '/usr/lib/nagios/plugins';
@@ -430,6 +431,7 @@ my $PERF_OK_STATUS_REGEX = 'GAUGE|COUNTER|^DATA$|BOOLEAN';
 
 my $o_host=     undef;		# hostname
 my $o_port=     undef;		# port
+my $o_socket=   undef;          # socket
 my $o_help=     undef;          # help option
 my $o_verb=     undef;          # verbose mode
 my $o_version=  undef;          # version info option
@@ -457,7 +459,7 @@ my $memd= undef;                # DB connection object
 sub p_version { print "check_memcached.pl version : $Version\n"; }
 
 sub print_usage_line {
-    print "Usage: $0 [-v [debugfilename]] -H <host> [-p <port>] [-s <memcache stat arrays>] [-a <memcache statistics variables> -w <variables warning thresholds> -c <variables critical thresholds>] [-A <performance output variables>] [-T [contime_warn,contime_crit]] [-R [hitrate_warn,hitrate_crit]] [-U [utilization_size_warn,utilization_size_crit]] [-f] [-T <timeout>] [-V] [-P <previous performance data in quoted string>] [-o <threshold specification with name or pattern>]\n";
+    print "Usage: $0 [-v [debugfilename]] [-H <host>] [-p <port>] [-S <socket>] [-s <memcache stat arrays>] [-a <memcache statistics variables> -w <variables warning thresholds> -c <variables critical thresholds>] [-A <performance output variables>] [-T [contime_warn,contime_crit]] [-R [hitrate_warn,hitrate_crit]] [-U [utilization_size_warn,utilization_size_crit]] [-f] [-T <timeout>] [-V] [-P <previous performance data in quoted string>] [-o <threshold specification with name or pattern>]\n";
 }
 
 sub print_usage {
@@ -486,6 +488,8 @@ General and Server Connection Options:
    Hostname or IP Address to check
  -p, --port=INTEGER
    port number (default: 3306)
+ -S, --socket=PATH
+   UNIX socket path (default: disabled)
  -t, --timeout=NUMBER
    Allows to set timeout for execution of this plugin. This overrides nagios default.
  -s, --stat=<list of stat arrays>
@@ -2278,6 +2282,7 @@ sub check_options {
         'h'     => \$o_help,            'help'          => \$o_help,
         'H:s'   => \$o_host,            'hostname:s'    => \$o_host,
         'p:i'   => \$o_port,            'port:i'        => \$o_port,
+        'S:s'   => \$o_socket,          'socket:s'      => \$o_socket,
         't:i'   => \$o_timeout,         'timeout:i'     => \$o_timeout,
         'V'     => \$o_version,         'version'       => \$o_version,
 	's:s'	=> \$o_mdsopt,		'stat:s'	=> \$o_mdsopt,
@@ -2303,7 +2308,7 @@ sub check_options {
     if (defined($o_version)) { p_version(); exit $ERRORS{"UNKNOWN"} };
 
     # access/connection options
-    if (!defined($o_host)) { print "Please specify hostname (-H)\n"; print_usage(); exit $ERRORS{"UNKNOWN"}; } 
+    if (!defined($o_host) && !defined($o_socket)) { print "Please specify hostname (-H) or socket (-S)\n"; print_usage(); exit $ERRORS{"UNKNOWN"}; } 
     @o_mdslist=split(/,/, lc $o_mdsopt) if defined($o_mdsopt) && $o_mdsopt ne '';
 
     # now start options processing in the library
@@ -2334,6 +2339,7 @@ sub check_options {
 
     $HOSTNAME = $o_host if defined($o_host);
     $PORT     = $o_port if defined($o_port);
+    $SOCKET   = $o_socket if defined($o_socket);
     $TIMEOUT  = $o_timeout if defined($o_timeout);
 }
 
@@ -2367,19 +2373,34 @@ else {
   alarm ($o_timeout+10);
 }
 
-my $sock = new IO::Socket::INET(
-  PeerAddr => $HOSTNAME,
-  PeerPort => $PORT,
-  Proto => 'tcp',
-);
-if (!$sock) {
-  print "CRITICAL ERROR - Can not connect to '$HOSTNAME' on port $PORT\n";
-  exit $ERRORS{'CRITICAL'};
+my $dsn;
+if (defined($SOCKET)) {
+  my $sock = new IO::Socket::UNIX(
+    Type => SOCK_STREAM(),
+    Peer => $SOCKET,
+  );
+  if (!$sock) {
+    print "CRITICAL ERROR - Can not connect to '$SOCKET'\n";
+    exit $ERRORS{'CRITICAL'};
+  }
+  close($sock);
+  $dsn = $SOCKET;
 }
-close($sock);
+else {
+  my $sock = new IO::Socket::INET(
+    PeerAddr => $HOSTNAME,
+    PeerPort => $PORT,
+    Proto => 'tcp',
+  );
+  if (!$sock) {
+    print "CRITICAL ERROR - Can not connect to '$HOSTNAME' on port $PORT\n";
+    exit $ERRORS{'CRITICAL'};
+  }
+  close($sock);
+  $dsn = $HOSTNAME.":".$PORT;
+}
 
 my $start_time;
-my $dsn = $HOSTNAME.":".$PORT;
 $nlib->verb("connecting to $dsn"); 
 $start_time = [ Time::HiRes::gettimeofday() ] if defined($o_timecheck);
 $memd = new Cache::Memcached { 'servers' => [ $dsn ] };

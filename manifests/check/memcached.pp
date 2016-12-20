@@ -18,9 +18,9 @@ class nagios::check::memcached (
   }
 
   # Include defaults if no overrides in $args
-  if $args !~ /-H/ { $arg_h = '-H 127.0.0.1 ' } else { $arg_h = '' }
-  if $args !~ /-p/ { $arg_p = '-p 11211 ' }     else { $arg_p = '' }
-  if $args !~ /-U/ { $arg_u = '-U 75,90 ' }     else { $arg_u = '' }
+  if $args !~ /(-H|-S)/ { $arg_h = '-H 127.0.0.1 ' } else { $arg_h = '' }
+  if $args !~ /(-p|-S)/ { $arg_p = '-p 11211 ' }     else { $arg_p = '' }
+  if $args !~ /-U/      { $arg_u = '-U 75,90 ' }     else { $arg_u = '' }
   $fullargs = strip("${arg_h}${arg_p}${arg_u}-f ${args}")
 
   nagios::client::nrpe_file { 'check_memcached':

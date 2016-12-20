@@ -1,6 +1,7 @@
 * Restart service after resources are purged (#79, @vchepkov).
 * Add check_mdraid for Linux MD RAID (#81, @yevtushenko).
 * Remove problematic and no longer needed messages.nrpe line.
+* Add support for UNIX socket in memcached check.
 
 #### 2016-03-22 - 1.0.10
 * Include slack_plugin (#77, @lisuml).
