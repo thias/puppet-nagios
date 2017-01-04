@@ -57,7 +57,7 @@ foreach my $controller ( @controllers ) {
     }
     unless ( scalar @volumes_ids ) {
         push @volumes, "No volume found";
-	} else {
+    } else {
         foreach my $volume ( @volumes_ids ) {
             $output = `sudo $lsiutil -p $controller -a 21,3,$volume,0,0,0`;
             for (split /^/, $output) {
