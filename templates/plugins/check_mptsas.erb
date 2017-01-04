@@ -48,18 +48,18 @@ unless ( scalar @controllers ) {
 foreach my $controller ( @controllers ) {
     my @volumes;
     my @volumes_ids;
-	my $out;
-	$out = `sudo $lsiutil -p $controller -a 21,1,0,0`;
-	for (split /^/, $out) {
-		if ( m|^Volume\ (\d+)\ is\ Bus\ .*| ) {
-			push @volumes_ids, $1;
-		}
+    my $out;
+    $out = `sudo $lsiutil -p $controller -a 21,1,0,0`;
+    for (split /^/, $out) {
+        if ( m|^Volume\ (\d+)\ is\ Bus\ .*| ) {
+            push @volumes_ids, $1;
 	}
-	unless ( scalar @volumes_ids ) {
-		push @volumes, "No volume found";
+    }
+    unless ( scalar @volumes_ids ) {
+        push @volumes, "No volume found";
 	} else {
-		foreach my $volume ( @volumes_ids ) {
-			$output = `sudo $lsiutil -p $controller -a 21,3,$volume,0,0,0`;
+        foreach my $volume ( @volumes_ids ) {
+            $output = `sudo $lsiutil -p $controller -a 21,3,$volume,0,0,0`;
             for (split /^/, $output) {
                 chomp();
                 if ( m/^Volume.*State/ ) {
@@ -68,7 +68,7 @@ foreach my $controller ( @controllers ) {
             }
             foreach my $volume_status ( @volumes ) {
                 $status = $ERRORS{'CRITICAL'} unless ( $volume_status =~ /^Volume \d+ State:  optimal, enabled$/ );
-            }    $output = `sudo $lsiutil -p $controller -a 21,3,0,0`;
+            }
         }
     }
     print "Ctrl $controller: ".join (' / ', @volumes)."\n";
