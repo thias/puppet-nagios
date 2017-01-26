@@ -3,8 +3,8 @@
 # This is the main class to be included on all nodes to be monitored by nagios.
 #
 class nagios::client (
-  $nagios_host_name                 = $::nagios_host_name,
-  $nagios_server                    = $::nagios_server,
+  $nagios_host_name                 = getvar('::nagios_host_name'),
+  $nagios_server                    = getvar('::nagios_server'),
   # nrpe
   $nrpe_package                     = $::nagios::params::nrpe_package,
   $nrpe_package_alias               = $::nagios::params::nrpe_package_alias,
@@ -25,24 +25,24 @@ class nagios::client (
   $nrpe_command_timeout             = '60',
   $nrpe_connection_timeout          = '300',
   # host defaults
-  $host_address                     = $::nagios_host_address,
-  $host_address6                    = $::nagios_host_address6,
-  $host_alias                       = $::nagios_host_alias,
-  $host_check_period                = $::nagios_host_check_period,
-  $host_check_command               = $::nagios_host_check_command,
-  $host_contact_groups              = $::nagios_host_contact_groups,
-  $host_hostgroups                  = $::nagios_host_hostgroups,
-  $host_notes                       = $::nagios_host_notes,
-  $host_notes_url                   = $::nagios_host_notes_url,
-  $host_notification_period         = $::nagios_host_notification_period,
-  $host_use                         = $::nagios_host_use,
+  $host_address                     = getvar('::nagios_host_address'),
+  $host_address6                    = getvar('::nagios_host_address6'),
+  $host_alias                       = getvar('::nagios_host_alias'),
+  $host_check_period                = getvar('::nagios_host_check_period'),
+  $host_check_command               = getvar('::nagios_host_check_command'),
+  $host_contact_groups              = getvar('::nagios_host_contact_groups'),
+  $host_hostgroups                  = getvar('::nagios_host_hostgroups'),
+  $host_notes                       = getvar('::nagios_host_notes'),
+  $host_notes_url                   = getvar('::nagios_host_notes_url'),
+  $host_notification_period         = getvar('::nagios_host_notification_period'),
+  $host_use                         = getvar('::nagios_host_use'),
   # service defaults (hint: use host_* or override only service_use
   # for efficiently affecting all services or all instances of a service)
-  $service_check_period             = $::nagios_service_check_period,
-  $service_contact_groups           = $::nagios_service_contact_groups,
-  $service_first_notification_delay = $::nagios_service_first_notification_delay,
-  $service_max_check_attempts       = $::nagios_service_max_check_attempts,
-  $service_notification_period      = $::nagios_service_notification_period,
+  $service_check_period             = getvar('::nagios_service_check_period'),
+  $service_contact_groups           = getvar('::nagios_service_contact_groups'),
+  $service_first_notification_delay = getvar('::nagios_service_first_notification_delay'),
+  $service_max_check_attempts       = getvar('::nagios_service_max_check_attempts'),
+  $service_notification_period      = getvar('::nagios_service_notification_period'),
   $service_use                      = 'generic-service',
   # other
   $plugin_dir                       = $::nagios::params::plugin_dir,
@@ -147,17 +147,17 @@ class nagios::client (
     class { '::nagios::check::ram': }
     class { '::nagios::check::swap': }
     # Conditional ones, once presence is detected using our custom facts
-    if $::nagios_couchbase {        class { '::nagios::check::couchbase': } }
-    if $::nagios_pci_hpsa {         class { '::nagios::check::hpsa': } }
-    if $::nagios_httpd {            class { '::nagios::check::httpd': } }
-    if $::nagios_pci_megaraid_sas { class { '::nagios::check::megaraid_sas': } }
-    if $::nagios_memcached {        class { '::nagios::check::memcached': } }
-    if $::nagios_mongod {           class { '::nagios::check::mongodb': } }
-    if $::nagios_mountpoints {      class { '::nagios::check::mountpoints': } }
-    if $::nagios_moxi {             class { '::nagios::check::moxi': } }
-    if $::nagios_httpd_nginx {      class { '::nagios::check::nginx': } }
-    if $::nagios_pci_mptsas {       class { '::nagios::check::mptsas': } }
-    if $::nagios_mysqld {
+    if getvar('::nagios_couchbase') {        class { '::nagios::check::couchbase': } }
+    if getvar('::nagios_pci_hpsa') {         class { '::nagios::check::hpsa': } }
+    if getvar('::nagios_httpd') {            class { '::nagios::check::httpd': } }
+    if getvar('::nagios_pci_megaraid_sas') { class { '::nagios::check::megaraid_sas': } }
+    if getvar('::nagios_memcached') {        class { '::nagios::check::memcached': } }
+    if getvar('::nagios_mongod') {           class { '::nagios::check::mongodb': } }
+    if getvar('::nagios_mountpoints') {      class { '::nagios::check::mountpoints': } }
+    if getvar('::nagios_moxi') {             class { '::nagios::check::moxi': } }
+    if getvar('::nagios_httpd_nginx') {      class { '::nagios::check::nginx': } }
+    if getvar('::nagios_pci_mptsas') {       class { '::nagios::check::mptsas': } }
+    if getvar('::nagios_mysqld') {
       case $::operatingsystem {
         'RedHat', 'Fedora', 'CentOS', 'Scientific', 'Amazon': {
           class { '::nagios::check::mysql_health': }
@@ -171,9 +171,9 @@ class nagios::client (
         }
       }
     }
-    if $::nagios_postgres {         class { '::nagios::check::postgres': } }
-    if $::nagios_mdraid {           class { '::nagios::check::mdraid': } }
-    if $::nagios_zookeeper {        class { '::nagios::check::zookeeper': } }
+    if getvar('::nagios_postgres') {         class { '::nagios::check::postgres': } }
+    if getvar('::nagios_mdraid') {           class { '::nagios::check::mdraid': } }
+    if getvar('::nagios_zookeeper') {        class { '::nagios::check::zookeeper': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work

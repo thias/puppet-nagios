@@ -4,7 +4,7 @@ define nagios::check::http (
   $servicegroups            = $::nagios_check_http_servicegroups,
   $check_period             = $::nagios_check_http_check_period,
   $contact_groups           = $::nagios::client::service_contact_groups,
-  $first_notification_delay = $::nagios::client::first_notification_delay,
+  $first_notification_delay = $::nagios::client::service_first_notification_delay,
   $max_check_attempts       = $::nagios_check_http_max_check_attempts,
   $notification_period      = $::nagios_check_http_notification_period,
   $use                      = $::nagios::client::service_use,
