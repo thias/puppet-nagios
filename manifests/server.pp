@@ -666,8 +666,8 @@ class nagios::server (
   nagios_command { 'check_nrpe_postgres_pgb_pool_sv_login':
     command_line => "${nrpe} -c check_postgres_pgb_pool_sv_login",
   }
-  nagios_command { 'check_nrpe_postgres_pgb_pool_sv_maxwait':
-    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_maxwait",
+  nagios_command { 'check_nrpe_postgres_pgb_pool_maxwait':
+    command_line => "${nrpe} -c check_postgres_pgb_pool_maxwait",
   }
   nagios_command { 'check_nrpe_postgres_pgbouncer_backends':
     command_line => "${nrpe} -c check_postgres_pgbouncer_backends",
