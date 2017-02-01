@@ -272,6 +272,19 @@ nagios::check::postgres::modes_enabled:
 Then for each mode, you can also pass some arguments, typically to change the
 warning and critical values as needed :
 
+**Note**: The following pgbouncer related checks (modes) are disabled by
+default if no pgbouncer installation is detected:
+* `pgb_pool_cl_active`
+* `pgb_pool_cl_waiting`
+* `pgb_pool_sv_active`
+* `pgb_pool_sv_idle`
+* `pgb_pool_sv_used`
+* `pgb_pool_sv_tested`
+* `pgb_pool_sv_login`
+* `pgb_pool_maxwait`
+* `pgbouncer_backends`
+* `pgbouncer_checksum`
+
 ```yaml
 # Tweak some check values
 nagios::check::postgres::args_query_time: '--warning=20s --critical=2m'

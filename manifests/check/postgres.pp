@@ -37,15 +37,15 @@ class nagios::check::postgres (
   $args_new_version_bc      = '',
   $args_new_version_box     = '',
   $args_new_version_tnm     = '',
-  $args_pgb_pool_cl_active  = '',
-  $args_pgb_pool_cl_waiting = '',
-  $args_pgb_pool_sv_active  = '',
-  $args_pgb_pool_sv_idle    = '',
-  $args_pgb_pool_sv_used    = '',
-  $args_pgb_pool_sv_tested  = '',
-  $args_pgb_pool_sv_login   = '',
-  $args_pgb_pool_maxwait    = '',
-  $args_pgbouncer_backends  = '',
+  $args_pgb_pool_cl_active  = '--port=6432',
+  $args_pgb_pool_cl_waiting = '--port=6432',
+  $args_pgb_pool_sv_active  = '--port=6432',
+  $args_pgb_pool_sv_idle    = '--port=6432',
+  $args_pgb_pool_sv_used    = '--port=6432',
+  $args_pgb_pool_sv_tested  = '--port=6432',
+  $args_pgb_pool_sv_login   = '--port=6432',
+  $args_pgb_pool_maxwait    = '--port=6432',
+  $args_pgbouncer_backends  = '--port=6432',
   $args_pgbouncer_checksum  = '',
   $args_pgagent_jobs        = '',
   $args_prepared_txns       = '',
@@ -70,6 +70,25 @@ class nagios::check::postgres (
   }
   if $notification_period {
     Nagios_service { notification_period => $::nagios_check_postgres_notification_period }
+  }
+
+	# Disable pgbouncer modes when pgboucer is not detected
+  if ! getvar('::nagios_postgres_pgbouncer') {
+    $modes_pgbouncer = [
+      'pgb_pool_cl_active',
+      'pgb_pool_cl_waiting',
+      'pgb_pool_sv_active',
+      'pgb_pool_sv_idle',
+      'pgb_pool_sv_used',
+      'pgb_pool_sv_tested',
+      'pgb_pool_sv_login',
+      'pgb_pool_maxwait',
+      'pgbouncer_backends',
+      'pgbouncer_checksum',
+    ]
+    $modes_disabled_final = concat($modes_disabled, $modes_pgbouncer)
+  } else {
+    $modes_disabled_final = $modes_disabled
   }
 
   # The check is being executed via sudo

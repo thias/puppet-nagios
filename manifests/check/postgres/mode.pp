@@ -11,7 +11,7 @@ define nagios::check::postgres::mode () {
   $check_title     = $::nagios::client::host_name
   $args            = $::nagios::check::postgres::args
   $modes_enabled   = $::nagios::check::postgres::modes_enabled
-  $modes_disabled  = $::nagios::check::postgres::modes_disabled
+  $modes_disabled  = $::nagios::check::postgres::modes_disabled_final
   $ensure          = $::nagios::check::postgres::ensure
   $standby_mode    = $::nagios::check::postgres::standby_mode
   $plugin          = $::nagios::check::postgres::plugin
