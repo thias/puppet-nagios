@@ -73,7 +73,7 @@ class nagios::check::postgres (
   }
 
 	# Disable pgbouncer modes when pgboucer is not detected
-  if ! getvar('::nagios_postgres_pgbouncer') {
+  unless getvar('::nagios_postgres_pgbouncer') == true {
     $modes_pgbouncer = [
       'pgb_pool_cl_active',
       'pgb_pool_cl_waiting',
