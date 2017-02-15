@@ -72,8 +72,8 @@ class nagios::check::postgres (
     Nagios_service { notification_period => $::nagios_check_postgres_notification_period }
   }
 
-	# Disable pgbouncer modes when pgboucer is not detected
-  if ! getvar('::nagios_postgres_pgbouncer') {
+  # Disable pgbouncer modes when pgboucer is not detected
+  if $modes_enabled == [] and ! getvar('::nagios_postgres_pgbouncer') {
     $modes_pgbouncer = [
       'pgb_pool_cl_active',
       'pgb_pool_cl_waiting',
