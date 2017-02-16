@@ -1,12 +1,12 @@
 define nagios::check::http (
-  $ensure                   = $::nagios_check_http_ensure,
+  $ensure                   = getvar('::nagios_check_http_ensure'),
   $args,
-  $servicegroups            = $::nagios_check_http_servicegroups,
-  $check_period             = $::nagios_check_http_check_period,
+  $servicegroups            = undef,
+  $check_period             = $::nagios::client::service_check_period,
   $contact_groups           = $::nagios::client::service_contact_groups,
   $first_notification_delay = $::nagios::client::service_first_notification_delay,
-  $max_check_attempts       = $::nagios_check_http_max_check_attempts,
-  $notification_period      = $::nagios_check_http_notification_period,
+  $max_check_attempts       = $::nagios::client::service_max_check_attempts,
+  $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
 ) {
 

@@ -23,11 +23,11 @@ define nagios::check::mongodb::mode (
   ( $modes_enabled != [] and ! ( $mode in $modes_enabled ) ) {
 
     $ensure_mode = 'absent'
+    $fullargs = undef
 
   } else {
 
     $ensure_mode = $ensure
-
     # Get the args passed to the main class for our mode
     $args_mode = getvar("::nagios::check::mongodb::args_${mode}")
     $fullargs = strip("${globalargs} -A ${title} ${args_mode}")

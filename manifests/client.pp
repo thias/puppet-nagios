@@ -171,13 +171,13 @@ class nagios::client (
         }
       }
     }
-    if getvar('::nagios_postgres') {         class { '::nagios::check::postgres': } }
-    if getvar('::nagios_mdraid') {           class { '::nagios::check::mdraid': } }
-    if getvar('::nagios_zookeeper') {        class { '::nagios::check::zookeeper': } }
+    if getvar('::nagios_postgres') {  class { '::nagios::check::postgres': } }
+    if getvar('::nagios_mdraid') {    class { '::nagios::check::mdraid': } }
+    if getvar('::nagios_zookeeper') { class { '::nagios::check::zookeeper': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
-  if $selinux and $::selinux_enforced {
+  if $selinux and getvar('::selinux_enforced') {
     selinux::audit2allow { 'nrpe':
       source => "puppet:///modules/${module_name}/messages.nrpe",
     }

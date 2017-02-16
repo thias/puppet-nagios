@@ -1,7 +1,7 @@
 class nagios::check::ping6 (
   $ensure                   = undef,
   $args                     = '',
-  $address6                 = $::nagios_ipaddress6,
+  $address6                 = getvar('::nagios_ipaddress6'),
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,

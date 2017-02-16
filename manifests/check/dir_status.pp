@@ -1,12 +1,12 @@
 define nagios::check::dir_status (
-  $ensure                   = $::nagios_check_dir_status_ensure,
+  $ensure                   = getvar('::nagios_check_dir_status_ensure'),
   $args,
-  $servicegroups            = $::nagios_check_dir_status_servicegroups,
-  $check_period             = $::nagios_check_dir_status_check_period,
+  $servicegroups            = undef,
+  $check_period             = $::nagios::client::service_check_period,
   $contact_groups           = $::nagios::client::service_contact_groups,
   $first_notification_delay = $::nagios::client::service_first_notification_delay,
-  $max_check_attempts       = $::nagios_check_dir_status_max_check_attempts,
-  $notification_period      = $::nagios_check_dir_status_notification_period,
+  $max_check_attempts       = $::nagios::client::service_max_check_attempts,
+  $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
 ) {
 

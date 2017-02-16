@@ -22,7 +22,9 @@ define nagios::check::postgres::mode () {
 
   # Enable standby mode if needed
   if $standby_mode {
-    $args_standby = '--assume-standby-mode'
+    $args_standby = ' --assume-standby-mode'
+  } else {
+    $args_standby = ''
   }
 
   if ( ( $modes_enabled == [] and $modes_disabled == [] ) or
@@ -32,7 +34,7 @@ define nagios::check::postgres::mode () {
     nagios::client::nrpe_file { "check_postgres_${mode}":
       ensure    => $ensure,
       plugin    => $plugin,
-      args      => "${args} --action=${title} ${args_mode} ${args_standby}",
+      args      => strip("${args} --action=${title} ${args_mode}${args_standby}"),
       sudo      => true,
       sudo_user => $privileged_user,
     }
