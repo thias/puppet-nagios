@@ -2,7 +2,9 @@
 * Add check_mdraid for Linux MD RAID (#81, @yevtushenko).
 * Remove problematic and no longer needed messages.nrpe line.
 * Add support for UNIX socket in memcached check.
-* Add pgbouncer postgres checks (#98, @lisuml).
+* Fix pgb_pool_maxwait name (#98, @lisuml).
+* Disable pgbouncer checks when pgboucer is not detected (#99, @lisuml).
+* Fix unknown variable warnings.
 
 #### 2016-03-22 - 1.0.10
 * Include slack_plugin (#77, @lisuml).
