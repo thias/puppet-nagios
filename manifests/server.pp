@@ -831,6 +831,21 @@ class nagios::server (
   nagios_command { 'check_nrpe_mongodb_write_data_files':
     command_line => "${nrpe} -c check_mongodb_write_data_files",
   }
+  nagios_command { 'check_nrpe_rabbitmq_connection_count':
+    command_line => "${nrpe} -c check_rabbitmq_connection_count",
+  }
+  nagios_command { 'check_nrpe_rabbitmq_queues_count':
+    command_line => "${nrpe} -c check_rabbitmq_queues_count",
+  }
+  nagios_command { 'check_nrpe_rabbitmq_mem_usage':
+    command_line => "${nrpe} -c check_rabbitmq_mem_usage",
+  }
+  nagios_command { 'check_nrpe_rabbitmq_aliveness':
+    command_line => "${nrpe} -c check_rabbitmq_aliveness",
+  }
+  nagios_command { 'check_nrpe_rabbitmq_cluster_status':
+    command_line => "${nrpe} -c check_rabbitmq_cluster_status",
+  }
   nagios_command { 'check_nrpe_hpsa':
     command_line => "${nrpe} -c check_hpsa",
   }
@@ -1015,6 +1030,9 @@ class nagios::server (
   }
   nagios_servicegroup { 'mongodb':
     alias => 'MongoDB service checks',
+  }
+  nagios_servicegroup { 'rabbitmq':
+    alias => 'RabbitMQ service checks',
   }
   nagios_servicegroup { 'zookeeper':
     alias => 'Zookeeper service checks',

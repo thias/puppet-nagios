@@ -24,3 +24,5 @@ check_mongodb : https://github.com/mzupan/nagios-plugin-mongodb + PR #184
 
 check_mountpoints : https://github.com/echocat/nagios-plugin-check_mountpoints
 
+check_rabbitmq : https://exchange.nagios.org/directory/Plugins/Software/check_rabbitmq/details
+

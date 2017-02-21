@@ -467,6 +467,59 @@ Sample Slack contact and commands configuration:
 Then the `slack` contact should be added to the `$admins_members` parameter of
 the main `nagios::server` class.
 
+## RabbitMQ
+
+For the `rabbitmq` based checks to work, you will need to create a nagios user
+on your rabbit servers
+Example :
+
+```puppet
+# This could go in site.pp, the fact is present only if rabbitmq is found
+if $::nagios_rabbitmq {
+    rabbitmq_user { 'nagios':
+      password => 'mysupersecretpassword',
+      tags     => ['monitoring'],
+    }
+    rabbitmq_user_permissions { 'nagios@/':
+      read_permission      => '.*',
+    }
+}
+```
+
+```yaml
+# In hieradata
+nagios::check::rabbitmq::user: 'nagios'
+nagios::check::rabbitmq::pass: 'mysupersecretpassword'
+```
+
+The single `rabbitmq` script has many different 'modes', which are all
+enabled by default.
+
+You can either selectively disable some :
+```yaml
+# Disable some checks (modes)
+nagios::check::rabbitmq::modes_disabled:
+  - 'aliveness'
+  - 'cluster_status'
+```
+
+Or selectively enable some :
+
+```yaml
+# Enable only the following checks (modes)
+nagios::check::rabbitmq::modes_enabled:
+  - 'connection_count'
+  - 'queues_count'
+  - 'mem_usage'
+```
+
+Then for each mode, you can also pass some arguments, typically to change the
+warning and critical values as needed :
+```yaml
+# Tweak some check values
+nagios::check::rabbitmq::connection_count: '-C 100 -W 50'
+```
+
 ## Removing hosts
 
 If you decommission a Nagios-monitored host a couple of manual steps are

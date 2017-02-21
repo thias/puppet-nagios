@@ -174,6 +174,7 @@ class nagios::client (
     if getvar('::nagios_postgres') {  class { '::nagios::check::postgres': } }
     if getvar('::nagios_mdraid') {    class { '::nagios::check::mdraid': } }
     if getvar('::nagios_zookeeper') { class { '::nagios::check::zookeeper': } }
+    if getvar('::nagios_rabbitmq') { class { '::nagios::check::rabbitmq': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
