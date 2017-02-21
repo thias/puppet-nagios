@@ -471,10 +471,11 @@ the main `nagios::server` class.
 
 For the `rabbitmq` based checks to work, you will need to create a nagios user
 on your rabbit servers
+
 Example :
 
 ```puppet
-# This could go in site.pp, the fact is present only if rabbitmq is found
+# This could go in site.pp, the fact is present only if rabbitmq-server is found
 if $::nagios_rabbitmq {
     rabbitmq_user { 'nagios':
       password => 'mysupersecretpassword',
@@ -508,6 +509,7 @@ Or selectively enable some :
 ```yaml
 # Enable only the following checks (modes)
 nagios::check::rabbitmq::modes_enabled:
+  - 'cluster_status'
   - 'connection_count'
   - 'queues_count'
   - 'mem_usage'

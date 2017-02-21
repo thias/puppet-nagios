@@ -1,5 +1,5 @@
 # Create custom nagios_rabbitmq fact
-if FileTest.exists?('/var/lib/rabbitmq')
+if FileTest.exists?('/sbin/rabbitmq-server')
   Facter.add('nagios_rabbitmq') { setcode { true } }
 end
 
