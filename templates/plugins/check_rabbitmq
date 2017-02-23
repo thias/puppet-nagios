@@ -1,0 +1,267 @@
+#!/usr/bin/env python2
+from optparse import OptionParser
+import shlex
+import subprocess
+import sys
+import requests
+import json
+
+
+class RabbitCmdWrapper(object):
+    """So basically this just runs rabbitmqctl commands and returns parsed output.
+       Typically this means you need root privs for this to work.
+       Made this it's own class so it could be used in other monitoring tools
+       if desired."""
+
+    @classmethod
+    def list_connections(cls, username, password, cluster, timeout):
+        r = requests.get("http://%s:15672/api/connections" % cluster , auth=(username, password), timeout=timeout)
+        results = json.loads("%s" % r.text)
+        #args = shlex.split("sudo rabbitmqctl list_connections")
+        #cmd_result = subprocess.check_output(args).strip()
+        #results = cls._parse_list_results(cmd_result)
+        return results
+
+    @classmethod
+    def list_queues(cls, username, password, cluster, virtualhost, timeout):
+        r = requests.get("http://%s:15672/api/queues/%s" % (cluster, virtualhost), auth=(username, password), timeout=timeout)
+        results = json.loads("%s" % r.text)
+        #args = shlex.split('sudo rabbitmqctl list_queues')
+        #cmd_result = subprocess.check_output(args).strip()
+        #results = cls._parse_list_results(cmd_result)
+        return results, r
+
+    @classmethod
+    def status(cls, username, password, cluster, nodename, timeout):
+        r = requests.get("http://%s:15672/api/nodes/%s" % (cluster, nodename), auth=(username, password), timeout=timeout)
+        results = json.loads("%s" % r.text)
+        #args = shlex.split('sudo rabbitmqctl status')
+        #cmd_result = subprocess.check_output(args).strip()
+        #results = cls._parse_list_results(cmd_result)
+        return results, r
+
+    @classmethod
+    def _parse_list_results(cls, result_string):
+        results = result_string.strip().split('\n')
+        #remove text fluff
+        if "Listing connections ..." in results: results.remove("Listing connections ...")
+        if "Listing queues ..." in results: results.remove("Listing queues ...")
+        return_data = []
+        for row in results:
+            return_data.append(row.split('\t'))
+        return return_data
+
+
+def check_connection_count(username, password, cluster, timeout, critical, warning):
+    """Checks to make sure the numbers of connections are within parameters."""
+    try:
+        count = len(RabbitCmdWrapper.list_connections(username, password, cluster, timeout))
+        if count >= critical:
+            print "CRITICAL - Connection Count %d" % count
+            sys.exit(2)
+        elif count >= warning:
+            print "WARNING - Connection Count %d" % count
+            sys.exit(1)
+        else:
+            print "OK - Connection Count %d" % count
+    except Exception, err:
+        print "CRITICAL - Script error. Please debug - %s" % err
+        sys.exit(2)
+
+
+def check_queues_count(username, password, cluster, virtualhost, timeout, critical, warning):
+    """
+    A blanket check to make sure all queues are within count parameters.
+    TODO: Possibly break this out so test can be done on individual queues.
+    """
+    try:
+        critical_q = []
+        warning_q = []
+        results, raw_request = RabbitCmdWrapper.list_queues(username, password, cluster, virtualhost, timeout)
+        if raw_request.status_code == 200:
+            for queue in results:
+                count = int(queue['messages'])
+                if count >= critical:
+                    critical_q.append("%s: %s" % (queue['name'], count))
+                elif count >= warning:
+                    warning_q.append("%s: %s" % (queue['name'], count))
+            if critical_q:
+                print "CRITICAL - %s" % ", ".join(critical_q)
+                sys.exit(2)
+            elif warning_q:
+                print "WARNING - %s" % ", ".join(warning_q)
+                sys.exit(1)
+            else:
+                print "OK - NO QUEUES EXCEED THRESHOLDS"
+                sys.exit(0)
+        elif raw_request.status_code != 200:
+            print "CRITICAL - RabbitMQ Error: %s" % raw_request.content
+            sys.exit(2)
+        else:
+            print "UNKNOWN - RABBITMQ queues status"
+            sys.ext(1)
+            print 'check_queues_count -- %s'  % results
+    except Exception, err:
+        print "CRITICAL - Script error. Please debug - %s" % err
+        sys.exit(2)
+
+def check_mem_usage(username, password, cluster, nodename, timeout, critical, warning):
+
+    """Check to make sure the RAM usage of rabbitmq process does not exceed 50%% of its max"""
+    try:
+        results, raw_request = RabbitCmdWrapper.status(username, password, cluster, nodename, timeout)
+        if raw_request.status_code == 200:
+            #for idx,val in enumerate(results):
+            #  if "memory," in str(val):
+            #      mem_used_raw = str(results[idx + 1])
+            #  if "vm_memory_limit" in str(val):
+            #      mem_limit_raw = str(val)
+            memory_used = results['mem_used']
+            memory_limit = results['mem_limit']
+            percent_usage = int( ( memory_used * 100 )/memory_limit)
+            if percent_usage > critical:
+                print "CRITICAL - RABBITMQ RAM USAGE at %s%% of max" % percent_usage
+                sys.exit(2)
+            elif percent_usage > warning:
+                print "WARNING - RABBITMQ RAM USAGE at %s%% of max" % percent_usage
+                sys.exit(1)
+            else:
+                print "OK - RABBITMQ RAM USAGE OK at %s%% of max" % percent_usage
+                sys.exit(0)
+        elif raw_request.status_code != 200:
+            print "CRITICAL - RabbitMQ Error: %s" % raw_request.content
+            sys.exit(2)
+        else:
+            print "UNKNOWN - RABBITMQ memory usage status"
+            sys.ext(1)
+            print 'check_mem_usage -- %s'  % results
+    except Exception, err:
+        print "CRITICAL - Script error. Please debug - %s" % err
+        sys.exit(2)
+
+def check_aliveness(username, password, timeout, cluster, virtualhost):
+      """Declares a test queue, then publishes and consumes a message. Intended for use by monitoring tools. If everything is working correctly, will return HTTP status 200 with body"""
+      try:
+          r = requests.get("http://%s:15672/api/aliveness-test/%s" % (cluster, virtualhost), auth=(username, password), timeout=timeout)
+      except requests.exceptions.RequestException as e: # Throw error if rabbitmq is down
+        print "Critical - %s" % e
+        sys.exit(2)
+      if r.status_code == 200:
+          print "OK - RABBITMQ Aliveness Test Returns: %s" % r
+          sys.exit(0)
+      elif r.status_code != 200:
+          print "CRITICAL - RabbitMQ Error: %s" % r.content
+          sys.exit(2)
+      else:
+          print "UNKNOWN - RABBITMQ Aliveness Test"
+          sys.ext(1)
+
+def check_cluster(username, password, timeout, cluster):
+    """Checks the health of a cluster, if a node is not running mark as offline  """
+    try:
+        url = "http://%s:15672/api/nodes" % cluster
+        r = requests.get(url, auth=(username, password), timeout=timeout)
+    except requests.exceptions.RequestException as e: # Throw error if no response
+        print "Critical - %s" % e
+        sys.exit(2)
+    text = r.text
+    nodes = json.loads(text)
+
+    running_nodes = []
+    failed_nodes = []
+    for node in nodes:
+        if not node['running']:
+            failed_nodes.append(node['name'])
+        if node['running']:
+            running_nodes.append(node['name'])
+    if len(failed_nodes) == 1:
+       print "WARNING: RabbitMQ cluster is degraged: Not running %s" % failed_nodes[0]
+       sys.exit(1)
+    elif len(failed_nodes) >= 2:
+       print "CRITICAL: RabbitMQ cluster is critical: Not running %s" % failed_nodes
+       sys.exit(2)
+    else:
+       print "OK: RabbitMQ cluster members: %s" % (" ".join(running_nodes))
+       sys.exit(0)
+
+
+USAGE = """Usage: ./check_rabbitmq -a [action] -C [critical] -W [warning]
+           Actions:
+           - connection_count
+             checks the number of connection in rabbitmq's list_connections
+           - queues_count
+             checks the count in each of the queues in rabbitmq's list_queues. (requires -u username -p password -v virtualhost)
+           - mem_usage
+             checks to ensure mem usage of rabbitmq process does not exceed 50% by default. (requires -u username -p password -n nodename)
+           - aliveness
+             Use the /api/aliveness-test API to send/receive a message. (requires -u username -p password)
+           - cluster_status
+             Parse /api/nodes to check the cluster status. (requires -u username -p password"""
+
+if __name__ == "__main__":
+    parser = OptionParser(USAGE)
+    parser.add_option("-a", "--action", dest="action",
+                      help="Action to Check")
+    parser.add_option("-C", "--critical", dest="critical",
+                      type="int", help="Critical Threshold")
+    parser.add_option("-W", "--warning", dest="warning",
+                      type="int", help="Warning Threshold")
+    parser.add_option("-u", "--username", dest="username", default="guest",
+                      type="string", help="RabbitMQ username, Default guest")
+    parser.add_option("-p", "--password", dest="password", default="guest",
+                      type="string", help="RabbitMQ password, Default guest")
+    parser.add_option("-t", "--timeout", dest="timeout", default=1,
+                      type="int", help="Request Timeout, defaults to 1 second")
+    parser.add_option("-c", "--cluster", dest="cluster", default="localhost",
+                      type="string", help="Cluster IP/DNS name, defaults to localhost")
+    parser.add_option("-v", "--vhost", dest="virtualhost",
+                      type="string", help="Virtual host to check")
+    parser.add_option("-n", "--nodename", dest="nodename",
+                      type="string", help="RabbitMQ node name")
+    (options, args) = parser.parse_args()
+
+    if options.action == "connection_count":
+        if options.critical is None:
+            critical_value = 0
+        else:
+            critical_value = options.critical
+        if options.warning is None:
+            warning_value = 0
+        else:
+            warning_value = options.warning
+        check_connection_count(options.username, options.password, options.cluster, options.timeout, critical_value, warning_value)
+    elif options.action == "queues_count":
+        if options.critical is None:
+            critical_value = 1000
+        else:
+            critical_value = options.critical
+        if options.warning is None:
+            warning_value = 1000
+        else:
+            warning_value = options.warning
+        if options.virtualhost is None:
+            options.virtualhost = ''
+        check_queues_count(options.username, options.password, options.cluster, options.virtualhost, options.timeout, critical_value, warning_value)
+    elif options.action == "mem_usage":
+        if options.nodename is None:
+            print "Node Name is required (-n|--nodename <Node name>)"
+            exit(1)
+        if options.critical is None:
+            critical_value = 75
+        else:
+            critical_value = options.critical
+        if options.warning is None:
+            warning_value = 50
+        else:
+            warning_value = options.warning
+        check_mem_usage(options.username, options.password, options.cluster, options.nodename, options.timeout, critical_value, warning_value)
+    elif options.action == "aliveness":
+        if options.virtualhost is None:
+            print "virtual host is required (-v|--vhost <vhost>)"
+            exit(1)
+        check_aliveness(options.username, options.password, options.timeout, options.cluster, options.virtualhost)
+    elif options.action == "cluster_status":
+        check_cluster(options.username, options.password, options.timeout, options.cluster)
+    else:
+        print "Invalid action: %s" % options.action
+        print USAGE
