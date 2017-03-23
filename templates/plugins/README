@@ -26,3 +26,7 @@ check_mountpoints : https://github.com/echocat/nagios-plugin-check_mountpoints
 
 check_rabbitmq : https://exchange.nagios.org/directory/Plugins/Software/check_rabbitmq/details
 
+check_redis: https://github.com/willixix/WL-NagiosPlugins/blob/master/check_redis.pl
+
+check_sentinel_master_health: https://gist.github.com/chrisboulton/11337032
+
