@@ -565,7 +565,7 @@ You can also pass some arguments, typically to change the
 warning and critical values as needed :
 ```yaml
 # Tweak some check values
-nagios::check::redis_sentinel::args: '70,100' # Warning,Critical'
+nagios::check::redis_sentinel::args: '-c 0,2 -w 0,2' # Slaves,Sentinels
 ```
 
 ## Removing hosts
