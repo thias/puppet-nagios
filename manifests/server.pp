@@ -846,6 +846,33 @@ class nagios::server (
   nagios_command { 'check_nrpe_rabbitmq_cluster_status':
     command_line => "${nrpe} -c check_rabbitmq_cluster_status",
   }
+  nagios_command { 'check_nrpe_redis_blocked_clients':
+    command_line => "${nrpe} -c check_redis_blocked_clients",
+  }
+  nagios_command { 'check_nrpe_redis_connected_slaves':
+    command_line => "${nrpe} -c check_redis_connected_slaves",
+  }
+  nagios_command { 'check_nrpe_redis_connected_clients':
+    command_line => "${nrpe} -c check_redis_connected_clients",
+  }
+  nagios_command { 'check_nrpe_redis_evicted_keys':
+    command_line => "${nrpe} -c check_redis_evicted_keys",
+  }
+  nagios_command { 'check_nrpe_redis_hitrate':
+    command_line => "${nrpe} -c check_redis_hitrate",
+  }
+  nagios_command { 'check_nrpe_redis_response_time':
+    command_line => "${nrpe} -c check_redis_response_time",
+  }
+  nagios_command { 'check_nrpe_redis_rejected_connections':
+    command_line => "${nrpe} -c check_redis_rejected_connections",
+  }
+  nagios_command { 'check_nrpe_redis_uptime_in_seconds':
+    command_line => "${nrpe} -c check_redis_uptime_in_seconds",
+  }
+  nagios_command { 'check_sentinel_master_health':
+    command_line => "${nrpe} -c check_sentinel_master_health",
+  }
   nagios_command { 'check_nrpe_hpsa':
     command_line => "${nrpe} -c check_hpsa",
   }
@@ -1033,6 +1060,9 @@ class nagios::server (
   }
   nagios_servicegroup { 'rabbitmq':
     alias => 'RabbitMQ service checks',
+  }
+  nagios_servicegroup { 'redis':
+    alias => 'Redis service checks',
   }
   nagios_servicegroup { 'zookeeper':
     alias => 'Zookeeper service checks',

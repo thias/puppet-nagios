@@ -57,13 +57,13 @@ def check_connection_count(username, password, cluster, timeout, critical, warni
     try:
         count = len(RabbitCmdWrapper.list_connections(username, password, cluster, timeout))
         if count >= critical:
-            print "CRITICAL - Connection Count %d" % count
+            print "CRITICAL - Connection Count %d | connection=%d;%d;%d" % (count,count,warning,critical)
             sys.exit(2)
         elif count >= warning:
-            print "WARNING - Connection Count %d" % count
+            print "WARNING - Connection count: %d | connection=%d;%d;%d" % (count,count,warning,critical)
             sys.exit(1)
         else:
-            print "OK - Connection Count %d" % count
+            print "OK - Connection count: %d | connection=%d;%d;%d" % (count,count,warning,critical)
     except Exception, err:
         print "CRITICAL - Script error. Please debug - %s" % err
         sys.exit(2)
@@ -79,20 +79,26 @@ def check_queues_count(username, password, cluster, virtualhost, timeout, critic
         warning_q = []
         results, raw_request = RabbitCmdWrapper.list_queues(username, password, cluster, virtualhost, timeout)
         if raw_request.status_code == 200:
+            desc = ''
+            desc_graph = ''
             for queue in results:
+                desc = desc + "%s: %s, " % (queue['name'],queue['messages'])
+                desc_graph = desc_graph + "%s=%s;%s;%s " % (queue['name'],queue['messages'],critical,warning)
                 count = int(queue['messages'])
                 if count >= critical:
                     critical_q.append("%s: %s" % (queue['name'], count))
                 elif count >= warning:
                     warning_q.append("%s: %s" % (queue['name'], count))
+            #print desc
+            #print desc_graph
             if critical_q:
-                print "CRITICAL - %s" % ", ".join(critical_q)
+                print "CRITICAL - %s |  %s " % (", ".join(critical_q),desc_graph)
                 sys.exit(2)
             elif warning_q:
-                print "WARNING - %s" % ", ".join(warning_q)
+                print "WARNING - %s | %s " % (", ".join(warning_q),desc_graph)
                 sys.exit(1)
             else:
-                print "OK - NO QUEUES EXCEED THRESHOLDS"
+                print "OK - NO QUEUES EXCEED THRESHOLDS - %s | %s" % (desc, desc_graph)
                 sys.exit(0)
         elif raw_request.status_code != 200:
             print "CRITICAL - RabbitMQ Error: %s" % raw_request.content
@@ -120,13 +126,13 @@ def check_mem_usage(username, password, cluster, nodename, timeout, critical, wa
             memory_limit = results['mem_limit']
             percent_usage = int( ( memory_used * 100 )/memory_limit)
             if percent_usage > critical:
-                print "CRITICAL - RABBITMQ RAM USAGE at %s%% of max" % percent_usage
+                print "CRITICAL - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,critical,warning)
                 sys.exit(2)
             elif percent_usage > warning:
-                print "WARNING - RABBITMQ RAM USAGE at %s%% of max" % percent_usage
+                print "WARNING - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,critical,warning)
                 sys.exit(1)
             else:
-                print "OK - RABBITMQ RAM USAGE OK at %s%% of max" % percent_usage
+                print "OK - RABBITMQ RAM USAGE OK at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,critical,warning)
                 sys.exit(0)
         elif raw_request.status_code != 200:
             print "CRITICAL - RabbitMQ Error: %s" % raw_request.content
