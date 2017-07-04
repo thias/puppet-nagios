@@ -568,6 +568,30 @@ warning and critical values as needed :
 nagios::check::redis_sentinel::args: '-c 0,2 -w 0,2' # Slaves,Sentinels
 ```
 
+### Multiple Databases - Sentinels
+If you want to monitor multiple redis databases on a single host you must use the definition `nagios::check::redis::mdbs`
+```puppet
+  nagios::check::redis_mdbs { 'db_name' :
+    fqdn  => 'host.domain.foo',
+    port  => 'port_num',
+    modes => {
+      'connected_clients'    => '100,200', # Mode => 'Warning,Critical'
+      'evicted_keys'         => '10,20',
+      'rejected_connections' => '20,50',
+    },
+  }
+```
+
+On the other hand, if you want monitor multiple sentinels on a single host you must use the definiton `nagios::check::redis_sentinel_mmasters`
+```puppet
+  nagios::check::redis_sentinel_mmasters { 'sentinel_master':
+    port  => 'port_num',
+    fqdn  => 'host.domain.foo',
+  }
+```
+
+Note: In these kinds of scenarios the plugins will run on the Nagios Server. The nrpe agent won't be used to perform these checks.
+
 ## Removing hosts
 
 If you decommission a Nagios-monitored host a couple of manual steps are
