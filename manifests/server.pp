@@ -59,7 +59,7 @@ class nagios::server (
   $service_perfdata_file_mode     = 'a',
   $service_perfdata_file_processing_interval = '0',
   $service_perfdata_file_processing_command  = false,
-  $enable_notifications = '0',
+  $enable_notifications = '1',
   $enable_environment_macros = '0',
   $allow_empty_hostgroup_assignment = '0',
   $enable_flap_detection = '1',
