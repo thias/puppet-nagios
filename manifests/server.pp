@@ -351,17 +351,31 @@ class nagios::server (
   }
 
   # Works great, but only if the "target" is the default (known limitation)
-  resources { [
-    'nagios_command',
-    'nagios_contact',
-    'nagios_contactgroup',
-    'nagios_host',
-    'nagios_hostdependency',
-    'nagios_hostgroup',
-    'nagios_service',
-    'nagios_servicegroup',
-    'nagios_timeperiod',
-  ]:
+  resources {'nagios_command':
+    purge => true,
+  }
+  resources {'nagios_contact':
+    purge => true,
+  }
+  resources {'nagios_contactgroup':
+    purge => true,
+  }
+  resources {'nagios_host':
+    purge => true,
+  }
+  resources {'nagios_hostdependency':
+    purge => true,
+  }
+  resources {'nagios_hostgroup':
+    purge => true,
+  }
+  resources {'nagios_service':
+    purge => true,
+  }
+  resources {'nagios_servicegroup':
+    purge => true,
+  }
+  resources {'nagios_timeperiod':
     purge => true,
   }
 
