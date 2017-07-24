@@ -20,8 +20,9 @@ Description:
 
 The following arguments are accepted:
 
-  --dir | -d      Directory to examine.  The age of all files in the directory
-                  will be checked.
+  --dirs | -d     A space separated list of directories to examine.  Each
+                  directory will be checked for the newest created file in that
+                  directory.
 
   -w              (Optional) Generate a warning message if any file modification
                   time is older than this value.  Defaults to 26 hours.
@@ -112,8 +113,8 @@ while test -n "$1"; do
             print_help
             exit $STATE_OK
             ;;
-        --dir|-d)
-            dir=$2
+        --dirs|-d)
+            dirs=$2
             shift
             ;;
         -w)
@@ -148,7 +149,7 @@ while test -n "$1"; do
     shift
 done
 
-if [ ! "$dir" ]; then
+if [ ! "$dirs" ]; then
     echo "No directory provided."
     exit $STATE_UNKNOWN
 fi
@@ -201,9 +202,11 @@ PERFDATA=
 CURRENT_TIME=`date +%s`
 OS_DISTRO=`uname -s`
 
-# Check if dir exists.
-full_path=${dir}
-if [ -d "$full_path" ] && ls $full_path &>/dev/null; then
+for dir in $dirs
+do
+  # Check if dir exists.
+  full_path=${dir}
+  if [ -d "$full_path" ] && ls $full_path &>/dev/null; then
     file_list=`ls -t $full_path`
     # If there are no files, check the directory itself
     [ -z "$file_list" ] && file_list="."
@@ -234,7 +237,7 @@ if [ -d "$full_path" ] && ls $full_path &>/dev/null; then
             let "MAX_WARN_AGE = $warning * $multiplier" > /dev/null
             let "MAX_CRIT_AGE = $critical * $multiplier" > /dev/null
             if [ $FILE_AGE -gt $MAX_CRIT_AGE ]; then
-                OUTPUT="$OUTPUT ${next_file}: ${FILE_AGE_UNITS}${abbreviation}"
+                OUTPUT="$OUTPUT ${full_path}/${next_file}: ${FILE_AGE_UNITS}${abbreviation}"
                 set_exit_status $STATE_CRITICAL
             elif [ $FILE_AGE -gt $MAX_WARN_AGE ]; then
                 OUTPUT="$OUTPUT ${next_file}: ${FILE_AGE_UNITS}${abbreviation}"
@@ -248,7 +251,7 @@ if [ -d "$full_path" ] && ls $full_path &>/dev/null; then
             if [ -f $next_filepath -a -n "$pattern" ]; then
                 last_line="`tail -1 ${next_filepath}`"
                 if ! (echo $last_line | egrep -q $pattern); then
-                    OUTPUT="$OUTPUT ${next_file}: Bad Content"
+                    OUTPUT="$OUTPUT ${full_path}/${next_file}: Bad Content"
                     set_exit_status $STATE_CRITICAL
                 fi
                 # performance data on the last line
@@ -258,10 +261,11 @@ if [ -d "$full_path" ] && ls $full_path &>/dev/null; then
             fi
         fi
     done
-else
+  else
     OUTPUT="$OUTPUT ${dir}: Does not exist or is not accessible"
     set_exit_status $STATE_CRITICAL
-fi
+  fi
+done
 
 case $exitstatus
 in
