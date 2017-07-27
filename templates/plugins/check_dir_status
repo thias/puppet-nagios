@@ -20,9 +20,8 @@ Description:
 
 The following arguments are accepted:
 
-  --dirs | -d     A space separated list of directories to examine.  Each
-                  directory will be checked for the newest created file in that
-                  directory. May be specified multiple times.
+  --dir | -d      Directory to examine. The age of all files in the directory
+                  will be checked. May be specified multiple times.
 
   -w              (Optional) Generate a warning message if any file modification
                   time is older than this value.  Defaults to 26 hours.
@@ -114,7 +113,7 @@ while test -n "$1"; do
             print_help
             exit $STATE_OK
             ;;
-        --dirs|-d)
+        --dir|-d)
             dirs="${dirs} ${2}"
             shift
             ;;
