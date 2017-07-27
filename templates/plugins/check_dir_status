@@ -115,7 +115,7 @@ while test -n "$1"; do
             exit $STATE_OK
             ;;
         --dirs|-d)
-            dirs="$dirs $2"
+            dirs="$dirs ${2}"
             shift
             ;;
         -w)
