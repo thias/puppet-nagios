@@ -5,6 +5,26 @@ SLACK_CHANNEL='<%= @plugin_slack_channel %>'
 SLACK_BOTNAME='<%= @plugin_slack_botname %>'
 WEBHOOK_URL='<%= @plugin_slack_webhook %>' # Get it from Slack Incoming WebHooks setup instruction
 
+while getopts h:n:o:O:s:S:t: opt
+do
+  case $opt in
+    h)
+      NAGIOS_HOSTNAME=$OPTARG;;
+    n)
+      NAGIOS_SERVICEDISPLAYNAME=$OPTARG;;
+    o)
+      NAGIOS_SERVICEOUTPUT=$OPTARG;;
+    O)
+      NAGIOS_HOSTOUTPUT=$OPTARG;;
+    s)
+      NAGIOS_SERVICESTATE=$OPTARG;;
+    S)
+      NAGIOS_HOSTSTATE=$OPTARG;;
+    t)
+      NAGIOS_NOTIFICATIONTYPE=$OPTARG;;
+  esac
+done
+
 # Message parameters
 if [ -z "$NAGIOS_SERVICESTATE" ]
 then

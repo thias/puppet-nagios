@@ -457,10 +457,10 @@ Sample Slack contact and commands configuration:
     host_notification_commands    => 'notify-host-by-slack',
   }
   nagios_command { 'notify-service-by-slack':
-    command_line => '$USER1$/slack_nagios > /tmp/slack.log 2>&1',
+    command_line => '$USER1$/slack_nagios -h "$HOSTNAME$" -n "$SERVICEDISPLAYNAME$" -o "$SERVICEOUTPUT$" -s "$SERVICESTATE$" -t "$NOTIFICATIONTYPE$" > /tmp/slack.log 2>&1',
   }
   nagios_command { 'notify-host-by-slack':
-    command_line => '$USER1$/slack_nagios > /tmp/slack.log 2>&1',
+    command_line => '$USER1$/slack_nagios -h "$HOSTNAME$" -O "$HOSTOUTPUT$" -S "$HOSTSTATE$" -t "$NOTIFICATIONTYPE$" > /tmp/slack.log 2>&1',
   }
 ```
 
