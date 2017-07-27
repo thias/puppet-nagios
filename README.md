@@ -522,6 +522,76 @@ warning and critical values as needed :
 nagios::check::rabbitmq::connection_count: '-C 100 -W 50'
 ```
 
+## Redis
+
+The single `redis` script has many different 'modes', which are all
+enabled by default.
+
+You can either selectively disable some :
+```yaml
+# Disable some checks (modes)
+nagios::check::redis::modes_disabled:
+  - 'connected_slaves'
+  - 'blocked_clients'
+```
+
+Or selectively enable some :
+
+```yaml
+# Enable only the following checks (modes)
+nagios::check::redis::modes_enabled:
+  - 'hitrate'
+  - 'response_time'
+  - 'rejected_connections'
+  - 'uptime_in_seconds'
+```
+
+Then for each mode, you can also pass some arguments, typically to change the
+warning and critical values as needed :
+```yaml
+# Tweak some check values
+nagios::check::redis::args_response_time: '0.005,0.010' # Warning,Critical
+nagios::check::redis::args_hitrate: '70,100' # Warning,Critical
+```
+### Redis Sentinel
+
+The `redis_sentinel` check is enable by default. This check will validate the number of healthy redis slaves and sentinels
+You can define the master:
+```yaml
+nagios::check::redis_sentinel::master: 'MyAwesomeMaster'
+```
+
+You can also pass some arguments, typically to change the
+warning and critical values as needed :
+```yaml
+# Tweak some check values
+nagios::check::redis_sentinel::args: '-c 0,2 -w 0,2' # Slaves,Sentinels
+```
+
+### Multiple Databases - Sentinels
+If you want to monitor multiple redis databases on a single host you must use the definition `nagios::check::redis::mdbs`
+```puppet
+  nagios::check::redis_mdbs { 'db_name' :
+    fqdn  => 'host.domain.foo',
+    port  => 'port_num',
+    modes => {
+      'connected_clients'    => '100,200', # Mode => 'Warning,Critical'
+      'evicted_keys'         => '10,20',
+      'rejected_connections' => '20,50',
+    },
+  }
+```
+
+On the other hand, if you want monitor multiple sentinels on a single host you must use the definiton `nagios::check::redis_sentinel_mmasters`
+```puppet
+  nagios::check::redis_sentinel_mmasters { 'sentinel_master':
+    port  => 'port_num',
+    fqdn  => 'host.domain.foo',
+  }
+```
+
+Note: In these kinds of scenarios the plugins will run on the Nagios Server. The nrpe agent won't be used to perform these checks.
+
 ## Removing hosts
 
 If you decommission a Nagios-monitored host a couple of manual steps are

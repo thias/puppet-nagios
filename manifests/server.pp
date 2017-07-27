@@ -82,16 +82,18 @@ class nagios::server (
   # Others
   $notify_host_by_email_command_line    = '/usr/bin/printf "%b" "***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\nHost: $HOSTNAME$\nState: $HOSTSTATE$\nAddress: $HOSTADDRESS$\nInfo: $HOSTOUTPUT$\n\nDate/Time: $LONGDATETIME$\n" | /bin/mail -s "** $NOTIFICATIONTYPE$ Host Alert: $HOSTNAME$ is $HOSTSTATE$ **" $CONTACTEMAIL$',
   $notify_service_by_email_command_line = '/usr/bin/printf "%b" "***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $LONGDATETIME$\n\nAdditional Info:\n\n$SERVICEOUTPUT$" | /bin/mail -s "** $NOTIFICATIONTYPE$ Service Alert: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **" $CONTACTEMAIL$',
-  $timeperiod_workhours = '09:00-17:00',
-  $plugin_dir           = $::nagios::params::plugin_dir,
-  $plugin_nginx         = false,
-  $plugin_xcache        = false,
-  $plugin_slack         = false,
-  $plugin_slack_webhost = undef,
-  $plugin_slack_channel = '#alerts',
-  $plugin_slack_botname = 'nagios',
-  $plugin_slack_webhook = undef,
-  $selinux              = $::selinux,
+  $timeperiod_workhours  = '09:00-17:00',
+  $plugin_dir            = $::nagios::params::plugin_dir,
+  $plugin_nginx          = false,
+  $plugin_xcache         = false,
+  $plugin_slack          = false,
+  $plugin_slack_webhost  = undef,
+  $plugin_slack_channel  = '#alerts',
+  $plugin_slack_botname  = 'nagios',
+  $plugin_slack_webhook  = undef,
+  $plugin_redis          = false,
+  $plugin_redis_sentinel = false,
+  $selinux               = $::selinux,
   # Original template entries
   $template_generic_contact = {},
   $template_generic_host    = {},
@@ -174,6 +176,36 @@ class nagios::server (
     file { "${plugin_dir}/slack_nagios":
       ensure => 'absent',
     }
+  }
+
+  if $plugin_redis {
+    file { "${plugin_dir}/check_redis":
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template('nagios/plugins/check_redis'),
+    }
+    package { 'perl-Redis' : ensure => present }
+  } else {
+    file { "${plugin_dir}/check_redis":
+      ensure => 'absent',
+    }
+    package { 'perl-Redis' : ensure => absent }
+  }
+
+  if $plugin_redis_sentinel {
+    file { "${plugin_dir}/check_sentinel_master_health":
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template('nagios/plugins/check_sentinel_master_health'),
+    }
+    package { 'rubygem-redis' : ensure => present }
+  } else {
+    file { "${plugin_dir}/check_sentinel_master_health":
+      ensure => 'absent',
+    }
+    package { 'rubygem-redis' : ensure => absent }
   }
 
   # Other packages
@@ -456,6 +488,13 @@ class nagios::server (
   nagios_command { 'check_nginx':
     command_line => '$USER1$/check_nginx $ARG1$',
   }
+  nagios_command { 'check_redis':
+    command_line => '$USER1$/check_redis $ARG1$',
+  }
+  nagios_command { 'check_redis_sentinel':
+    command_line => '$USER1$/check_sentinel_master_health $ARG1$',
+  }
+
   # Custom NRPE-based commands
   nagios_command { 'check_nrpe_users':
     command_line => "${nrpe} -c check_users",
@@ -846,6 +885,33 @@ class nagios::server (
   nagios_command { 'check_nrpe_rabbitmq_cluster_status':
     command_line => "${nrpe} -c check_rabbitmq_cluster_status",
   }
+  nagios_command { 'check_nrpe_redis_blocked_clients':
+    command_line => "${nrpe} -c check_redis_blocked_clients",
+  }
+  nagios_command { 'check_nrpe_redis_connected_slaves':
+    command_line => "${nrpe} -c check_redis_connected_slaves",
+  }
+  nagios_command { 'check_nrpe_redis_connected_clients':
+    command_line => "${nrpe} -c check_redis_connected_clients",
+  }
+  nagios_command { 'check_nrpe_redis_evicted_keys':
+    command_line => "${nrpe} -c check_redis_evicted_keys",
+  }
+  nagios_command { 'check_nrpe_redis_hitrate':
+    command_line => "${nrpe} -c check_redis_hitrate",
+  }
+  nagios_command { 'check_nrpe_redis_response_time':
+    command_line => "${nrpe} -c check_redis_response_time",
+  }
+  nagios_command { 'check_nrpe_redis_rejected_connections':
+    command_line => "${nrpe} -c check_redis_rejected_connections",
+  }
+  nagios_command { 'check_nrpe_redis_uptime_in_seconds':
+    command_line => "${nrpe} -c check_redis_uptime_in_seconds",
+  }
+  nagios_command { 'check_sentinel_master_health':
+    command_line => "${nrpe} -c check_sentinel_master_health",
+  }
   nagios_command { 'check_nrpe_hpsa':
     command_line => "${nrpe} -c check_hpsa",
   }
@@ -1031,6 +1097,9 @@ class nagios::server (
   }
   nagios_servicegroup { 'rabbitmq':
     alias => 'RabbitMQ service checks',
+  }
+  nagios_servicegroup { 'redis':
+    alias => 'Redis service checks',
   }
   nagios_servicegroup { 'zookeeper':
     alias => 'Zookeeper service checks',
