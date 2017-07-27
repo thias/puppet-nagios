@@ -5,6 +5,12 @@
 * Fix pgb_pool_maxwait name (#98, @lisuml).
 * Disable pgbouncer checks when pgboucer is not detected (#99, @lisuml).
 * Fix unknown variable warnings.
+* Add pnp4nagios class (#104, @forgodssake).
+* Update nagios 4 config to 4.3.1 (#105, @forgodssake).
+* Fix check_mongodb (#106, @forgodssake).
+* Fix slack_nagios plugin with nagios 4 (#107, @egrist).
+* Add Redis checks (#108, @edupr91).
+* Add perfdata for RabbitMQ check (#108, @edupr91).
 
 #### 2016-03-22 - 1.0.10
 * Include slack_plugin (#77, @lisuml).
