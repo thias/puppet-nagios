@@ -167,6 +167,78 @@ connection_timeout=<%= @nrpe_connection_timeout %>
 #allow_weak_random_seed=1
 
 
+# SSL/TLS OPTIONS
+# These directives allow you to specify how to use SSL/TLS.
+
+# SSL VERSION
+# This can be any of: SSLv2 (only use SSLv2), SSLv2+ (use any version),
+#        SSLv3 (only use SSLv3), SSLv3+ (use SSLv3 or above), TLSv1 (only use
+#        TLSv1), TLSv1+ (use TLSv1 or above), TLSv1.1 (only use TLSv1.1),
+#        TLSv1.1+ (use TLSv1.1 or above), TLSv1.2 (only use TLSv1.2),
+#        TLSv1.2+ (use TLSv1.2 or above)
+# If an "or above" version is used, the best will be negotiated. So if both
+# ends are able to do TLSv1.2 and use specify SSLv2, you will get TLSv1.2.
+# If you are using openssl 1.1.0 or above, the SSLv2 options are not available.
+
+<% if defined? @nrpe_ssl_version -%>
+ssl_version=<%= @nrpe_ssl_version %>
+#ssl_version=SSLv2+
+<% end -%>
+
+# SSL CIPHER LIST
+# This lists which ciphers can be used. For backward compatibility, this
+# defaults to 'ssl_cipher_list=ALL:!MD5:@STRENGTH' in this version but
+# will be changed to something like the example below in a later version of NRPE.
+
+<% if defined? @nrpe_ssl_cipher_list -%>
+ssl_cipher_list=<%= @nrpe_ssl_cipher_list %>
+#ssl_cipher_list=ALL:!MD5:@STRENGTH
+#ssl_cipher_list=ALL:!aNULL:!eNULL:!SSLv2:!LOW:!EXP:!RC4:!MD5:@STRENGTH
+<% end -%>
+
+# SSL Certificate and Private Key Files
+
+<% if defined? @nrpe_ssl_cacert_file -%>
+ssl_cacert_file=<%= @nrpe_ssl_cacert_file %>
+#ssl_cacert_file=/etc/ssl/servercerts/ca-cert.pem
+<% end -%>
+<% if defined? @nrpe_ssl_cert_file -%>
+ssl_cert_file=<%= @nrpe_ssl_cert_file %>
+#ssl_cert_file=/etc/ssl/servercerts/nagios-cert.pem
+<% end -%>
+<% if defined? @nrpe_ssl_privatekey_file -%>
+ssl_privatekey_file=<%= @nrpe_ssl_privatekey_file %>
+#ssl_privatekey_file=/etc/ssl/servercerts/nagios-key.pem
+<% end -%>
+
+# SSL USE CLIENT CERTS
+# This options determines client certificate usage.
+# Values: 0 = Don't ask for or require client certificates (default)
+#         1 = Ask for client certificates
+#         2 = Require client certificates
+
+<% if defined? @nrpe_ssl_client_certs -%>
+ssl_client_certs=<%= @nrpe_ssl_client_certs %>
+#ssl_client_certs=0
+<% end -%>
+
+# SSL LOGGING
+# This option determines which SSL messages are send to syslog. OR values
+# together to specify multiple options.
+
+# Values: 0x00 (0)  = No additional logging (default)
+#         0x01 (1)  = Log startup SSL/TLS parameters
+#         0x02 (2)  = Log remote IP address
+#         0x04 (4)  = Log SSL/TLS version of connections
+#         0x08 (8)  = Log which cipher is being used for the connection
+#         0x10 (16) = Log if client has a certificate
+#         0x20 (32) = Log details of client's certificate if it has one
+#         -1 or 0xff or 0x2f = All of the above
+
+<% if defined? @nrpe_ssl_logging -%>
+ssl_logging=<%= @nrpe_ssl_logging %>
+#ssl_logging=0x00
+<% end -%>
 
 # INCLUDE CONFIG FILE
 # This directive allows you to include definitions from an external config file.
