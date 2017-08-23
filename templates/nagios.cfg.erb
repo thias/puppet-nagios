@@ -734,7 +734,7 @@ interval_length=60
 # by Nagios Enterprises from the update check is processed in accordance 
 # with our privacy policy - see http://api.nagios.org for details.
 
-check_for_updates=1
+check_for_updates=<%= @check_for_updates ? 1 : 0 %>
 
 
 

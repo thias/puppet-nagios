@@ -94,6 +94,7 @@ class nagios::server (
   $plugin_redis          = false,
   $plugin_redis_sentinel = false,
   $selinux               = $::selinux,
+  $check_for_updates     = true,
   # Original template entries
   $template_generic_contact = {},
   $template_generic_host    = {},
