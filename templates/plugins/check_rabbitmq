@@ -83,7 +83,7 @@ def check_queues_count(username, password, cluster, virtualhost, timeout, critic
             desc_graph = ''
             for queue in results:
                 desc = desc + "%s: %s, " % (queue['name'],queue['messages'])
-                desc_graph = desc_graph + "%s=%s;%s;%s " % (queue['name'],queue['messages'],critical,warning)
+                desc_graph = desc_graph + "%s=%s;%s;%s " % (queue['name'],queue['messages'],warning,critical)
                 count = int(queue['messages'])
                 if count >= critical:
                     critical_q.append("%s: %s" % (queue['name'], count))
@@ -126,13 +126,13 @@ def check_mem_usage(username, password, cluster, nodename, timeout, critical, wa
             memory_limit = results['mem_limit']
             percent_usage = int( ( memory_used * 100 )/memory_limit)
             if percent_usage > critical:
-                print "CRITICAL - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,critical,warning)
+                print "CRITICAL - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,warning,critical)
                 sys.exit(2)
             elif percent_usage > warning:
-                print "WARNING - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,critical,warning)
+                print "WARNING - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,warning,critical)
                 sys.exit(1)
             else:
-                print "OK - RABBITMQ RAM USAGE OK at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,critical,warning)
+                print "OK - RABBITMQ RAM USAGE OK at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,warning,critical)
                 sys.exit(0)
         elif raw_request.status_code != 200:
             print "CRITICAL - RabbitMQ Error: %s" % raw_request.content
