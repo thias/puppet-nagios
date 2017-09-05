@@ -27,16 +27,21 @@ if Facter.version.to_f < 3.0
   end
 
 else
-  Facter.add(:nagios_ipaddress6) do
-    setcode do
-      Facter.value(:networking)['interfaces'].
-        reject { |i,_| i =~ /lo.*/ }.
-        values.
-        flat_map { |x| x['bindings6'] }.
-        compact.
-        map { |x| x['address'] }.
-        select { |x| valid_addr? x }.
-        min_by(&:length)
+  nagios_ipaddress6 = Facter.value(:networking)['interfaces'].
+    reject { |i,_| i =~ /lo.*/ }.
+    values.
+    map { |x| x['bindings6'] }
+  if nagios_ipaddress6.any?
+    Facter.add(:nagios_ipaddress6) do
+      setcode do
+        nagios_ipaddress6.
+          flatten.
+          compact.
+          map { |x| x['address'] }.
+          select { |x| valid_addr? x }.
+          sort_by { |x| x.length }.
+          shift
+      end
     end
   end
 end
