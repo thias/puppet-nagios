@@ -179,6 +179,7 @@ class nagios::client (
       class { '::nagios::check::redis': }
       class { '::nagios::check::redis_sentinel': }
     }
+    if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temperature': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
