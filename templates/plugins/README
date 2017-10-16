@@ -30,3 +30,6 @@ check_redis: https://github.com/willixix/WL-NagiosPlugins/blob/master/check_redi
 
 check_sentinel_master_health: https://gist.github.com/chrisboulton/11337032
 
+check_ipa_replication: https://github.com/opinkerfi/nagios-plugins/blob/master/check_ipa/check_ipa_replication
+
+check_krb5: http://www.spock.org/download/check_krb5

@@ -531,6 +531,12 @@ class nagios::server (
   nagios_command { 'check_nrpe_couchbase':
     command_line => "${nrpe} -c check_couchbase",
   }
+  nagios_command { 'check_nrpe_ipa':
+    command_line => "${nrpe} -c check_ipa",
+  }
+  nagios_command { 'check_nrpe_ipa_replication':
+    command_line => "${nrpe} -c check_ipa_replication",
+  }
   nagios_command { 'check_nrpe_moxi':
     command_line => "${nrpe} -c check_moxi",
   }
@@ -539,6 +545,9 @@ class nagios::server (
   }
   nagios_command { 'check_nrpe_conntrack':
     command_line => "${nrpe} -c check_conntrack",
+  }
+  nagios_command { 'check_nrpe_krb5':
+    command_line => "${nrpe} -c check_krb5",
   }
   # Custom NRPE-based commands using custom plugins, conditionally enabled
   nagios_command { 'check_nrpe_megaraid_sas':
