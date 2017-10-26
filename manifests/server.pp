@@ -925,6 +925,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_mailq':
     command_line => "${nrpe} -c check_mailq",
   }
+  nagios_command { 'check_nrpe_cpu_temp':
+    command_line => "${nrpe} -c check_cpu_temp",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
