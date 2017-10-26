@@ -593,6 +593,7 @@ On the other hand, if you want monitor multiple sentinels on a single host you m
 Note: In these kinds of scenarios the plugins will run on the Nagios Server. The nrpe agent won't be used to perform these checks.
 
 ## Custom (NRPE) services / NRPE files / NRPE plugins
+
 If you want to define a custom service (non-NRPE) without modifying module code:
 
 ```yaml
@@ -656,6 +657,33 @@ lookup_options:
       strategy: deep
       merge_hash_arrays: true
       knockout_prefix: '--'
+
+## Host/Service Escalation rules support
+
+In order to define a Host/Service escalation rule use the hierdata template below:
+
+```yaml
+# The easiest way to escalate service is to use hostgroups
+nagios::server::hostescalation:
+  orca-hostescalation:
+    hostgroup_name: 'all'
+    contact_groups: 'oncall,backup-oncall'
+    first_notification: '6'
+    last_notification: '0'
+    notification_interval: '15'
+    escalation_options: 'd,u,r'
+    escalation_period: '24x7'
+
+# The easiest way to escalate service is to use servicegroups
+nagios::server::serviceescalation:
+  orca-serviceescalation:
+    servicegroup_name: 'escalation'
+    contact_groups: 'oncall,backup-oncall'
+    first_notification: '6'
+    last_notification: '0'
+    notification_interval: '15'
+    escalation_options: 'w,u,c,r'
+    escalation_period: '24x7'
 ```
 
 ## Removing hosts
