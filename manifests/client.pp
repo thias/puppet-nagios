@@ -48,6 +48,10 @@ class nagios::client (
   $plugin_dir                       = $::nagios::params::plugin_dir,
   $selinux                          = true,
   $defaultchecks                    = true,
+  # custom (nrpe) services/nrpe checks/nrpe plugins support
+  $services                         = {},
+  $nrpe_files                       = {},
+  $nrpe_plugins                     = {},
 ) inherits ::nagios::params {
 
   # Set the variables to be used, including scoped from elsewhere, based on
@@ -187,6 +191,22 @@ class nagios::client (
     selinux::audit2allow { 'nrpe':
       source => "puppet:///modules/${module_name}/messages.nrpe",
     }
+  }
+
+  # Custom (nrpe) services/nrpe files/plugins support
+  if $services {
+    $_services = lookup({name => 'nagios::client::services', default_value => $services})
+    create_resources('nagios::service', $_services)
+  }
+
+  if $nrpe_files {
+    $_nrpe_files = lookup({name => 'nagios::client::nrpe_files', default_value => $nrpe_files})
+    create_resources('nagios::client::nrpe_file', $_nrpe_files)
+  }
+
+  if $nrpe_plugins {
+    $_nrpe_plugins = lookup({name => 'nagios::client::nrpe_plugins', default_value => $nrpe_plugins})
+    create_resources('nagios::client::nrpe_plugin', $_nrpe_plugins)
   }
 
 }
