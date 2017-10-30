@@ -1,9 +1,8 @@
-# Define: exads::nagios::cpu_temp
+# Check CPU temperature using lm_sensors
 #
-# Check to the cpu temperature
-#
-class nagios::check::cpu_temperature (
+class nagios::check::cpu_temp (
   $ensure                   = undef,
+  $args                     = '',
   $package                  = 'lm_sensors',
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
