@@ -266,7 +266,58 @@ class SubFeatureIterator:
 
 # End of sensors.py
 
+def check_threshold(threshold):
+    # check if first char is - or + and the rest an integer
+    if threshold[:1] == '+' or threshold[:1] == '-':
+        try:
+            return 'rel',int(threshold)
+        except:
+            nice_exit(2, "Critical - {0} is not a valid threshold".format(threshold))
+
+    # try returning it as integer, in that case it's an absolute value
+    try:
+        return 'abs',int(threshold)
+    except:
+        nice_exit(2, "Critical - Please provide a valid threshold")
+
+def restricted_float(x):
+    x = float(x)
+    if x < 0.0 or x > 1.0:
+        raise argparse.ArgumentTypeError("%r not in range [0.0, 1.0]"%(x,))
+    return x
+
 def main():
+    try:
+        import argparse
+    except ImportError:
+        nice_exit(2, "CRITICAL - argparse module not found")
+
+    # Parse script arguments
+    parser = argparse.ArgumentParser('Check cpu temperature using sensors package.\n'
+                                     'Auto detection sets warning threshold to high limit provided by sensors.\n'
+                                     'Critical threshold between high and critical limit provided by sensors (controled by ratio paramenter, 0.5 is the default).\n'
+                                     'Relative thresholds are calculated based on auto detected values.')
+    parser.add_argument('-c', '--critical', action='store', default='',
+                        help="Sets critical threshold. Also accepts relative values (-2,+2, ..). Leave empty for auto-detect.")
+    parser.add_argument('-w', '--warning', action='store', default='',
+                        help="Sets warning threshold. Also accepts relative values (-2,+2, ..). Leave empty for auto-detect")
+    parser.add_argument('-r', '--ratio', action='store', default='0.5', type=restricted_float,
+                        help="Sets the ratio between high and critical values for auto detect critical threshold.")
+    args = parser.parse_args()
+
+    # Can't autodetect warning, should be absolute or relative
+    if args.warning == '':
+        w_action = 'auto'
+        w_val = 0
+    else:
+        w_action,w_val = check_threshold(args.warning)
+
+    # Empty critical means auto detection
+    if args.critical == '':
+        c_action = 'auto'
+        c_val = 0
+    else:
+        c_action,c_val = check_threshold(args.critical)
 
     # Declare vars
     nagios_status = 0 # OK by default
@@ -279,27 +330,39 @@ def main():
 
     for chip in ChipIterator("coretemp-*"):  # optional arg like "coretemp-*" restricts iterator
         max_tmp = 0
-        min_crit = 99999 # I guess all cores should have same crits but just in case
+        sen_high = 99999 # I guess all cores should have same limits but just in case
+        sen_crit = 99999
         for feature in FeatureIterator(chip):
             sfs = list(SubFeatureIterator(chip, feature))  # get a list of all subfeatures
 
-            label = get_label(chip, feature)
+            # Get temperature
+            vals = [get_value(chip, sf.number) for sf in sfs]
+            max_tmp = max(int(vals[0]),max_tmp)
+            sen_high = min(int(vals[1]), sen_high)
+            sen_crit = min(int(vals[2]), sen_crit)
 
-            # Get core info
-            if label.startswith('Core'):
-                # Get temperature
-                vals = [get_value(chip, sf.number) for sf in sfs]
-                max_tmp = max(int(vals[0]),max_tmp)
-                min_crit = min(int(vals[1]), min_crit)
+        # Time to calculate the real warning and critical thresholds
+        sen_crit_auto = int(abs((sen_crit - sen_high)*args.ratio)+sen_high)
+        if c_action == 'auto': real_crit = sen_crit_auto
+        if c_action == 'abs': real_crit = c_val
+        if c_action == 'rel': real_crit = sen_crit_auto + c_val
+
+        if w_action == 'auto': real_warn = sen_high
+        if w_action == 'abs': real_warn = w_val
+        if w_action == 'rel': real_warn = sen_high + w_val
+
+        # Now that we have the real crit and warn, verify that warn isn't higher than crit
+        if real_warn > real_crit:
+            nice_exit(2, "CRITICAL - Warning threshold can't be higher than critical (w: {0}, c:{1}".format(real_warn, real_crit))
 
         # Now that we have the max temp per cpu and min crit, see if we are in trouble
-        if max_tmp > min_crit:
+        if max_tmp > real_crit:
             nagios_status = 2 # Set as critical
-        elif max_tmp > min_crit-10:
+        elif max_tmp > real_warn:
             nagios_status = max(nagios_status, 1) # set warning if it wasn't on critical
 
         nagios_msg.append("CPU {0}({1})".format(cpu_id, max_tmp))
-        nagios_performance.append('CPU_{0}={1};{2};{3}'.format(cpu_id, max_tmp,min_crit-10, min_crit))
+        nagios_performance.append('CPU_{0}={1};{2};{3}'.format(cpu_id, max_tmp,real_warn, real_crit))
 
         # Increase the cpu counter
         cpu_id +=1
@@ -311,6 +374,9 @@ def main():
         1: 'WARNING',
         2: 'CRITICAL',
     }
+
+    if nagios_msg == []:
+        nice_exit(2,'CRITICAL - No sensors detected')
 
     final_message = '{0} - {1} | {2}'.format(nagios_return_codes[nagios_status], ', '.join(nagios_msg), ', '.join(nagios_performance))
 
