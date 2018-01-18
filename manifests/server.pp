@@ -49,6 +49,8 @@ class nagios::server (
     '/etc/nagios/nagios_servicedependency.cfg',
     '/etc/nagios/nagios_servicegroup.cfg',
     '/etc/nagios/nagios_timeperiod.cfg',
+    '/etc/nagios/nagios_hostescalation.cfg',
+    '/etc/nagios/nagios_serviceescalation.cfg',
   ],
   $cfg_dir                        = [],
   $process_performance_data       = '0',
@@ -114,6 +116,9 @@ class nagios::server (
   $services         = {},
   $servicegroups    = {},
   $timeperiods      = {},
+  # Escalation rules
+  $hostescalation    = {},
+  $serviceescalation = {},
 ) inherits ::nagios::params {
 
   # Full nrpe command to run, with default options
@@ -338,6 +343,14 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+  Nagios_hostescalation <<| tag == "nagios-${nagios_server}" |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  Nagios_serviceescalation <<| tag == "nagios-${nagios_server}" |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
 
   # Auto reload and parent dir, but for non-exported resources
   # FIXME: This does not work from outside here, wrong scope.
@@ -379,6 +392,14 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+  Nagios_hostescalation {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  Nagios_serviceescalation {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
 
   # Works great, but only if the "target" is the default (known limitation)
   resources { [
@@ -391,6 +412,8 @@ class nagios::server (
     'nagios_service',
     'nagios_servicegroup',
     'nagios_timeperiod',
+    'nagios_hostescalation',
+    'nagios_serviceescalation',
   ]:
     purge => true,
   }
@@ -408,6 +431,8 @@ class nagios::server (
     '/etc/nagios/nagios_servicedependency.cfg',
     '/etc/nagios/nagios_servicegroup.cfg',
     '/etc/nagios/nagios_timeperiod.cfg',
+    '/etc/nagios/nagios_hostescalation.cfg',
+    '/etc/nagios/nagios_serviceescalation.cfg',
   ]:
     ensure => 'present',
     owner  => 'root',
@@ -934,6 +959,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_mailq':
     command_line => "${nrpe} -c check_mailq",
   }
+  nagios_command { 'check_nrpe_cpu_temp':
+    command_line => "${nrpe} -c check_cpu_temp",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
@@ -1094,6 +1122,8 @@ class nagios::server (
   create_resources (nagios_service, $services)
   create_resources (nagios_servicegroup, $servicegroups)
   create_resources (nagios_timeperiod, $timeperiods)
+  create_resources (nagios_hostescalation, $hostescalation)
+  create_resources (nagios_serviceescalation, $serviceescalation)
 
   # Additional useful resources
   nagios_servicegroup { 'mysql_health':

@@ -592,6 +592,100 @@ On the other hand, if you want monitor multiple sentinels on a single host you m
 
 Note: In these kinds of scenarios the plugins will run on the Nagios Server. The nrpe agent won't be used to perform these checks.
 
+## Custom (NRPE) services / NRPE files / NRPE plugins
+
+If you want to define a custom service (non-NRPE) without modifying module code:
+
+```yaml
+nagios::server::commands:
+  check_dns_addr:
+    command_line: "$USER1$/check_dns -H $ARG1$ $ARG2$"
+
+nagios::client::services:
+  "check_command_tcp_port_8888_%{::fqdn}":
+    check_command: 'check_tcp!8888'
+    service_description: 'TCP port 8888'
+  "check_dns_hostname_%{::fqdn}":
+    check_command: 'check_dns_addr!$HOSTNAME$!-a $HOSTADDRESS$'
+    service_description: 'DNS Hostname'
+```
+
+If you want to monitor a custom service (via NRPE) without modifying module code, use the following hieradata definitions:
+
+```yaml
+# define server command that uses your custom plugin
+# make sure the plugin exists at ${module_name}/templates/plugins/check_command
+nagios::server::commands:
+  check_nrpe_command:
+    command_line: "%{::nagios::params::nrpe_command} %{::nagios::params::nrpe_options} -c check_command"
+
+# define NRPE plugin to be installed on a client
+nagios::client::nrpe_plugins:
+  check_command:
+    ensure: 'present'
+
+# define NRPE file to be delivered to a client
+nagios::client::nrpe_files:
+  check_command:
+    ensure: 'present'
+    plugin: 'check_command'
+    args: '-w 600 -c 900'
+    sudo: true
+
+# finally, define a service that uses our new custom NRPE plugin
+nagios::client::services:
+  "service_name_%{::fqdn}":
+    check_command: 'check_nrpe_command'
+    service_description: 'service description'
+    contact_groups: 'all'
+```
+
+Having multiple client services/nrpe_files/nrpe_plugins definitions (e.g. multiple Hiera roles), you might want to change Hiera merge behaviour, e.g.:
+
+```yaml
+lookup_options:
+  nagios::client::nrpe_plugins:
+    merge:
+      strategy: deep
+      merge_hash_arrays: true
+  nagios::client::nrpe_files:
+    merge:
+      strategy: deep
+      merge_hash_arrays: true
+  nagios::client::services:
+    merge:
+      strategy: deep
+      merge_hash_arrays: true
+      knockout_prefix: '--'
+
+## Host/Service Escalation rules support
+
+In order to define a Host/Service escalation rule use the hierdata template below:
+
+```yaml
+# The easiest way to escalate service is to use hostgroups
+nagios::server::hostescalation:
+  orca-hostescalation:
+    hostgroup_name: 'all'
+    contact_groups: 'oncall,backup-oncall'
+    first_notification: '6'
+    last_notification: '0'
+    notification_interval: '15'
+    escalation_options: 'd,u,r'
+    escalation_period: '24x7'
+
+# The easiest way to escalate service is to use servicegroups
+nagios::server::serviceescalation:
+  orca-serviceescalation:
+    servicegroup_name: 'escalation'
+    contact_groups: 'oncall,backup-oncall'
+    first_notification: '6'
+    last_notification: '0'
+    notification_interval: '15'
+    escalation_options: 'w,u,c,r'
+    escalation_period: '24x7'
+```
+
 ## Removing hosts
 
 If you decommission a Nagios-monitored host a couple of manual steps are
