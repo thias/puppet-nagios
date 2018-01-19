@@ -1,68 +1,40 @@
 #!/bin/bash
 # Dummy script that checks 'ipactl status' output for Nagios
+# This plugin is NOT developped by the Nagios Plugin group.
+# Please do not e-mail them for support on this plugin, since
+# they won't know what you're talking about.
+# For more info, read and try to understand the plugin itself...
 
-# IPA manages a different quantity of services based on its configuration
-# Set this variable after checking the 'ipactl status'
 
 PROGNAME=$(basename $0)
-function usage() {
-        echo "Usage: $PROGNAME [-s Num_Of_Services] "
-        echo "Usage: $PROGNAME -h,--help"
-        echo "Options:"
-        echo " -s Number     Number of services that IPA is managing."
-}
 
-function print_help() {
-        usage
-        echo ""
-        echo "Check if /sbin/ipactl is running."
-        echo "This plugin is NOT developped by the Nagios Plugin group."
-        echo "Please do not e-mail them for support on this plugin, since"
-        echo "they won't know what you're talking about."
-        echo "For more info, read and try to understand the plugin itself..."
-}
+cmd='/usr/sbin/ipactl status'
 
+re_running='^.*Service: RUNNING$'
+re_not_running='^.*Service: STOPPED$'
+critical='false'
+warning='false'
 
-if [ $# -eq 0 ]; then
-        usage
-        exit $STATE_CRITICAL
-fi
-
-
-while [ "$1" != "" ]
+while read line;
 do
-        case "$1" in
-                --help) print_help; exit $STATE_OK;;
-                -h) print_help; exit $STATE_OK;;
-                -s) num_services=$2; shift 2;;
-                *) usage; exit $STATE_UNKNOWN;;
-        esac
-done
-
-re='^[0-9]+$'
-if ! [[ $num_services =~ $re ]] ; then
-   usage  >&2; exit 1
-fi
-
-cmd='/sbin/ipactl status'
-
-cmd_output=$(sudo $cmd 2> /dev/null)
-active_running_services=$(echo ${cmd_output} | grep -o 'RUNNING' | wc -l )
-info_message=$(echo ${cmd_output} | sed -e 's/ Service: /:/g' -e  's/ /, /g')
-
-if [ $active_running_services -ge $num_services ]
-then
-  echo $cmd_output | grep 'STOPPED' > /dev/null
-  if [ $? -eq 0 ]
-  then
-    echo "WARNING: ${info_message}"
-    exit 1
-  else
-    echo "OK: ${info_message}"
-    exit 0
+  service_name=$(echo $line | awk {'print $1'})
+  service_status=$(echo $line | awk {'print $NF'})
+  if [[ $line =~ $re_not_running ]]; then
+     critical='true'
+  elif ! [[ $line =~ $re_running ]]; then
+     warning='true'
   fi
-else
-  echo "CRITICAL: ${info_message}"
-  exit 2
-fi
+   output="${output} ${service_name}: ${service_status},"
+done < <(sudo $cmd 2> /dev/null)
 
+output=$(echo $output | sed 's/,$//g')
+
+if [ $critical == 'true' ]; then
+  echo "CRITICAL: ${output}"
+  exit 2
+elif [ $warning == 'true' ]; then
+  echo "WARNING: ${output}"
+  exit 1
+else
+  echo "OK: ${output}"
+fi
