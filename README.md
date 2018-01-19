@@ -592,6 +592,29 @@ On the other hand, if you want monitor multiple sentinels on a single host you m
 
 Note: In these kinds of scenarios the plugins will run on the Nagios Server. The nrpe agent won't be used to perform these checks.
 
+## RHEL Identity Manager
+
+RHEL IDM manages few services. In this module we only monitor the following:
+* IDM status via `/usr/sbin/ipactl status`
+* IDM replication
+* KRB status
+
+IDM general status monitoring is enabled by default if the file `/usr/sbin/ipactl` is found on the server.
+
+You can enable the others with the following yaml setup:
+
+```yaml
+# IDM Replication
+nagios::check::ipa_replication::bind_dn: 'uid=nagios_user,cn=users,cn=accounts,dc=dummy,dc=domain,dc=com'
+nagios::check::ipa_replication::bind_pass: 'mysupersecretpassword'
+# KRB status
+nagios::check::krb5::keytab: '/path/to/auth/keytab/file'
+nagios::check::krb5::principal: 'nagios_user'
+nagios::check::krb5::realm: 'DUMMY.DOMAIN.COM'
+```
+
+In order to get the keytab file please read the documentation of the `ktutils` command
+
 ## Custom (NRPE) services / NRPE files / NRPE plugins
 
 If you want to define a custom service (non-NRPE) without modifying module code:
