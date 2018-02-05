@@ -26,7 +26,7 @@ class nagios::check::cpu_temp (
 
   nagios::client::nrpe_file { 'check_cpu_temp':
     ensure => $ensure,
-    args   => '',
+    args   => $args,
   }
 
   nagios::service { "check_cpu_temp_${check_title}":
