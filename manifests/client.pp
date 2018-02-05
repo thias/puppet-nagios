@@ -183,7 +183,14 @@ class nagios::client (
       class { '::nagios::check::redis': }
       class { '::nagios::check::redis_sentinel': }
     }
+    if getvar('::nagios_ipa_server') {
+     class { '::nagios::check::ipa': }
+     class { '::nagios::check::ipa_replication': }
+     class { '::nagios::check::krb5': }
+    }
+
     if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temp': } }
+
   }
 
   # With selinux, some nrpe plugins require additional rules to work

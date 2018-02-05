@@ -953,6 +953,15 @@ class nagios::server (
   nagios_command { 'check_nrpe_cpu_temp':
     command_line => "${nrpe} -c check_cpu_temp",
   }
+  nagios_command { 'check_nrpe_ipa':
+    command_line => "${nrpe} -c check_ipa",
+  }
+  nagios_command { 'check_nrpe_ipa_replication':
+    command_line => "${nrpe} -c check_ipa_replication",
+  }
+  nagios_command { 'check_nrpe_krb5':
+    command_line => "${nrpe} -c check_krb5",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
