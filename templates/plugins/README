@@ -33,3 +33,7 @@ check_sentinel_master_health: https://gist.github.com/chrisboulton/11337032
 check_ipa_replication: https://github.com/opinkerfi/nagios-plugins/blob/master/check_ipa/check_ipa_replication
 
 check_krb5: http://www.spock.org/download/check_krb5
+
+check_es_*: https://github.com/stack72/nagios-elasticsearch
+
+nagioscheck.py: https://github.com/PeerJ/pynagioscheck # Required by elascsearch checks.

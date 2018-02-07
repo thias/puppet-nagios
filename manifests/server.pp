@@ -962,6 +962,21 @@ class nagios::server (
   nagios_command { 'check_nrpe_krb5':
     command_line => "${nrpe} -c check_krb5",
   }
+  nagios_command { 'check_nrpe_elasticsearch_cluster_status':
+    command_line => "${nrpe} -c check_elasticsearch_cluster_status",
+  }
+  nagios_command { 'check_nrpe_elasticsearch_jvm_usage':
+    command_line => "${nrpe} -c check_elasticsearch_jvm_usage",
+  }
+  nagios_command { 'check_nrpe_elasticsearch_nodes':
+    command_line => "${nrpe} -c check_elasticsearch_nodes",
+  }
+  nagios_command { 'check_nrpe_elasticsearch_split_brain':
+    command_line => "${nrpe} -c check_elasticsearch_split_brain",
+  }
+  nagios_command { 'check_nrpe_elasticsearch_unassigned_shards':
+    command_line => "${nrpe} -c check_elasticsearch_unassigned_shards",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
@@ -1126,6 +1141,9 @@ class nagios::server (
   create_resources (nagios_serviceescalation, $serviceescalation)
 
   # Additional useful resources
+  nagios_servicegroup { 'elasticsearch':
+    alias => 'ElasticSearch service checks',
+  }
   nagios_servicegroup { 'mysql_health':
     alias => 'MySQL Health service checks',
   }

@@ -615,6 +615,37 @@ nagios::check::krb5::realm: 'DUMMY.DOMAIN.COM'
 
 In order to get the keytab file please read the documentation of the `ktutils` command
 
+## Elastic Search
+
+The elastic search monitoring has many different 'modes', which are all
+enabled by default.
+
+You can either selectively disable some :
+```yaml
+# Disable some checks (modes)
+nagios::check::elasticsearch::modes_disabled:
+  - 'split_brain'
+  - 'unassigned_shards'
+```
+
+Or selectively enable some :
+
+```yaml
+# Enable only the following checks (modes)
+nagios::check::elasticsearch::modes_enabled:
+  - 'cluster_status'
+  - 'nodes'
+  - 'jvm_usage'
+```
+
+Then for each mode, you can also pass some arguments, typically to change the
+warning and critical values as needed :
+```yaml
+# Tweak some check values
+nagios::check::elasticsearch::args_jvm_usage: '-N 10.0.0.1 -C 90 -W 80'
+nagios::check::elasticsearch::args_nodes: '-E 5' # Expected nodes in cluester
+```
+
 ## Custom (NRPE) services / NRPE files / NRPE plugins
 
 If you want to define a custom service (non-NRPE) without modifying module code:
