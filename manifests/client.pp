@@ -48,6 +48,10 @@ class nagios::client (
   $plugin_dir                       = $::nagios::params::plugin_dir,
   $selinux                          = true,
   $defaultchecks                    = true,
+  # custom (nrpe) services/nrpe checks/nrpe plugins support
+  $services                         = {},
+  $nrpe_files                       = {},
+  $nrpe_plugins                     = {},
 ) inherits ::nagios::params {
 
   # Set the variables to be used, including scoped from elsewhere, based on
@@ -174,7 +178,19 @@ class nagios::client (
     if getvar('::nagios_postgres') {  class { '::nagios::check::postgres': } }
     if getvar('::nagios_mdraid') {    class { '::nagios::check::mdraid': } }
     if getvar('::nagios_zookeeper') { class { '::nagios::check::zookeeper': } }
-    if getvar('::nagios_rabbitmq') { class { '::nagios::check::rabbitmq': } }
+    if getvar('::nagios_rabbitmq') {  class { '::nagios::check::rabbitmq': } }
+    if getvar('::nagios_redis') {
+      class { '::nagios::check::redis': }
+      class { '::nagios::check::redis_sentinel': }
+    }
+    if getvar('::nagios_ipa_server') {
+     class { '::nagios::check::ipa': }
+     class { '::nagios::check::ipa_replication': }
+     class { '::nagios::check::krb5': }
+    }
+
+    if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temp': } }
+
   }
 
   # With selinux, some nrpe plugins require additional rules to work
@@ -182,6 +198,22 @@ class nagios::client (
     selinux::audit2allow { 'nrpe':
       source => "puppet:///modules/${module_name}/messages.nrpe",
     }
+  }
+
+  # Custom (nrpe) services/nrpe files/plugins support
+  if $services {
+    $_services = lookup({name => 'nagios::client::services', default_value => $services})
+    create_resources('nagios::service', $_services)
+  }
+
+  if $nrpe_files {
+    $_nrpe_files = lookup({name => 'nagios::client::nrpe_files', default_value => $nrpe_files})
+    create_resources('nagios::client::nrpe_file', $_nrpe_files)
+  }
+
+  if $nrpe_plugins {
+    $_nrpe_plugins = lookup({name => 'nagios::client::nrpe_plugins', default_value => $nrpe_plugins})
+    create_resources('nagios::client::nrpe_plugin', $_nrpe_plugins)
   }
 
 }

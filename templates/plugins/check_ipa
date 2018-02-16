@@ -1,0 +1,40 @@
+#!/bin/bash
+# Dummy script that checks 'ipactl status' output for Nagios
+# This plugin is NOT developped by the Nagios Plugin group.
+# Please do not e-mail them for support on this plugin, since
+# they won't know what you're talking about.
+# For more info, read and try to understand the plugin itself...
+
+
+PROGNAME=$(basename $0)
+
+cmd='/usr/sbin/ipactl status'
+
+re_running='^.*Service: RUNNING$'
+re_not_running='^.*Service: STOPPED$'
+critical='false'
+warning='false'
+
+while read line;
+do
+  service_name=$(echo $line | awk {'print $1'})
+  service_status=$(echo $line | awk {'print $NF'})
+  if [[ $line =~ $re_not_running ]]; then
+     critical='true'
+  elif ! [[ $line =~ $re_running ]]; then
+     warning='true'
+  fi
+   output="${output} ${service_name}: ${service_status},"
+done < <(sudo $cmd 2> /dev/null)
+
+output=$(echo $output | sed 's/,$//g')
+
+if [ $critical == 'true' ]; then
+  echo "CRITICAL: ${output}"
+  exit 2
+elif [ $warning == 'true' ]; then
+  echo "WARNING: ${output}"
+  exit 1
+else
+  echo "OK: ${output}"
+fi

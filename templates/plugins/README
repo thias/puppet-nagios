@@ -26,3 +26,10 @@ check_mountpoints : https://github.com/echocat/nagios-plugin-check_mountpoints
 
 check_rabbitmq : https://exchange.nagios.org/directory/Plugins/Software/check_rabbitmq/details
 
+check_redis: https://github.com/willixix/WL-NagiosPlugins/blob/master/check_redis.pl
+
+check_sentinel_master_health: https://gist.github.com/chrisboulton/11337032
+
+check_ipa_replication: https://github.com/opinkerfi/nagios-plugins/blob/master/check_ipa/check_ipa_replication
+
+check_krb5: http://www.spock.org/download/check_krb5

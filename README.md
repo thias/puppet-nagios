@@ -457,10 +457,10 @@ Sample Slack contact and commands configuration:
     host_notification_commands    => 'notify-host-by-slack',
   }
   nagios_command { 'notify-service-by-slack':
-    command_line => '$USER1$/slack_nagios > /tmp/slack.log 2>&1',
+    command_line => '$USER1$/slack_nagios -h "$HOSTNAME$" -n "$SERVICEDISPLAYNAME$" -o "$SERVICEOUTPUT$" -s "$SERVICESTATE$" -t "$NOTIFICATIONTYPE$" > /tmp/slack.log 2>&1',
   }
   nagios_command { 'notify-host-by-slack':
-    command_line => '$USER1$/slack_nagios > /tmp/slack.log 2>&1',
+    command_line => '$USER1$/slack_nagios -h "$HOSTNAME$" -O "$HOSTOUTPUT$" -S "$HOSTSTATE$" -t "$NOTIFICATIONTYPE$" > /tmp/slack.log 2>&1',
   }
 ```
 
@@ -520,6 +520,193 @@ warning and critical values as needed :
 ```yaml
 # Tweak some check values
 nagios::check::rabbitmq::connection_count: '-C 100 -W 50'
+```
+
+## Redis
+
+The single `redis` script has many different 'modes', which are all
+enabled by default.
+
+You can either selectively disable some :
+```yaml
+# Disable some checks (modes)
+nagios::check::redis::modes_disabled:
+  - 'connected_slaves'
+  - 'blocked_clients'
+```
+
+Or selectively enable some :
+
+```yaml
+# Enable only the following checks (modes)
+nagios::check::redis::modes_enabled:
+  - 'hitrate'
+  - 'response_time'
+  - 'rejected_connections'
+  - 'uptime_in_seconds'
+```
+
+Then for each mode, you can also pass some arguments, typically to change the
+warning and critical values as needed :
+```yaml
+# Tweak some check values
+nagios::check::redis::args_response_time: '0.005,0.010' # Warning,Critical
+nagios::check::redis::args_hitrate: '70,100' # Warning,Critical
+```
+### Redis Sentinel
+
+The `redis_sentinel` check is enable by default. This check will validate the number of healthy redis slaves and sentinels
+You can define the master:
+```yaml
+nagios::check::redis_sentinel::master: 'MyAwesomeMaster'
+```
+
+You can also pass some arguments, typically to change the
+warning and critical values as needed :
+```yaml
+# Tweak some check values
+nagios::check::redis_sentinel::args: '-c 0,2 -w 0,2' # Slaves,Sentinels
+```
+
+### Multiple Databases - Sentinels
+If you want to monitor multiple redis databases on a single host you must use the definition `nagios::check::redis::mdbs`
+```puppet
+  nagios::check::redis_mdbs { 'db_name' :
+    fqdn  => 'host.domain.foo',
+    port  => 'port_num',
+    modes => {
+      'connected_clients'    => '100,200', # Mode => 'Warning,Critical'
+      'evicted_keys'         => '10,20',
+      'rejected_connections' => '20,50',
+    },
+  }
+```
+
+On the other hand, if you want monitor multiple sentinels on a single host you must use the definiton `nagios::check::redis_sentinel_mmasters`
+```puppet
+  nagios::check::redis_sentinel_mmasters { 'sentinel_master':
+    port  => 'port_num',
+    fqdn  => 'host.domain.foo',
+  }
+```
+
+Note: In these kinds of scenarios the plugins will run on the Nagios Server. The nrpe agent won't be used to perform these checks.
+
+## RHEL Identity Manager
+
+RHEL IDM manages few services. In this module we only monitor the following:
+* IDM status via `/usr/sbin/ipactl status`
+* IDM replication
+* KRB status
+
+IDM general status monitoring is enabled by default if the file `/usr/sbin/ipactl` is found on the server.
+
+You can enable the others with the following yaml setup:
+
+```yaml
+# IDM Replication
+nagios::check::ipa_replication::bind_dn: 'uid=nagios_user,cn=users,cn=accounts,dc=dummy,dc=domain,dc=com'
+nagios::check::ipa_replication::bind_pass: 'mysupersecretpassword'
+# KRB status
+nagios::check::krb5::keytab: '/path/to/auth/keytab/file'
+nagios::check::krb5::principal: 'nagios_user'
+nagios::check::krb5::realm: 'DUMMY.DOMAIN.COM'
+```
+
+In order to get the keytab file please read the documentation of the `ktutils` command
+
+## Custom (NRPE) services / NRPE files / NRPE plugins
+
+If you want to define a custom service (non-NRPE) without modifying module code:
+
+```yaml
+nagios::server::commands:
+  check_dns_addr:
+    command_line: "$USER1$/check_dns -H $ARG1$ $ARG2$"
+
+nagios::client::services:
+  "check_command_tcp_port_8888_%{::fqdn}":
+    check_command: 'check_tcp!8888'
+    service_description: 'TCP port 8888'
+  "check_dns_hostname_%{::fqdn}":
+    check_command: 'check_dns_addr!$HOSTNAME$!-a $HOSTADDRESS$'
+    service_description: 'DNS Hostname'
+```
+
+If you want to monitor a custom service (via NRPE) without modifying module code, use the following hieradata definitions:
+
+```yaml
+# define server command that uses your custom plugin
+# make sure the plugin exists at ${module_name}/templates/plugins/check_command
+nagios::server::commands:
+  check_nrpe_command:
+    command_line: "%{::nagios::params::nrpe_command} %{::nagios::params::nrpe_options} -c check_command"
+
+# define NRPE plugin to be installed on a client
+nagios::client::nrpe_plugins:
+  check_command:
+    ensure: 'present'
+
+# define NRPE file to be delivered to a client
+nagios::client::nrpe_files:
+  check_command:
+    ensure: 'present'
+    plugin: 'check_command'
+    args: '-w 600 -c 900'
+    sudo: true
+
+# finally, define a service that uses our new custom NRPE plugin
+nagios::client::services:
+  "service_name_%{::fqdn}":
+    check_command: 'check_nrpe_command'
+    service_description: 'service description'
+    contact_groups: 'all'
+```
+
+Having multiple client services/nrpe_files/nrpe_plugins definitions (e.g. multiple Hiera roles), you might want to change Hiera merge behaviour, e.g.:
+
+```yaml
+lookup_options:
+  nagios::client::nrpe_plugins:
+    merge:
+      strategy: deep
+      merge_hash_arrays: true
+  nagios::client::nrpe_files:
+    merge:
+      strategy: deep
+      merge_hash_arrays: true
+  nagios::client::services:
+    merge:
+      strategy: deep
+      merge_hash_arrays: true
+      knockout_prefix: '--'
+
+## Host/Service Escalation rules support
+
+In order to define a Host/Service escalation rule use the hierdata template below:
+
+```yaml
+# The easiest way to escalate service is to use hostgroups
+nagios::server::hostescalation:
+  orca-hostescalation:
+    hostgroup_name: 'all'
+    contact_groups: 'oncall,backup-oncall'
+    first_notification: '6'
+    last_notification: '0'
+    notification_interval: '15'
+    escalation_options: 'd,u,r'
+    escalation_period: '24x7'
+
+# The easiest way to escalate service is to use servicegroups
+nagios::server::serviceescalation:
+  orca-serviceescalation:
+    servicegroup_name: 'escalation'
+    contact_groups: 'oncall,backup-oncall'
+    first_notification: '6'
+    last_notification: '0'
+    notification_interval: '15'
+    escalation_options: 'w,u,c,r'
+    escalation_period: '24x7'
 ```
 
 ## Removing hosts

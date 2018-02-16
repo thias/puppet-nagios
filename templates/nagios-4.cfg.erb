@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# NAGIOS.CFG - Sample Main Config File for Nagios 4.0.8
+# NAGIOS.CFG - Sample Main Config File for Nagios 4.3.1
 #
 # Read the documentation for more information on this configuration
 # file.  I've provided some comments here, but things may not be so
@@ -71,7 +71,7 @@ cfg_dir=/etc/nagios/conf.d
 # directly) in order to prevent inconsistencies that can occur
 # when the config files are modified after Nagios starts.
 
-object_cache_file=/var/log/nagios/objects.cache
+object_cache_file=/var/spool/nagios/objects.cache
 
 
 
@@ -87,7 +87,7 @@ object_cache_file=/var/log/nagios/objects.cache
 # Read the documentation section on optimizing Nagios to find our more
 # about how this feature works.
 
-precached_object_file=/var/log/nagios/objects.precache
+precached_object_file=/var/spool/nagios/objects.precache
 
 
 
@@ -110,7 +110,7 @@ resource_file=/etc/nagios/private/resource.cfg
 # The contents of the status file are deleted every time Nagios
 #  restarts.
 
-status_file=/var/log/nagios/status.dat
+status_file=/var/spool/nagios/status.dat
 
 
 
@@ -174,7 +174,7 @@ query_socket=/var/spool/nagios/cmd/nagios.qh
 # This is the lockfile that Nagios will use to store its PID number
 # in when it is running in daemon mode.
 
-lock_file=/var/run/nagios/nagios.pid
+lock_file=<%= @pid_file %>
 
 
 
@@ -184,7 +184,7 @@ lock_file=/var/run/nagios/nagios.pid
 # is created, used, and deleted throughout the time that Nagios is
 # running.
 
-temp_file=/var/log/nagios/nagios.tmp
+temp_file=/var/spool/nagios/nagios.tmp
 
 
 
@@ -457,7 +457,7 @@ max_check_result_reaper_time=30
 # Note: Make sure that only one instance of Nagios has access
 # to this directory!
 
-check_result_path=/var/log/nagios/spool/checkresults
+check_result_path=/var/spool/nagios/checkresults
 
 
 
@@ -593,12 +593,12 @@ auto_rescheduling_window=180
 # ocsp command, and performance data commands.  All values are in
 # seconds.
 
-service_check_timeout=60
-host_check_timeout=30
-event_handler_timeout=30
-notification_timeout=30
-ocsp_timeout=5
-perfdata_timeout=5
+service_check_timeout=<%= @service_check_timeout %>
+host_check_timeout=<%= @host_check_timeout %>
+event_handler_timeout=<%= @event_handler_timeout %>
+notification_timeout=<%= @notification_timeout %>
+ocsp_timeout=<%= @ocsp_timeout %>
+perfdata_timeout=<%= @perfdata_timeout %>
 
 
 
@@ -624,7 +624,7 @@ retain_state_information=1
 # This file is used only if the retain_state_information
 # variable is set to 1.
 
-state_retention_file=/var/log/nagios/retention.dat
+state_retention_file=/var/spool/nagios/retention.dat
 
 
 
@@ -713,9 +713,9 @@ interval_length=60
 # patches to Nagios.  Nagios is critical to you - make sure you keep it in
 # good shape.  Nagios will check once a day for new updates. Data collected
 # by Nagios Enterprises from the update check is processed in accordance
-# with our privacy policy - see http://api.nagios.org for details.
+# with our privacy policy - see https://api.nagios.org for details.
 
-check_for_updates=1
+check_for_updates=<%= @check_for_updates ? 1 : 0 %>
 
 
 
@@ -843,8 +843,8 @@ service_perfdata_command=<%= @service_perfdata_command %>
 # Performance data is only written to these files if the
 # enable_performance_data option (above) is set to 1.
 
-#host_perfdata_file=/var/log/nagios/host-perfdata
-#service_perfdata_file=/var/log/nagios/service-perfdata
+#host_perfdata_file=/var/spool/nagios/host-perfdata
+#service_perfdata_file=/var/spool/nagios/service-perfdata
 #
 <% if @service_perfdata_file -%>
 service_perfdata_file=<%= @service_perfdata_file %>
@@ -1093,7 +1093,7 @@ additional_freshness_latency=15
 # Values: 1 = enable flap detection
 #         0 = disable flap detection (default)
 
-enable_flap_detection=1
+enable_flap_detection=<%= @enable_flap_detection %>
 
 
 
@@ -1158,10 +1158,12 @@ illegal_object_name_chars=`~!$%^&*|'"<>?,()=
 # host check commands.
 # The following macros are stripped of the characters you specify:
 #	$HOSTOUTPUT$
+#	$LONGHOSTOUTPUT$
 #	$HOSTPERFDATA$
 #	$HOSTACKAUTHOR$
 #	$HOSTACKCOMMENT$
 #	$SERVICEOUTPUT$
+#	$LONGSERVICEOUTPUT$
 #	$SERVICEPERFDATA$
 #	$SERVICEACKAUTHOR$
 #	$SERVICEACKCOMMENT$
@@ -1312,7 +1314,7 @@ debug_verbosity=1
 # DEBUG FILE
 # This option determines where Nagios should write debugging information.
 
-debug_file=/var/log/nagios/nagios.debug
+debug_file=/var/spool/nagios/nagios.debug
 
 
 
@@ -1341,6 +1343,16 @@ allow_empty_hostgroup_assignment=<%= @allow_empty_hostgroup_assignment %>
 
 
 
+# DISABLE SERVICE CHECKS WHEN HOST DOWN
+# This option will disable all service checks if the host is not in an UP state
+#
+# While desirable in some environments, enabling this value can distort report
+# values as the expected quantity of checks will not have been performed
+
+#host_down_disable_service_checks=0
+
+
+
 # EXPERIMENTAL load controlling options
 # To get current defaults based on your system issue a command to
 # the query handler. Please note that this is an experimental feature
@@ -1361,3 +1373,10 @@ allow_empty_hostgroup_assignment=<%= @allow_empty_hostgroup_assignment %>
 #       jobs_min manually here or through the query handler interface that
 #       WILL affect your system
 #loadctl_options=jobs_max=100;backoff_limit=10;rampup_change=5
+
+
+<% if @cfg_append -%>
+  <%- @cfg_append.sort_by{ |k, v| }.each do |key,value| -%>
+<%= key %>=<%= value %>
+  <%- end -%>
+<% end -%>

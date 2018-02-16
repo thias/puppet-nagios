@@ -1,0 +1,131 @@
+#!/usr/local/bin/perl -w
+
+use strict;
+use Authen::Krb5;
+use Getopt::Long;
+use File::MkTemp;
+use lib "/usr/local/libexec" ;
+use utils qw($TIMEOUT %ERRORS &print_revision &support &usage);
+use vars qw($PROGNAME);
+use vars qw($opt_P $opt_V $opt_h $opt_H $opt_k $opt_p $opt_r $verbose);
+
+$PROGNAME = 'check_krb5';
+
+sub print_help () {
+    print_revision($PROGNAME,'$Revision: 1.0 $');
+    print "Copyright (c) 2005 Jonathan Chen\n";
+    print "\n";
+    print "Perl Check Kerberos 5 plugin for Nagios\n";
+    print "\n";
+    print_usage();
+    print "\n";
+    print "-H, --hostname=HOST\n";
+    print "\tName or IP address of host to check\n";
+    print "-d, --realm=NAME\n";
+    print "\tKerberos realm to authenticate to\n";
+    print "-p, --principal=NAME\n";
+    print "\tName of principal to try authentication as\n";
+    print "-k, --keytab=file\n";
+    print "\tPath to keytab file containing key to principal\n";
+    print "-P, --port=INTEGER\n";
+    print "\tPort the kdc runs on\n";
+    print "-v, --verbose\n";
+    print "\tPrint extra debugging information\n";
+    
+}
+
+sub print_usage () {                                                                                                                
+    print "Usage: $PROGNAME -H <host> -d <realm> -p <principal> -k <keytab_file> [-p <port>]\n";
+}
+
+sub dieunknown ($) {
+    my ($msg) = @_;
+    print "KRB5 UNKNOWN: Unknown Error - $msg\n";
+    exit $ERRORS{"UNKNOWN"};
+}
+
+Getopt::Long::Configure('bundling');
+GetOptions (
+    "v"   => \$verbose, "verbose"  => \$verbose,
+    "P=s" => \$opt_P, "port=s"     => \$opt_P,
+    "V"   => \$opt_V, "version"    => \$opt_V,
+    "h"   => \$opt_h, "help"       => \$opt_h,
+    "k=s" => \$opt_k, "keytab=s"   => \$opt_k,
+    "p=s" => \$opt_p, "principal=s"=> \$opt_p,
+    "r=s" => \$opt_r, "realm=s"    => \$opt_r,
+    "H=s" => \$opt_H, "hostname=s" => \$opt_H
+);
+
+if ($opt_V) {
+    print_revision($PROGNAME,'$Revision: 1.0 $');
+    exit $ERRORS{'OK'};
+}
+if ($opt_h) {print_help(); exit $ERRORS{'OK'};}
+
+($opt_H) || ($opt_H = shift) || usage("Host name not specified\n");
+my $host = $1 if ($opt_H =~ /^([-_.A-Za-z0-9]+\$?)$/);
+($host) || usage("Invalid host: $opt_H\n");
+
+($opt_r) || ($opt_r = shift) || usage("Realm not specified\n");
+my $realm = $1 if ($opt_r =~ /^([-_.A-Za-z0-9]+\$?)$/);
+($realm) || usage("Invalid realm: $opt_r\n");
+
+($opt_p) || ($opt_p = shift) || usage("Principal not specified\n");
+my $princ= $1 if ($opt_p =~ /^([^\@]+)$/);
+($princ) || usage("Invalid principal: $opt_p\n");
+
+($opt_k) || ($opt_k = shift) || usage("Keytab file not specified\n");
+my $keytab = $1 if ($opt_k =~ /^(\/.*)$/);
+($keytab) || usage("Invalid keytab: $opt_k\n");
+
+($opt_P) || ($opt_P = shift) || ($opt_P = 88);
+my $port = $1 if ($opt_P =~ /^([0-9]+)$/);
+($port) || usage("Invalid port: $opt_P\n");
+
+
+my ($fh,$template) = mkstempt('krb5.conf.XXXXXX','/tmp');
+if (!defined($fh)) {
+    print "KRB5 UNKNOWN: Unknown error - unable to create temp config file\n";
+    exit $ERRORS{"UNKNOWN"};
+}
+$template = "/tmp/" . $template;
+
+print $fh "[libdefaults]\n";
+print $fh "default_realm = $realm\n";
+print $fh "[realms]\n";
+print $fh "$realm = {\n";
+print $fh "kdc = ${host}:${port}\n";
+print $fh "}\n";
+close $fh;
+$ENV{'KRB5_CONFIG'} = $template;
+
+Authen::Krb5::init_context() || dieunknown("Cannot initialize Kerberos context");
+Authen::Krb5::init_ets();
+
+my $cc = Authen::Krb5::cc_resolve("MEMORY:check_krb5");
+($cc) || dieunknown("Cannot resolve MEMORY CC");
+my $princo = Authen::Krb5::parse_name($princ);
+($princo) || dieunknown("Cannot resolve principal $princ");
+my $servo = Authen::Krb5::parse_name("krbtgt/" . $realm);
+($servo) || dieunknown("Cannot resolve principal krbtgt/$realm");
+my $kto = Authen::Krb5::kt_resolve($keytab);
+($servo) || dieunknown("Cannot resolve keytab file $keytab");
+$cc->initialize($princo);
+my $ret = Authen::Krb5::get_in_tkt_with_keytab($princo,$servo,$kto,$cc);
+
+($verbose) && print "ret: $ret\n";
+($verbose) && print "err: " . Authen::Krb5::error() . "\n";
+
+my $ecode;
+
+if (defined($ret) && $ret == 1) {
+    print "KRB5 OK\n";
+    $ecode = $ERRORS{"OK"};
+} else {
+    print "KRB5 CRITICAL: " . Authen::Krb5::error() . "\n";
+    $ecode = $ERRORS{"CRITICAL"};
+}
+
+$cc->destroy;
+unlink($template);
+exit $ecode;
