@@ -190,7 +190,7 @@ class nagios::client (
     }
 
     if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temp': } }
-
+    if getvar('::nagios_elasticsearch') {  class { '::nagios::check::elasticsearch': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
@@ -214,6 +214,15 @@ class nagios::client (
   if $nrpe_plugins {
     $_nrpe_plugins = lookup({name => 'nagios::client::nrpe_plugins', default_value => $nrpe_plugins})
     create_resources('nagios::client::nrpe_plugin', $_nrpe_plugins)
+  }
+
+  # Optional nrpe plugins dependy, to be realized by the check
+  # where is need it.
+  $nagios_nrpe_plugin = [
+    'nagioscheck.py',
+  ]
+  @nagios::client::nrpe_plugin { $nagios_nrpe_plugin:
+    ensure  => 'present',
   }
 
 }
