@@ -11,6 +11,10 @@
 * Fix slack_nagios plugin with nagios 4 (#107, @egrist).
 * Add Redis checks (#108, @edupr91).
 * Add perfdata for RabbitMQ check (#108, @edupr91).
+* Add CPU temperature check (#117, @forgodssake).
+* Add custom nrpe services, files and plugins support (#115, @eceglov).
+* Add host/service escalation rules support (#116, @eceglov).
+* Add ElasticSearch support (#121, @edupr91).
 
 #### 2016-03-22 - 1.0.10
 * Include slack_plugin (#77, @lisuml).
