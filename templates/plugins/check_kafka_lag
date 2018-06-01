@@ -1,5 +1,13 @@
 #!/bin/bash
 
+#
+# The script connects to given bootstrap Kafka server (Kafka broker) and gets
+# lag information from given consumer group. If the lag is not within given
+# thresholds, WARNING or CRITICAL is triggered. If consumer group consumes from
+# multiple topics, the script will check lag for each topic separately and
+# triggers alarm if lag was detected on any of the topics.
+#
+
 PROGNAME=$(basename $0)
 PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
 
@@ -26,14 +34,14 @@ usage() {
   echo -e "\t-w <warning>\twarning threshold (offset lag, default: 10000)"
   echo -e "\t-c <critical>\tcritical threshold (offset lag, default: 30000)"
   echo -e "\t-h\t\tDisplay this help message"
-  exit 3
+  exit ${STATE_UNKNOWN}
 }
 
 # Prints give message and exit with proper code
 fail() {
   local msg="$@"
   echo $msg 1>&2
-  exit 3
+  exit ${STATE_UNKNOWN}
 }
 
 # Parses and validates passed arguemnts
@@ -80,7 +88,7 @@ check_arguments() {
 main() {
   # Dump data of consumer group to a file
   ${kafkacmd} --bootstrap-server "${bootstrap}" --describe --group "${group}" 2> /dev/null | grep -vE '^TOPIC' | sort > ${TEMPFILE}
-  
+
   # kafka-conusmer-groups doesn't return proper exit conde on failure, check
   # file's content instead
   grep -Eq '^Error: ' ${TEMPFILE} && fail $(cat ${TEMPFILE})
@@ -96,28 +104,26 @@ main() {
   done
 
   # Check thresholds
-  for lag in ${lags[@]}
+  state=${STATE_OK}
+  for item in ${lags[@]}
   do
-    topic=$(echo ${lag} | awk -F# '{print $1}')
-    partition=$(echo ${lag} | awk -F# '{print $2}')
-    lag=$(echo ${lag} | awk -F# '{print $3}')
+    topic=$(echo ${item} | awk -F# '{print $1}')
+    partition=$(echo ${item} | awk -F# '{print $2}')
+    lag=$(echo ${item} | awk -F# '{print $3}')
     if [ ${lag} -le ${warn} ] && [ ${lag} -le ${crit} ]
     then
-      state=${STATE_OK}
+      state=${state}
     elif [ ${lag} -gt ${warn} ] && [ ${lag} -le ${crit} ]
     then
+      echo "${topic} topic's lag: ${lag}"
       state=${STATE_WARNING}
     else
+      echo "${topic} topic's lag: ${lag}"
       state=${STATE_CRITICAL}
-    fi
-    if [ ${state} -ne ${STATE_OK} ]
-    then
-      echo "Partition ${partition} of ${topic} topic lag: ${lag}"
-    else
-      echo "Lag within normal limits"
     fi
   done
 
+  [ ${state} -eq ${STATE_OK} ] && echo 'Lag within normal limits'
   exit ${state}
 }
 
