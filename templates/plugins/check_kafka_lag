@@ -87,7 +87,7 @@ check_arguments() {
 # Main function
 main() {
   # Dump data of consumer group to a file
-  ${kafkacmd} --bootstrap-server "${bootstrap}" --describe --group "${group}" 2> /dev/null | grep -vE '^TOPIC' | sort > ${TEMPFILE}
+  ${kafkacmd} --bootstrap-server "${bootstrap}" --describe --group "${group}" 2> /dev/null | grep -vE '^TOPIC' | sort -V > ${TEMPFILE}
 
   # kafka-conusmer-groups doesn't return proper exit conde on failure, check
   # file's content instead
@@ -115,10 +115,10 @@ main() {
       state=${state}
     elif [ ${lag} -gt ${warn} ] && [ ${lag} -le ${crit} ]
     then
-      echo "${topic} topic's lag: ${lag}"
+      echo -n "${topic} topic's lag: ${lag} "
       state=${STATE_WARNING}
     else
-      echo "${topic} topic's lag: ${lag}"
+      echo -n "${topic} topic's lag: ${lag} "
       state=${STATE_CRITICAL}
     fi
   done
