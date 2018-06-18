@@ -1,0 +1,329 @@
+#!/usr/bin/env bash
+# Written by Rudy Broersma, Duocast BV <r.broersma@duocast.nl>
+# NVMe functionality added by Lukas de Boer <lukas@luqq.nl>
+#
+# This script needs work:
+# We assume Samsung SSDs or Intel SSDs
+# We assume 'Wear_Leveling_Count' or 'Media_Wearout_Indicator' (can be different for different manufacturers)
+#
+# According to http://www.anandtech.com/show/8239/update-on-samsung-850-pro-endurance-vnand-die-size
+# a drive should continue to work fine even when the value reaches 0, because:
+# "according to JEDEC spec the P/E cycle rating is with one-year data retention,
+# meaning that there can still be plenty of life left."
+#
+# I purposely set the values to 90 (warning) and 80 (critical) to get very early warnings
+# to see if this check works okay. We can later set it to reasonable values such as 1
+# and 10
+#
+# WARNING: Block devices naming scheme is dependent on device creation time.
+# so, if you create a new RAID array on an already running system there is the possibility
+# that eg. sda becomes sdb. If this is the case, you need to reboot in order for this
+# script to work properly.
+#
+# ChangeLog:
+# Version       Change
+# 1.0           Initial release
+# 1.1           Support for multiple LSI controllers
+# 1.2           Correctly identify which blockdevice (/dev/sdX) belongs to which controller
+# 1.3           Replace lsblk -S with lsscsi. -S flag on lsblk is not available on Wheezy
+# 1.4           Add support for NVMe disks
+# 1.5           Bugfix: Actually run checkTooling before using the tools that needs checking
+# 1.6:          Add performance data, fix issues with non standar lsi cards, several fixes and extra options. Check changelog
+
+VERSION="1.6"
+
+STORCLIBIN="/usr/sbin/storcli"
+TWAREBIN="/usr/sbin/tw_cli"
+BC="/usr/bin/bc"
+SMARTCTLBIN="/usr/sbin/smartctl"
+NVMECLIBIN="/usr/sbin/nvme"
+LSBLK="/bin/lsblk"
+
+MESSAGE=""
+PERF_DATA=""
+EXITCODE=0
+PREFIX="SSD OK"
+TESTMODE=0
+DEBUG=0
+HAS_SSD=0
+BRAND="SAMSUNG\|INTEL"
+WARNING=10
+CRITICAL=5
+NOSSD=0
+
+# Declare as arrays
+declare -A CONTROLLERS
+declare -A BLOCKDEVICE
+declare -A DIDLIST
+
+# Parse commandline parameters
+for i in "$@"
+do
+case $i in
+    -W=*|--warning=*)
+    WARNING="${i#*=}"
+    shift
+    ;;
+    -C=*|--critical=*)
+    CRITICAL="${i#*=}"
+    shift
+    ;;
+    -c=*|--card=*)
+    CARD="${i#*=}"
+    shift # past argument=value
+    ;;
+    -d=*|--device=*)
+    DEVICE="${i#*=}"
+    shift # past argument=value
+    ;;
+    -b=*|--brand=*)
+    BRAND="${i#*=}"
+    BRAND="${BRAND^^}"
+    shift
+    ;;
+    -s=*|--storcli=*)
+    STORCLIBIN="${i#*=}"
+    shift # past argument=value
+    ;;
+    -h|--help)
+    echo -e "check_ssd - version $VERSION.\n\nThis tool can be used to check the life expectancy of a SSD drive by checking wear leveling indicators using smartmontools."
+    echo -e "You can specify the following parameters:\n\n"
+    echo -e "-W=,  --warning=           Set the warning threshold of the check. Default is 40."
+    echo -e "-C=,  --critical=          Set the critical threshold of the check. Default is 20."
+    echo -e ""
+    echo -e "-c=,  --card=              Instead of autodetecting using lspci, set the card type. We accept \"lsi\", \"3ware\" and \"auto\" for now. Auto is autodetect"
+    echo -e "-d=,  --device=            The blockdevice we should use for calling smartmontools. Can be any blockdevice in /dev, but is driver specific"
+    echo -e "-b=,  --brand=             The brand of SSD to search for. We accept \"samsung\" and \"intel\""
+    echo -e ""
+    echo -e "-d,   --debug              Enable debug output"
+    echo -e "-t,   --test               Only test if there are SSDs present in the system. exits with 0 when found, 1 if not"
+    echo -e "-s=,  --storcli=           Add a custom path for storcli binary."
+    echo -e "-n,   --nossd              Not having SSD is OK."
+    echo -e "-h,   --help               Show what you are reading now!"
+    echo -e "-v,   --version            Show version"
+    echo -e "\n\n"
+    exit;
+    ;;
+    -t|--test)
+    TESTMODE=1
+    ;;
+    -n|--nossd)
+    NOSSD=1
+    ;;
+    -d|--debug)
+    DEBUG=1
+    ;;
+    -v|--version)
+    echo $VERSION
+    exit
+    ;;
+    *)
+            # unknown option
+    ;;
+esac
+done
+# End parsing parameters
+
+function searchController {
+  if [ ! -f $LSBLK ]; then echo "UNKNOWN: lsblk not found"; exit 4; fi
+
+  if [ -z ${CARD+X} ]; then
+    # Check for local devices
+    LOCAL_SSD=`$LSBLK -d -o name,rota | /usr/bin/awk '$2 == 0' | wc -l`
+    if [ $LOCAL_SSD -gt 0 ];
+    then
+      CONTROLLER="auto"
+    else
+      CONTROLLER=`lspci | grep RAID`
+    fi
+  else
+    CONTROLLER=${CARD,,} #,, means lowercase
+  fi
+}
+
+function checkTooling {
+  case ${CONTROLLER,,} in
+    *lsi*)
+      if [ ! -f $STORCLIBIN ]; then
+        echo "UNKNOWN: storcli tool not found";
+        exit 4;
+      else
+        STORCLI="/usr/bin/sudo $STORCLIBIN"
+      fi
+      ;;
+    *3ware*)
+      if [ ! -f $TWAREBIN ];
+        then echo "UNKNOWN: tw_cli tool not found";
+        exit 4;
+      else
+        TWARE="/usr/bin/sudo $TWAREBIN"
+      fi
+      ;;
+  esac
+
+  # Only check for nvme-cli if we have nvme-cli
+  LOCAL_NVME=`$LSBLK -d -o name,rota | /usr/bin/awk '$2 == 0' | grep nvme | wc -l`
+  if [ $LOCAL_NVME -gt 0 ];
+  then
+    if [ ! -f $NVMECLIBIN ]; then
+      echo "UNKNOWN: nvme-cli not found";
+      exit 4;
+    else
+      NVMECLI="/usr/bin/sudo $NVMECLIBIN"
+    fi
+  fi
+
+  if [ ! -f $SMARTCTLBIN ]; then
+    echo "UNKNOWN: smartctl not found";
+    exit 4;
+  else
+    SMARTCTL="/usr/bin/sudo $SMARTCTLBIN"
+  fi
+  if [ ! -f $BC ]; then echo "UNKNOWN: bc not found"; exit 4; fi
+}
+
+function getDIDlist {
+  case ${CONTROLLER,,} in
+    *lsi*)
+      if [ $DEBUG -eq 1 ]; then echo "LSI/AVAGO controller detected"; fi;
+      DRIVER="megaraid"
+      ITERATE=0
+      for c in `${STORCLI} show | egrep "^  [0-9]" | awk '{ print $1 }'`; do
+        CONTROLLERS[$ITERATE]=$c
+        BLOCKDEVICE[$ITERATE]=`lsscsi -w $c:*:*:*|awk '{print $NF}'|tail -1`
+        DIDLIST[$ITERATE]=`$STORCLI /c$ITERATE show | grep SSD | awk '{ print $2 }'`
+        if [ $DEBUG -eq 1 ]; then echo "Found controller #${CONTROLLERS[$ITERATE]} with associated blockdevice ${BLOCKDEVICE[$ITERATE]}"; fi;
+
+        ITERATE=$((ITERATE + 1))
+      done
+
+      # This check is added to servers with a controller, the tool might not be the correct one
+      if [ $ITERATE -eq 0 ]; then
+        echo "UNKNOWN: Unknown controller or no controller found. Please check your vendor for the proper version of storcli."
+        exit 4
+      fi
+    ;;
+    *3ware*)
+      if [ $DEBUG -eq 1 ]; then echo "3ware controller detected"; fi;
+      DRIVER="3ware"
+      TWARE_CID=`$TWARE show | grep ^c | awk '{ print $1 }' | head --lines 1`
+
+      CONTROLLERS[0]=0
+      BLOCKDEVICE[0]="/dev/twl0" # # This seems to be the proper device regardless of which unit (and thus device name) the drive belongs too
+      DIDLIST[0]=`$TWARE /$TWARE_CID show | grep "$BRAND" | awk '{ print $1 }' | sed "s/p//g"`
+    ;;
+    *auto*)
+      if [ $DEBUG -eq 1 ]; then echo "auto controller detected"; fi;
+      DRIVER="auto"
+
+      CONTROLLERS[0]=0
+      BLOCKDEVICE[0]=`$LSBLK -d -o name,rota | grep "$DEVICE" | /usr/bin/awk '$2 == 0 { print "/dev/"$1 }'`
+      DIDLIST[0]=`$LSBLK -d -o name,rota | grep "$DEVICE" | /usr/bin/awk '$2 == 0 { print "/dev/"$1 }'`
+    ;;
+    *)
+      echo "UNKNOWN: Unknown controller or no controller found"
+      exit 4
+    ;;
+  esac
+}
+
+
+function hasSSDs {
+  CONTROLLERCOUNT=${#CONTROLLERS[@]}
+  if [ $DEBUG -eq 1 ]; then echo "Found $CONTROLLERCOUNT controllers"; fi;
+  for i in `seq 0 $((CONTROLLERCOUNT - 1))`
+  do
+    if [ `echo ${DIDLIST[$i]} | sed '/^\s*$/d' | wc -l` -ne 0 ]; then
+      if [ $DEBUG -eq 1 ]; then echo "Found SSD disk on controller $i"; fi;
+      HAS_SSD=1
+    else
+      if [ $DEBUG -eq 1 ]; then echo "Found no disk(s) on controller $i"; fi;
+    fi
+  done
+}
+
+function checkDID () {
+  if [ $DEBUG -eq 1 ]; then echo "Checking DID on controller $1"; fi
+
+  DIDLIST_CUR="${DIDLIST[$1]}"
+  for d in $(echo $DIDLIST_CUR)
+  do
+      if [ $DEBUG -eq 1 ]; then echo "Checking DID number $d on controller $1 with driver $DRIVER"; fi
+      if [ "$DRIVER" = "auto" ]; then
+        if [[ $d =~ ^/dev/nvme.* ]]; then
+                VALUE=`echo \`$NVMECLI smart-log-add $d | grep "^wear_leveling" | tr -d '%' | awk '{ print $3 }'\` + 0 | bc`
+        else
+                VALUE=`echo \`$SMARTCTL -A -d auto $d | grep "^177\|^233" | head -n1 |awk '{ print $4 }'\` + 0 | bc`
+        fi
+      else
+        VALUE=`echo \`$SMARTCTL -A -d $DRIVER,$d ${BLOCKDEVICE[$1]} | grep "^177\|^233" | head -n1 | awk '{ print $4 }'\` + 0 | bc`
+      fi
+
+      if [ ${VALUE} -lt ${CRITICAL} ]; then
+        MESSAGE+="Drive $d on $1 CRITICAL WLC/MWI ($VALUE). "
+        EXITCODE=2
+        PREFIX="SSD CRITICAL"
+      elif [ ${VALUE} -lt ${WARNING} ]; then
+        MESSAGE+="Drive $d on $1 MEDIUM WLC/MWI ($VALUE). "
+        if [ "$EXITCODE" -eq "0" ]; then
+          EXITCODE=1
+          PREFIX="SSD WARNING"
+        fi
+      else
+        MESSAGE+="Drive $d on $1 WLC/MWI $VALUE. "
+      fi
+      # ADD PERF DATA
+      PERF_DATA+="Drive_${1}_${d}=$VALUE, "
+  done
+}
+
+function checkSSDs {
+    for CONTROLLER_SEQ in `seq 0 $(($CONTROLLERCOUNT - 1))`
+    do
+      if [ $DEBUG -eq 1 ]; then echo "Checking controller $CONTROLLER_SEQ"; fi
+      if [ -z "${DIDLIST[$CONTROLLER_SEQ]}" ];
+      then
+        if [ $DEBUG -eq 1 ]; then echo "Controller $CONTROLLER_SEQ has no SSDs"; fi
+      else
+        if [ $DEBUG -eq 1 ]; then echo "Controller $CONTROLLER_SEQ does have SSDs"; fi
+        checkDID "$CONTROLLER_SEQ"
+      fi
+    done
+}
+
+searchController
+checkTooling
+getDIDlist
+hasSSDs
+
+if [ $TESTMODE -eq 1 ];
+then
+  if [ $HAS_SSD -eq 0 ];
+  then
+    if [ $DEBUG -eq 1 ]; then echo "No SSDs found in the system on controller $CONTROLLER"; fi;
+    exit 1
+  else
+    if [ $DEBUG -eq 1 ]; then echo "SSDs found in the system on controller $CONTROLLER"; fi;
+    exit 0
+  fi
+else
+  if [ $HAS_SSD -ne 0 ];
+  then
+    checkSSDs
+  else
+    MESSAGE="No SSDs found in this system on controller $CONTROLLER"
+    if [ $NOSSD -eq 1 ]; then
+      EXITCODE=0
+      PREFIX="OK"
+    else
+      EXITCODE=4
+      PREFIX="UNKNOWN"
+    fi
+  fi
+
+  MESSAGE="$PREFIX: ($DRIVER) $MESSAGE | $PERF_DATA"
+  echo -e $MESSAGE
+  exit $EXITCODE
+
+fi
+

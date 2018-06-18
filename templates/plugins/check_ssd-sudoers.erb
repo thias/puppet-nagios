@@ -1,0 +1,5 @@
+Defaults !requiretty
+<%= scope['nagios::client::nrpe_user'] %> ALL = (root) NOPASSWD: /usr/sbin/storcli
+<%= scope['nagios::client::nrpe_user'] %> ALL = (root) NOPASSWD: /usr/sbin/smartctl
+<%= scope['nagios::client::nrpe_user'] %> ALL = (root) NOPASSWD: /usr/sbin/nvme
+<%= scope['nagios::client::nrpe_user'] %> ALL = (root) NOPASSWD: /usr/sbin/tw_cli

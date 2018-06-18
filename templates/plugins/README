@@ -37,3 +37,5 @@ check_krb5: http://www.spock.org/download/check_krb5
 check_es_*: https://github.com/stack72/nagios-elasticsearch
 
 nagioscheck.py: https://github.com/PeerJ/pynagioscheck # Required by elascsearch checks.
+
+check_ssd: https://github.com/forgodssake/check_ssd
