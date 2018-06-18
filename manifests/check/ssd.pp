@@ -1,8 +1,8 @@
 class nagios::check::ssd (
   $ensure                   = undef,
   $args                     = '',
-  $package                  = [ 'bc', 'smartmontools', 'lsscsi' ],
-  $vendor_package           =  undef,
+  $package                  = [ 'bc', 'smartmontools', 'pciutils', 'lsscsi' ],
+  $vendor_package           = undef,
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
@@ -12,6 +12,7 @@ class nagios::check::ssd (
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
 ) {
+
   # Install vendor specific package of storcli
   if $ensure != 'absent' {
     if $vendor_package {
@@ -34,9 +35,9 @@ class nagios::check::ssd (
   }
 
   nagios::client::nrpe_plugin { 'check_ssd':
-    ensure   => $ensure,
+    ensure  => $ensure,
     # Main LSI package and command, used by the check script
-    package  => $package,
+    package => $package,
   }
 
   nagios::client::nrpe_file { 'check_ssd':
@@ -56,4 +57,5 @@ class nagios::check::ssd (
     max_check_attempts       => $max_check_attempts,
     use                      => $use,
   }
+
 }
