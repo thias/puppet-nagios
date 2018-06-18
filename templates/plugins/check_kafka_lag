@@ -1,0 +1,132 @@
+#!/bin/bash
+
+#
+# The script connects to given bootstrap Kafka server (Kafka broker) and gets
+# lag information from given consumer group. If the lag is not within given
+# thresholds, WARNING or CRITICAL is triggered. If consumer group consumes from
+# multiple topics, the script will check lag for each topic separately and
+# triggers alarm if lag was detected on any of the topics.
+#
+
+PROGNAME=$(basename $0)
+PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+
+. $PROGPATH/utils.sh
+
+# Default variables
+KAFKACMD='/bin/kafka-consumer-groups'
+WARN=10000
+CRIT=30000
+
+TEMPFILE=$(mktemp)
+
+# Trap to clean up on exit
+trap "rm -rf ${TEMPFILE}" EXIT
+
+# Functions
+# Prints usage
+usage() {
+  echo "Usage: $(basename $0) -g <group> -b <address> [-k <path>] [-w <warning>] [-c <critical>] [-h]"
+  echo
+  echo -e "\t-g <group>\tConsumer group to check (mandatory)"
+  echo -e "\t-b <address>\tBootstrap server address to use, must be in host:port format (mandatory)"
+  echo -e "\t-k <path>\tPath to kafka-consumer-groups binary (default: /bin/kafka-consumer-groups)"
+  echo -e "\t-w <warning>\twarning threshold (offset lag, default: 10000)"
+  echo -e "\t-c <critical>\tcritical threshold (offset lag, default: 30000)"
+  echo -e "\t-h\t\tDisplay this help message"
+  exit ${STATE_UNKNOWN}
+}
+
+# Prints give message and exit with proper code
+fail() {
+  local msg="$@"
+  echo $msg 1>&2
+  exit ${STATE_UNKNOWN}
+}
+
+# Parses and validates passed arguemnts
+check_arguments() {
+  kafkacmd=${KAFKACMD}
+  warn=${WARN}
+  crit=${CRIT}
+  while getopts ":hg:b:k:w:c:" opt; do
+      case $opt in
+          h )
+             usage
+             ;;
+          g )
+             group=${OPTARG}
+             ;;
+          b )
+             bootstrap=${OPTARG}
+             ;;
+          k )
+             kafkacmd=${OPTARG}
+             ;;
+          w )
+             warn=${OPTARG}
+             ;;
+          c )
+             crit=${OPTARG}
+             ;;
+          \?)
+             fail "Invalid option: -${OPTARG}."
+             ;;
+          : )
+             fail "Option -"${OPTARG}" requires an argument."
+             ;;
+          * )
+             usage
+             ;;
+      esac
+  done
+  [ -z ${group} ] && usage
+  [ -z ${bootstrap} ] && usage
+}
+
+# Main function
+main() {
+  # Dump data of consumer group to a file
+  ${kafkacmd} --bootstrap-server "${bootstrap}" --describe --group "${group}" 2> /dev/null | grep -vE '^TOPIC' | sort -V > ${TEMPFILE}
+
+  # kafka-conusmer-groups doesn't return proper exit conde on failure, check
+  # file's content instead
+  grep -Eq '^Error: ' ${TEMPFILE} && fail $(cat ${TEMPFILE})
+
+  # Iterate over topics and find partition with largest lag per topic
+  lags=()
+  for topic in $(awk '{print $1}' ${TEMPFILE} | uniq)
+  do
+    worst_line=$(grep -E "^${topic}" ${TEMPFILE} | sort -n -k 5 | tail -1)
+    partition=$(echo ${worst_line} | awk '{print $2}')
+    lag=$(echo ${worst_line} | awk '{print $5}')
+    lags+=("${topic}#${partition}#${lag}")
+  done
+
+  # Check thresholds
+  state=${STATE_OK}
+  for item in ${lags[@]}
+  do
+    topic=$(echo ${item} | awk -F# '{print $1}')
+    partition=$(echo ${item} | awk -F# '{print $2}')
+    lag=$(echo ${item} | awk -F# '{print $3}')
+    if [ ${lag} -le ${warn} ] && [ ${lag} -le ${crit} ]
+    then
+      state=${state}
+    elif [ ${lag} -gt ${warn} ] && [ ${lag} -le ${crit} ]
+    then
+      echo -n "${topic} topic's lag: ${lag} "
+      state=${STATE_WARNING}
+    else
+      echo -n "${topic} topic's lag: ${lag} "
+      state=${STATE_CRITICAL}
+    fi
+  done
+
+  [ ${state} -eq ${STATE_OK} ] && echo 'Lag within normal limits'
+  exit ${state}
+}
+
+# Main part starts here
+check_arguments $@
+main
