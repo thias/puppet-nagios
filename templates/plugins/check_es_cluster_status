@@ -20,7 +20,7 @@ class ESClusterHealthCheck(NagiosCheck):
         self.add_option('P', 'port', 'port', 'The ES port - defaults to 9200')
 
     def check(self, opts, args):
-        host = opts.host
+        host = opts.host or 'localhost'
         port = int(opts.port or '9200')
 
         try:
