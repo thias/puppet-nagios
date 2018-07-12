@@ -29,7 +29,7 @@ class ESJVMHealthCheck(NagiosCheck):
                         ' - defaults to 90% of the JVM setting')
 
     def check(self, opts, args):
-        host = opts.host
+        host = opts.host or 'localhost'
         port = int(opts.port or '9200')
         node = opts.node
         critical = int(opts.critical_threshold or '97')
