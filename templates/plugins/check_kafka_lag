@@ -110,7 +110,11 @@ main() {
     topic=$(echo ${item} | awk -F# '{print $1}')
     partition=$(echo ${item} | awk -F# '{print $2}')
     lag=$(echo ${item} | awk -F# '{print $3}')
-    if [ ${lag} -le ${warn} ] && [ ${lag} -le ${crit} ]
+    if [[ ! ${lag} =~ ^[0-9]+$ ]] || [ -z ${lag} ]
+    then
+      echo -n "${topic} topic's lag: unknown "
+      state=${STATE_UNKNOWN}
+    elif [ ${lag} -le ${warn} ] && [ ${lag} -le ${crit} ]
     then
       state=${state}
     elif [ ${lag} -gt ${warn} ] && [ ${lag} -le ${crit} ]
