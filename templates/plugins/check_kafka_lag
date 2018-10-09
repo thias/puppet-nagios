@@ -91,7 +91,7 @@ check_arguments() {
 # Main function
 main() {
   # Dump data of consumer group to a file
-  ${kafkacmd} --bootstrap-server "${bootstrap}" --describe --group "${group}" 2> /dev/null | grep -vE '^TOPIC' | sort -V > ${TEMPFILE}
+  ${kafkacmd} --bootstrap-server "${bootstrap}" --describe --group "${group}" 2> /dev/null | grep -vE '^TOPIC' | sort -V > ${TEMPFILE} || exit ${STATE_UNKNOWN}
 
   # kafka-conusmer-groups doesn't return proper exit conde on failure, check
   # file's content instead
