@@ -38,6 +38,7 @@ class nagios::client (
   $host_use                         = getvar('::nagios_host_use'),
   # service defaults (hint: use host_* or override only service_use
   # for efficiently affecting all services or all instances of a service)
+  $service_check_interval           = getvar('::nagios_service_check_interval'),
   $service_check_period             = getvar('::nagios_service_check_period'),
   $service_contact_groups           = getvar('::nagios_service_contact_groups'),
   $service_first_notification_delay = getvar('::nagios_service_first_notification_delay'),
