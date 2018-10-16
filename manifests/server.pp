@@ -980,6 +980,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_ssd':
     command_line => "${nrpe} -c check_ssd",
   }
+  nagios_command { 'check_nrpe_tls_files':
+    command_line => "${nrpe} -c check_tls_files",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg

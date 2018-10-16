@@ -1,0 +1,147 @@
+#!/usr/bin/python
+
+import OpenSSL
+import os
+import datetime
+import argparse
+import re
+
+def getSubject(subj):
+    subj_name = []
+
+    if subj.O:
+        subj_name.append('O=' + subj.O)
+
+    if subj.CN:
+        subj_name.append('CN=' + subj.CN)
+
+    return ','.join(subj_name)
+
+# Return prefix plus as much possible items without exceeding the limit of bytes.
+def getTrunkatedOutput(prefix, item_list, limit):
+    # We'll save items to be added in an array and later join all the items
+    items_add = []
+
+    # Caluclate the bytes left based on limit minus prefix size
+    bytes_left = limit - len(prefix)
+
+    for i in item_list:
+        # Check if we can add the item with a comma and a space
+        if len(i) + 2 < bytes_left:
+            items_add.append(i)
+            bytes_left -= len(i)+2
+        else:
+            break
+
+    return prefix + ', '.join(items_add)
+
+## END of functions
+
+# Parse script arguments
+parser = argparse.ArgumentParser('Check expiration date of all certs in a folder and it\'s subfolders')
+parser.add_argument('-d','--directory',action='store', default='/etc/pki/tls/certs/', help="Folder to check for tls files.")
+parser.add_argument('-e','--exclude',action='store', nargs='+', default=[], help="List of files to exclude.")
+parser.add_argument('-eo','--exclude-o',action='store', nargs='+', default=[], help="List of subject O's to exclude. Wrap names that contain spaces with \".")
+parser.add_argument('-ecn','--exclude-cn',action='store', nargs='+', default=[], help="List of subject CN's to exclude. Wrap names that contain spaces with \".")
+parser.add_argument('-lo','--limit-output',action='store', type=int, default=1024, help="Limit output of plugin to X bytes.")
+parser.add_argument('-c', '--critical', action='store', type=int, default=7,
+                    help="Sets critical threshold in days.")
+parser.add_argument('-w', '--warning', action='store', type=int, default=15,
+                    help="Sets warning threshold in days.")
+
+args = parser.parse_args()
+
+# Basic sanity check
+if args.critical > args.warning:
+    print 'CRITICAL - Critical threshold can\'t be higher than warning.'
+    exit(2)
+
+# Create warning and critical datetimes
+date_expiracy_warning = datetime.datetime.now() + datetime.timedelta(days=args.warning)
+date_expiracy_critical = datetime.datetime.now() + datetime.timedelta(days=args.critical)
+
+# Create warning and critical certs list
+warning_certs = []
+critical_certs = []
+
+# Arrays to save errors loading certs
+e_load_certs = []
+e_io_certs = []
+
+# Get the list of certificates
+onlyfiles = [ f for f in os.listdir(args.directory) if (f not in args.exclude and os.path.isfile(os.path.join(args.directory, f)))]
+
+for cert_filename in onlyfiles:
+    # Get the file content
+    try:
+        with open(os.path.join(args.directory,cert_filename), 'r') as f:
+            cert_data = f.read()
+    except IOError:
+        e_io_certs.append(cert_filename)
+        continue
+
+    certs_splitted = re.split('-+END CERTIFICATE-+', cert_data)
+
+    cert_id = 0
+    # Iterate through all found certs
+    for cer in certs_splitted:
+        # Check if this part is a cert
+        if cer.strip() == '':
+            continue
+
+        # Recreate the cert, the last line was lost due to the split
+        real_cert = cer + '-----END CERTIFICATE-----'
+
+        # Try to load the certificate
+        try:
+            cert = OpenSSL.crypto.load_certificate(OpenSSL.crypto.FILETYPE_PEM, real_cert)
+        except OpenSSL.crypto.Error:
+            e_load_certs.append(cert_filename+':'+str(cert_id))
+            continue
+
+        # Check if the subject of the cert needs to be excluded
+        subj = cert.get_subject()
+
+        if subj.O in args.exclude_o:
+            continue
+        if subj.CN in args.exclude_cn:
+            continue
+
+        date_expiracy = datetime.datetime.strptime(cert.get_notAfter(), "%Y%m%d%H%M%SZ")
+
+        # Critical found, don't need to check for warning
+        if date_expiracy < date_expiracy_critical:
+            critical_certs.append(getSubject(subj))
+            continue
+
+        if date_expiracy < date_expiracy_warning:
+            warning_certs.append(getSubject(subj))
+
+        # Increase the cert_id counter
+        cert_id += 1
+
+error_txt = ''
+# Errors found during certs analysis
+if len(e_io_certs) > 0:
+    error_txt += 'IO errors while reading the following certs. {0}.\n '.format(','.join(e_io_certs))
+if len(e_load_certs) > 0:
+    error_txt += 'Issues found while trying to load the following certs. {0}.\n '.format(','.join(e_load_certs))
+
+if error_txt != '':
+    print 'CRITICAL - {0}'.format(error_txt)
+    exit(2)
+
+# Check for critical or warning certs
+if len(critical_certs) > 0:
+    error_txt = 'CRITICAL - There are {0} certs that will expire in less than {1} days. '.format(
+        len(critical_certs), args.critical)
+    print getTrunkatedOutput(error_txt,critical_certs,args.limit_output)
+    exit(2)
+elif len(warning_certs) > 0:
+    error_txt = 'WARNING - There are {0} certs that will expire in less than {1} days. '.format(
+        len(warning_certs), args.warning)
+    print getTrunkatedOutput(error_txt, warning_certs, args.limit_output)
+    exit(1)
+else:
+    print 'OK'
+    exit(0)
