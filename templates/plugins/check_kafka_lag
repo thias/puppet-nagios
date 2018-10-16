@@ -8,13 +8,22 @@
 # triggers alarm if lag was detected on any of the topics.
 #
 
+set -eo pipefail
+
 PROGNAME=$(basename $0)
 PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
 
 . $PROGPATH/utils.sh
 
+fail() {
+  local msg="$@"
+  echo $msg 1>&2
+  exit ${STATE_UNKNOWN}
+}
+
 # Default variables
-KAFKACMD='/bin/kafka-consumer-groups'
+KAFKACMD=$(which kafka-consumer-groups 2>/dev/null || \
+  fail "Required kafka-consumer-groups command not found.")
 WARN=10000
 CRIT=30000
 
@@ -34,13 +43,6 @@ usage() {
   echo -e "\t-w <warning>\twarning threshold (offset lag, default: 10000)"
   echo -e "\t-c <critical>\tcritical threshold (offset lag, default: 30000)"
   echo -e "\t-h\t\tDisplay this help message"
-  exit ${STATE_UNKNOWN}
-}
-
-# Prints give message and exit with proper code
-fail() {
-  local msg="$@"
-  echo $msg 1>&2
   exit ${STATE_UNKNOWN}
 }
 
@@ -80,14 +82,16 @@ check_arguments() {
              ;;
       esac
   done
-  [ -z ${group} ] && usage
-  [ -z ${bootstrap} ] && usage
+  if [ -z ${group} ] || [ -z ${bootstrap} ]
+  then
+    usage
+  fi
 }
 
 # Main function
 main() {
   # Dump data of consumer group to a file
-  ${kafkacmd} --bootstrap-server "${bootstrap}" --describe --group "${group}" 2> /dev/null | grep -vE '^TOPIC' | sort -V > ${TEMPFILE}
+  ${kafkacmd} --bootstrap-server "${bootstrap}" --describe --group "${group}" 2> /dev/null | grep -vE '^TOPIC' | sort -V > ${TEMPFILE} || exit ${STATE_UNKNOWN}
 
   # kafka-conusmer-groups doesn't return proper exit conde on failure, check
   # file's content instead
