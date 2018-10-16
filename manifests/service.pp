@@ -11,6 +11,7 @@ define nagios::service (
   $host_name                = $nagios::client::host_name,
   $service_description      = $name,
   $servicegroups            = undef,
+  $check_interval           = $nagios::client::service_check_interval,
   $check_period             = $nagios::client::service_check_period,
   $contact_groups           = $nagios::client::service_contact_groups,
   $first_notification_delay = $nagios::client::service_first_notification_delay,
@@ -20,6 +21,11 @@ define nagios::service (
 ) {
 
   # Work around being passed undefined variables resulting in ''
+  $final_check_interval = $check_inteval ? {
+    ''      => $nagios::client::service_check_interval,
+    undef   => $nagios::client::service_check_interval,
+    default => $check_interval,
+  }
   $final_check_period = $check_period ? {
     ''      => $nagios::client::service_check_period,
     undef   => $nagios::client::service_check_period,
@@ -49,6 +55,7 @@ define nagios::service (
     check_command            => $check_command,
     service_description      => $service_description,
     servicegroups            => $servicegroups,
+    check_interval           => $check_interval,
     check_period             => $final_check_period,
     contact_groups           => $contact_groups,
     first_notification_delay => $first_notification_delay,
