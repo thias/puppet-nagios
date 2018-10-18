@@ -662,7 +662,7 @@ behavior may be changed using '-p' parameter of the check script.
 nagios::check::kafka::args: '-p 1'
 ```
 
-By default 'localhost:9092' is used as a broker list, but it may be controlled:
+By default `localhost:9092` is used as a broker list, but it may be controlled:
 
 ```yaml
 nagios::check::kafka::brokers:
