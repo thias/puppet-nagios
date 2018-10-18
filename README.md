@@ -656,7 +656,7 @@ nagios::check::kafka::topic: 'nagios'
 ```
 
 By default, random partition of the above topic is used on each run, but this
-behavior may be changed using '-p' parameter of the check script.
+behavior may be changed using `-p` parameter of the check script.
 
 ```yaml
 nagios::check::kafka::args: '-p 1'
