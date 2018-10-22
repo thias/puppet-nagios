@@ -21,7 +21,7 @@ class nagios::check::kafka (
   }
   if $args !~ /-B/ and $args !~ /--brokers/ and $brokers != undef {
     $brokers_final = join($brokers, ',')
-    $arg_b = "-B ${brokers_final}"
+    $arg_b = "-B ${brokers_final} "
   } else {
     $arg_b = ''
   }
