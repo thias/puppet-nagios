@@ -646,6 +646,30 @@ nagios::check::elasticsearch::args_jvm_usage: '-N 10.0.0.1 -C 90 -W 80'
 nagios::check::elasticsearch::args_nodes: '-E 5' # Expected nodes in cluester
 ```
 
+## Kafka
+
+Kafka monitoring checks producing to and consuming from specific Kafka topic,
+which can be set from hiera:
+
+```yaml
+nagios::check::kafka::topic: 'nagios'
+```
+
+By default, random partition of the above topic is used on each run, but this
+behavior may be changed using `-p` parameter of the check script.
+
+```yaml
+nagios::check::kafka::args: '-p 1'
+```
+
+By default `localhost:9092` is used as a broker list, but it may be controlled:
+
+```yaml
+nagios::check::kafka::brokers:
+  - '1.1.1.1:9093'
+  - '1.1.1.2:9093'
+```
+
 ## Custom (NRPE) services / NRPE files / NRPE plugins
 
 If you want to define a custom service (non-NRPE) without modifying module code:

@@ -983,6 +983,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_tls_files':
     command_line => "${nrpe} -c check_tls_files",
   }
+  nagios_command { 'check_nrpe_kafka':
+    command_line => "${nrpe} -c check_kafka",
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
