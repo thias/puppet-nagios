@@ -1,3 +1,4 @@
+#### 2018-10-31 - 2.0.0
 * Restart service after resources are purged (#79, @vchepkov).
 * Add check_mdraid for Linux MD RAID (#81, @yevtushenko).
 * Remove problematic and no longer needed messages.nrpe line.
@@ -16,6 +17,9 @@
 * Add host/service escalation rules support (#116, @eceglov).
 * Add ElasticSearch support (#121, @edupr91).
 * Add SSD wear check (#125, @forgodssake).
+* Add option to set service check interval (#130, @forgodssake).
+* Add tls_files check (#131, @forgodssake).
+* Add Kafka check (#132, @lisuml).
 
 #### 2016-03-22 - 1.0.10
 * Include slack_plugin (#77, @lisuml).
