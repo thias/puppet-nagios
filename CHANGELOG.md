@@ -1,3 +1,5 @@
+* Fix nrpe with sudo and SELinux enforcing on RHEL 7.6.
+
 #### 2018-10-31 - 2.0.0
 * Restart service after resources are purged (#79, @vchepkov).
 * Add check_mdraid for Linux MD RAID (#81, @yevtushenko).
