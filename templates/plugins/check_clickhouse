@@ -196,7 +196,7 @@ check_replication() {
         ok_message="All tables have ${mode}=${active_replicas}"
         if [ $active_replicas -lt $total_replicas ]
         then
-          bad="${bad} ${db} ${table} ${mode}=${active_replicas} (!= ${total_replicas},"
+          bad="${bad} ${db} ${table} ${mode}=${active_replicas} (!= ${total_replicas}),"
           state=$STATE_CRITICAL
         fi
         ;;
