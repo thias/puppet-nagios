@@ -39,3 +39,5 @@ check_es_*: https://github.com/stack72/nagios-elasticsearch
 nagioscheck.py: https://github.com/PeerJ/pynagioscheck # Required by elascsearch checks.
 
 check_ssd: https://github.com/forgodssake/check_ssd
+
+check_service: https://github.com/jonschipp/nagios-plugins/blob/master/check_service.sh

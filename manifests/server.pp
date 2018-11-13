@@ -986,6 +986,11 @@ class nagios::server (
   nagios_command { 'check_nrpe_kafka':
     command_line => "${nrpe} -c check_kafka",
   }
+  # Collect virtual resources from check_service
+  Nagios_command <<| tag == 'service' |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
 
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
