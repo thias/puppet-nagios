@@ -15,7 +15,7 @@ avc:  denied  { getattr } for  pid=3055 comm="check_disk" path="/sys/fs/pstore" 
 # check_megaraid_sas
 avc:  denied  { getattr ioctl } for  pid=5800 comm="check_megaraid_" path="/usr/share/perl5/strict.pm" dev=sda1 ino=270154 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:usr_t:s0 tclass=file
 avc:  denied  { read open } for  pid=6349 comm="check_megaraid_" name="strict.pm" dev=sda1 ino=270154 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:usr_t:s0 tclass=file
-avc:  denied  { execute read open execute_no_trans } for  pid=7446 comm="check_megaraid_" name="sudo" dev=sda1 ino=140315 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:sudo_exec_t:s0 tclass=file
+avc:  denied  { getattr read open execute execute_no_trans } for  pid=7446 comm="check_megaraid_" name="sudo" dev=sda1 ino=140315 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:sudo_exec_t:s0 tclass=file
 avc:  denied  { sys_resource audit_write sys_admin } for  pid=9119 comm="sudo" capability=24  scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:system_r:nrpe_t:s0 tclass=capability
 avc:  denied  { create write nlmsg_relay read } for  pid=9710 comm="sudo" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:system_r:nrpe_t:s0 tclass=netlink_audit_socket
 avc:  denied  { read getattr open write } for  pid=10254 comm="MegaCli" name="megaraid_sas_ioctl_node" dev=devtmpfs ino=9682091 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:device_t:s0 tclass=chr_file
@@ -39,6 +39,14 @@ avc:  denied  { connectto } for  pid=3551 comm="check_mysql_hea" path="/var/lib/
 avc:  denied  { create write open getattr ioctl read } for  pid=22861 comm="check_mysql_hea" name="tmp" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:tmp_t:s0 tclass=file
 # check_postgres
 avc:  denied  { getattr } for  pid=22555 comm="sh" path="/usr/bin/sudo" dev="dm-0" ino=33753012 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:sudo_exec_t:s0 tclass=file
+avc:  denied  { read open execute execute_no_trans } for  pid=30244 comm="sudo" path="/usr/sbin/unix_chkpwd" dev="vda2" ino=33558464 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:chkpwd_exec_t:s0 tclass=file
+avc:  denied  { dac_override dac_read_search } for  pid=31856 comm="unix_chkpwd" capability=1  scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:system_r:nrpe_t:s0 tclass=capability
+avc:  denied  { read open getattr } for  pid=32565 comm="unix_chkpwd" name="shadow" dev="vda2" ino=1254462 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:shadow_t:s0 tclass=file
+avc:  denied  { read open lock } for  pid=1866 comm="sudo" name="utmp" dev="tmpfs" ino=10532 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:initrc_var_run_t:s0 tclass=file
+avc:  denied  { connectto } for  pid=1866 comm="sudo" path="/run/dbus/system_bus_socket" scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:system_r:system_dbusd_t:s0-s0:c0.c1023 tclass=unix_stream_socket
+avc:  denied  { send_msg } for msgtype=method_call interface=org.freedesktop.DBus member=Hello dest=org.freedesktop.DBus spid=8688 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:system_r:system_dbusd_t:s0-s0:c0.c1023 tclass=dbus  exe="/usr/bin/dbus-daemon" sauid=81 hostname=? addr=? terminal=?
+avc:  denied  { send_msg } for msgtype=method_call interface=org.freedesktop.login1.Manager member=CreateSession dest=org.freedesktop.login1 spid=9302 tpid=418 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:system_r:systemd_logind_t:s0 tclass=dbus  exe="/usr/bin/dbus-daemon" sauid=81 hostname=? addr=? terminal=?
+avc:  denied  { send_msg } for msgtype=method_return dest=:1.74871 spid=418 tpid=10217 scontext=system_u:system_r:systemd_logind_t:s0 tcontext=system_u:system_r:nrpe_t:s0 tclass=dbus  exe="/usr/bin/dbus-daemon" sauid=81 hostname=? addr=? terminal=?
 # check_moxi
 avc:  denied  { write } for  pid=31159 comm="socat" name="moxi.sock" dev=sda2 ino=917520 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:usr_t:s0 tclass=sock_file
 avc:  denied  { connectto } for  pid=31677 comm="socat" path="/opt/moxi/moxi.sock" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 tclass=unix_stream_socket
