@@ -42,7 +42,7 @@ define nagios::check::elasticsearch::mode (
   nagios::service { "check_elasticsearch_${mode}_${check_title}":
     ensure                   => $ensure_mode,
     check_command            => "check_nrpe_elasticsearch_${mode}",
-    service_description      => "elastichsearch_${mode}",
+    service_description      => "elasticsearch_${mode}",
     servicegroups            => $servicegroups,
     check_period             => $check_period,
     contact_groups           => $contact_groups,
