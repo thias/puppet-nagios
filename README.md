@@ -670,6 +670,15 @@ nagios::check::kafka::brokers:
   - '1.1.1.2:9093'
 ```
 
+## Services
+Check status of system services for Linux, FreeBSD, OSX, and AIX.
+
+Add the following on the client manifest:
+
+```puppet
+   nagios::check::service { 'foo_service': }
+```
+
 ## Custom (NRPE) services / NRPE files / NRPE plugins
 
 If you want to define a custom service (non-NRPE) without modifying module code:
