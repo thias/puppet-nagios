@@ -986,6 +986,34 @@ class nagios::server (
   nagios_command { 'check_nrpe_kafka':
     command_line => "${nrpe} -c check_kafka",
   }
+  nagios_command { 'check_nrpe_clickhouse_replication_future_parts':
+    command_line => "${nrpe} -c check_clickhouse_replication_future_parts",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_inserts_in_queue':
+    command_line => "${nrpe} -c check_clickhouse_replication_inserts_in_queue",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_is_readonly':
+    command_line => "${nrpe} -c check_clickhouse_replication_is_readonly",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_is_session_expired':
+    command_line => "${nrpe} -c check_clickhouse_replication_is_session_expired",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_log_delay':
+    command_line => "${nrpe} -c check_clickhouse_replication_log_delay",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_parts_to_check':
+    command_line => "${nrpe} -c check_clickhouse_replication_parts_to_check",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_queue_size':
+    command_line => "${nrpe} -c check_clickhouse_replication_queue_size",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_total_replicas':
+    command_line => "${nrpe} -c check_clickhouse_replication_total_replicas",
+  }
+  nagios_command { 'check_nrpe_clickhouse_replication_active_replicas':
+    command_line => "${nrpe} -c check_clickhouse_replication_active_replicas",
+  }
+
   # Collect virtual resources from check_service
   Nagios_command <<| tag == 'service' |>> {
     notify  => Service['nagios'],
@@ -1175,6 +1203,9 @@ class nagios::server (
   }
   nagios_servicegroup { 'zookeeper':
     alias => 'Zookeeper service checks',
+  }
+  nagios_servicegroup { 'clickhouse':
+    alias => 'ClickHouse service checks',
   }
 
   # With selinux, adjustements are needed for nagiosgraph
