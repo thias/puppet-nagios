@@ -72,6 +72,7 @@ class nagios::server (
   $notification_timeout  = '30',
   $ocsp_timeout          = '5',
   $perfdata_timeout      = '5',
+  $enable_notifications  = '1',
   # private/resource.cfg for $USERx$ macros (from 1 to 32)
   $user = {
     '1' => $::nagios::params::plugin_dir,
