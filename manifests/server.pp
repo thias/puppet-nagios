@@ -53,6 +53,7 @@ class nagios::server (
     '/etc/nagios/nagios_serviceescalation.cfg',
   ],
   $cfg_dir                        = [],
+  $cfg_template                   = $::nagios::params::cfg_template,
   $process_performance_data       = '0',
   $host_perfdata_command          = false,
   $service_perfdata_command       = false,
@@ -287,7 +288,7 @@ class nagios::server (
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    content => template($::nagios::params::cfg_template),
+    content => template($cfg_template),
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
