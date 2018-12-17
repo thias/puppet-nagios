@@ -21,7 +21,7 @@ define nagios::service (
 ) {
 
   # Work around being passed undefined variables resulting in ''
-  $final_check_interval = $check_inteval ? {
+  $final_check_interval = $check_interval ? {
     ''      => $nagios::client::service_check_interval,
     undef   => $nagios::client::service_check_interval,
     default => $check_interval,
