@@ -16,14 +16,15 @@ PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
 . $PROGPATH/utils.sh
 
 fail() {
-  local msg="$@"
-  echo $msg 1>&2
-  exit ${STATE_UNKNOWN}
+  local msg="$1"
+  local state=$2
+  echo $msg
+  exit $state
 }
 
 # Default variables
 KAFKACMD=$(which kafka-consumer-groups 2>/dev/null || \
-  fail "Required kafka-consumer-groups command not found.")
+  fail "Required kafka-consumer-groups command not found." $STATE_UNKNOWN)
 WARN=10000
 CRIT=30000
 
@@ -35,11 +36,12 @@ trap "rm -rf ${TEMPFILE}" EXIT
 # Functions
 # Prints usage
 usage() {
-  echo "Usage: $(basename $0) -g <group> -b <address> [-k <path>] [-w <warning>] [-c <critical>] [-h]"
+  echo "Usage: $(basename $0) -g <group> -b <address> [-k <path>] [-n <node>] [-w <warning>] [-c <critical>] [-h]"
   echo
   echo -e "\t-g <group>\tConsumer group to check (mandatory)"
   echo -e "\t-b <address>\tBootstrap server address to use, must be in host:port format (mandatory)"
   echo -e "\t-k <path>\tPath to kafka-consumer-groups binary (default: /bin/kafka-consumer-groups)"
+  echo -e "\t-n <node>\tConsumer node to check the lag for (default: check will be performed for all nodes)"
   echo -e "\t-w <warning>\twarning threshold (offset lag, default: 10000)"
   echo -e "\t-c <critical>\tcritical threshold (offset lag, default: 30000)"
   echo -e "\t-h\t\tDisplay this help message"
@@ -51,7 +53,8 @@ check_arguments() {
   kafkacmd=${KAFKACMD}
   warn=${WARN}
   crit=${CRIT}
-  while getopts ":hg:b:k:w:c:" opt; do
+  node=''
+  while getopts ":hg:b:k:n:w:c:" opt; do
       case $opt in
           h )
              usage
@@ -65,6 +68,9 @@ check_arguments() {
           k )
              kafkacmd=${OPTARG}
              ;;
+          n )
+             node=${OPTARG}
+             ;;
           w )
              warn=${OPTARG}
              ;;
@@ -72,10 +78,10 @@ check_arguments() {
              crit=${OPTARG}
              ;;
           \?)
-             fail "Invalid option: -${OPTARG}."
+             fail "Invalid option: -${OPTARG}." $STATE_UNKNOWN
              ;;
           : )
-             fail "Option -"${OPTARG}" requires an argument."
+             fail "Option -"${OPTARG}" requires an argument." $STATE_UNKNOWN
              ;;
           * )
              usage
@@ -91,20 +97,32 @@ check_arguments() {
 # Main function
 main() {
   # Dump data of consumer group to a file
-  ${kafkacmd} --bootstrap-server "${bootstrap}" --describe --group "${group}" 2> /dev/null | grep -vE '^TOPIC' | sort -V > ${TEMPFILE} || exit ${STATE_UNKNOWN}
+  ${kafkacmd} \
+    --bootstrap-server "${bootstrap}" \
+    --describe \
+    --group "${group}" 2> /dev/null \
+    | grep -ve '^TOPIC\|^$' \
+    | grep -w "${node}" \
+    | sort -V > ${TEMPFILE} \
+    || fail "Unable to get info from Kafka." ${STATE_CRITICAL}
 
-  # kafka-conusmer-groups doesn't return proper exit conde on failure, check
+  # kafka-conusmer-groups doesn't return proper exit code on failure, check
   # file's content instead
-  grep -Eq '^Error: ' ${TEMPFILE} && fail $(cat ${TEMPFILE})
+  grep -Eq '^Error: ' ${TEMPFILE} && fail $(cat ${TEMPFILE}) $STATE_UNKNOWN
 
   # Iterate over topics and find partition with largest lag per topic
   lags=()
   for topic in $(awk '{print $1}' ${TEMPFILE} | uniq)
   do
-    worst_line=$(grep -E "^${topic}" ${TEMPFILE} | sort -n -k 5 | tail -1)
-    partition=$(echo ${worst_line} | awk '{print $2}')
-    lag=$(echo ${worst_line} | awk '{print $5}')
-    lags+=("${topic}#${partition}#${lag}")
+    OIFS=$IFS
+    IFS=$'\n'
+    for line in $(grep -e "^${topic}" ${TEMPFILE})
+    do
+      partition=$(echo ${line} | awk '{print $2}')
+      lag=$(echo ${line} | awk '{print $5}')
+      lags+=("${topic}#${partition}#${lag}")
+    done
+    IFS=$OIFS
   done
 
   # Check thresholds
@@ -116,17 +134,17 @@ main() {
     lag=$(echo ${item} | awk -F# '{print $3}')
     if [[ ! ${lag} =~ ^[0-9]+$ ]] || [ -z ${lag} ]
     then
-      echo -n "${topic} topic's lag: unknown "
+      echo -n "${topic} topic's lag (${partition}): unknown "
       state=${STATE_UNKNOWN}
     elif [ ${lag} -le ${warn} ] && [ ${lag} -le ${crit} ]
     then
       state=${state}
     elif [ ${lag} -gt ${warn} ] && [ ${lag} -le ${crit} ]
     then
-      echo -n "${topic} topic's lag: ${lag} "
+      echo -n "${topic} topic's lag (${partition}): ${lag} "
       state=${STATE_WARNING}
     else
-      echo -n "${topic} topic's lag: ${lag} "
+      echo -n "${topic} topic's lag (${partition}): ${lag} "
       state=${STATE_CRITICAL}
     fi
   done
@@ -138,3 +156,4 @@ main() {
 # Main part starts here
 check_arguments $@
 main
+
