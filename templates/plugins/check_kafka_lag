@@ -94,6 +94,13 @@ check_arguments() {
   fi
 }
 
+# Joins arrays by given delimiter
+join_by() {
+  local IFS="${1}"
+  shift
+  echo "${*}"
+}
+
 # Main function
 main() {
   # Dump data of consumer group to a file
@@ -127,6 +134,7 @@ main() {
 
   # Check thresholds
   state=${STATE_OK}
+  perfdata=()
   for item in ${lags[@]}
   do
     topic=$(echo ${item} | awk -F# '{print $1}')
@@ -147,9 +155,14 @@ main() {
       echo -n "${topic} topic's lag (${partition}): ${lag} "
       state=${STATE_CRITICAL}
     fi
+    perfdata+=("part_${partition}=${lag};${warn};${crit}")
   done
 
-  [ ${state} -eq ${STATE_OK} ] && echo 'Lag within normal limits'
+  [ ${state} -eq ${STATE_OK} ] && echo -n 'Lag within normal limits '
+
+  # Attach perfdata
+  echo "| $(join_by ' ' ${perfdata[@]})"
+
   exit ${state}
 }
 
