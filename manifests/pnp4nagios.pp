@@ -5,14 +5,17 @@ class nagios::pnp4nagios (
   $nagios_command_line       = '/usr/libexec/pnp4nagios/process_perfdata.pl --bulk',
   $nagios_service_name       = 'pnp4nagios-service',
   $nagios_service_action_url = '/pnp4nagios/index.php/graph?host=$HOSTNAME$&srv=$SERVICEDESC$',
+  $nagios_html_base_path     = '/usr/share/nagios/html',
   $perflog                   = '/var/log/pnp4nagios/service-perfdata',
   # The apache config snippet
   $apache_httpd              = true,
   $apache_httpd_conf_content = undef,
   $apache_httpd_conf_source  = undef,
   $apache_httpd_conf_file    = '/etc/httpd/conf.d/pnp4nagios.conf',
+  $apache_httpd_alias_path   = '/pnp4nagios',
   # Other
   Boolean $selinux           = true,
+  $html_base_path            = '/usr/share/nagios/html/pnp4nagios',
   $ssi                       = false
 ) {
 
@@ -70,9 +73,9 @@ class nagios::pnp4nagios (
   # https://docs.pnp4nagios.org/pnp-0.6/webfe
   # Content from /usr/share/doc/pnp4nagios-0.6.25/contrib/ssi/status-header.ssi
   if $ssi {
-    file { '/usr/share/nagios/html/ssi/common-header.ssi':
+    file { "${nagios_html_base_path}/ssi/common-header.ssi":
       ensure  => 'present',
-      source  => "puppet:///modules/${module_name}/pnp4nagios/common-header.ssi",
+      content => template("${module_name}/pnp4nagios/common-header.ssi.erb"),
       require => Package['nagios'],
     }
   }

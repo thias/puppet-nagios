@@ -1,8 +1,8 @@
 # SAMPLE CONFIG SNIPPETS FOR APACHE WEB SERVER
 
-Alias /pnp4nagios "/usr/share/nagios/html/pnp4nagios"
+Alias <%= @apache_httpd_alias_path %> "<%= @html_base_path %>"
 
-<Directory "/usr/share/nagios/html/pnp4nagios">
+<Directory "<%= @html_base_path %>">
     AllowOverride None
 <% if !@apache_allowed_from.empty? -%>
     Order Deny,Allow
