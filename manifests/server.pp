@@ -36,6 +36,8 @@ class nagios::server (
   $cgi_authorized_for_all_host_commands         = 'nagiosadmin',
   $cgi_default_statusmap_layout                 = '5',
   $cgi_result_limit                             = '100',
+  # mail server installation is optionnal
+  $mailx_install                = true,
   # nagios.cfg
   $cfg_file = [
     # Where puppet managed types are
@@ -216,7 +218,9 @@ class nagios::server (
 
   # Other packages
   # For the default email notifications to work
-  ensure_packages(['mailx'])
+  if $mailx_install {
+    ensure_packages(['mailx'])
+  }
 
   service { 'nagios':
     ensure    => 'running',
