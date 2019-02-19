@@ -218,16 +218,53 @@ class nagios::server (
   # For the default email notifications to work
   ensure_packages(['mailx'])
 
-  service { 'nagios':
-    ensure    => 'running',
-    enable    => true,
-    # "service nagios status" returns 0 when "nagios is not running" :-(
-    hasstatus => false,
-    # Don't get fooled by any process with "nagios" in its command line
-    pattern   => '/usr/sbin/nagios',
-    # Work around files created root:root mode 600 (known issue)
-    restart   => '/bin/chgrp nagios /etc/nagios/nagios_*.cfg && /bin/chmod 640 /etc/nagios/nagios_*.cfg && /bin/kill -HUP `cat /var/run/nagios/nagios.pid`',
-    require   => Package['nagios'],
+  case $facts['service_provider'] {
+    'systemd': {
+      file { '/usr/bin/nagios-ensure-permissions':
+        ensure  => present,
+        mode    => '0755',
+        content => "#!/bin/sh\nchgrp nagios /etc/nagios/nagios_*.cfg\nchmod 640 /etc/nagios/nagios_*.cfg",
+      }
+
+      file { '/etc/systemd/system/nagios.service.d':
+        ensure => directory,
+      }
+
+      file { '/etc/systemd/system/nagios.service.d/permissions.conf':
+        ensure  => present,
+        content => "[Service]\nExecStartPre=/usr/bin/nagios-ensure-permissions",
+        require => [
+          File['/etc/systemd/system/nagios.service.d'],
+          File['/usr/bin/nagios-ensure-permissions'],
+        ],
+      }
+
+      exec { 'nagios: update systemd configuration':
+        command     => '/usr/sbin/systemctl daemon-reload',
+        refreshonly => true,
+        subscribe   => File['/etc/systemd/system/nagios.service.d/permissions.conf'],
+        before      => Service['nagios'],
+      }
+
+      service { 'nagios':
+        ensure  => 'running',
+        enable  => true,
+        require => File['/etc/systemd/system/nagios.service.d/permissions.conf'],
+      }
+    }
+    default: {
+      service { 'nagios':
+        ensure    => 'running',
+        enable    => true,
+        # "service nagios status" returns 0 when "nagios is not running" :-(
+        hasstatus => false,
+        # Don't get fooled by any process with "nagios" in its command line
+        pattern   => '/usr/sbin/nagios',
+        # Work around files created root:root mode 600 (known issue)
+        restart   => '/bin/chgrp nagios /etc/nagios/nagios_*.cfg && /bin/chmod 640 /etc/nagios/nagios_*.cfg && /bin/kill -HUP `cat /var/run/nagios/nagios.pid`',
+        require   => Package['nagios'],
+      }
+    }
   }
 
   if $apache_httpd {
