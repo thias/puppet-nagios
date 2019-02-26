@@ -1,3 +1,11 @@
+<%
+cbstats = scope['::nagios::check::couchbase::couchbase_cbstats']
+host    = scope['::nagios::check::couchbase::couchbase_host']
+port    = scope['::nagios::check::couchbase::couchbase_port']
+user    = scope['::nagios::check::couchbase::couchbase_user']
+pass    = scope['::nagios::check::couchbase::couchbase_pass']
+bucket  = scope['::nagios::check::couchbase::couchbase_bucket']
+-%>
 #!/usr/bin/env python
 #
 # Copyright 2009-2011 AppFirst, Inc
@@ -80,7 +88,7 @@ class CouchbaseStats():
     
     def get_status(self):
         #str_stats = subprocess.Popen("/opt/couchbase/bin/ep_engine/management/stats 127.0.0.1:11210 all",
-        str_stats = subprocess.Popen("<%= scope['::nagios::check::couchbase::couchbase_cbstats'] %> <%= scope['::nagios::check::couchbase::couchbase_host'] %>:<%= scope['::nagios::check::couchbase::couchbase_port'] %> all",
+        str_stats = subprocess.Popen("<%= cbstats %><% if user %> -u <%= user %><% end %><% if pass %> -p <%= pass %><% end %> <%= host %>:<%= port %> all<% if bucket %> -b <%= bucket %><% end %>",
                                      shell = True, stdout=subprocess.PIPE).communicate()[0]
         stats = str_stats.split('\n')
         for i in range(len(stats) - 1):
