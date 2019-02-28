@@ -1,5 +1,7 @@
 * Fix nrpe with sudo and SELinux enforcing on RHEL 7.6.
 * Add support for passing user, pass and bucket to couchbase check.
+* Fix SELinux detection in permissive mode.
+* Add AVC rules to fix nrpe+sudo with latest RHEL 7.6 systemd update.
 
 #### 2018-10-31 - 2.0.0
 * Restart service after resources are purged (#79, @vchepkov).

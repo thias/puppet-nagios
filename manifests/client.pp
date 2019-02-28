@@ -200,7 +200,7 @@ class nagios::client (
   }
 
   # With selinux, some nrpe plugins require additional rules to work
-  if $selinux and getvar('::selinux_enforced') {
+  if $selinux and 'selinux' in $facts['os'] and  $facts['os']['selinux']['enabled'] == true {
     selinux::audit2allow { 'nrpe':
       source => "puppet:///modules/${module_name}/messages.nrpe",
     }
