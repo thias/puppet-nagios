@@ -1013,6 +1013,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_clickhouse_replication_active_replicas':
     command_line => "${nrpe} -c check_clickhouse_replication_active_replicas",
   }
+  nagios_command { 'check_nrpe_http_chproxy':
+    command_line => "${nrpe} -c check_http_chproxy",
+  }
 
   # Collect virtual resources from check_service
   Nagios_command <<| tag == 'service' |>> {
