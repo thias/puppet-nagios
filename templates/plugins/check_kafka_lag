@@ -39,7 +39,7 @@ usage() {
   echo "Usage: $(basename $0) -g <group> -b <address> [-k <path>] [-n <node>] [-w <warning>] [-c <critical>] [-h]"
   echo
   echo -e "\t-g <group>\tConsumer group to check (mandatory)"
-  echo -e "\t-b <address>\tBootstrap server address to use, must be in host:port format (mandatory)"
+  echo -e "\t-b <address>\tBootstrap server address to use, must be in host:port format, may be specified multiple times (mandatory)"
   echo -e "\t-k <path>\tPath to kafka-consumer-groups binary (default: /bin/kafka-consumer-groups)"
   echo -e "\t-n <node>\tConsumer node to check the lag for (default: check will be performed for all nodes)"
   echo -e "\t-w <warning>\twarning threshold (offset lag, default: 10000)"
@@ -63,7 +63,7 @@ check_arguments() {
              group=${OPTARG}
              ;;
           b )
-             bootstrap=${OPTARG}
+             bootstraps="${bootstraps} ${OPTARG}"
              ;;
           k )
              kafkacmd=${OPTARG}
@@ -88,7 +88,7 @@ check_arguments() {
              ;;
       esac
   done
-  if [ -z ${group} ] || [ -z ${bootstrap} ]
+  if [ -z ${group} ] || [ -z "${bootstraps}" ]
   then
     usage
   fi
@@ -104,6 +104,8 @@ join_by() {
 # Main function
 main() {
   # Dump data of consumer group to a file
+  for bootstrap in $bootstraps
+  do
   ${kafkacmd} \
     --bootstrap-server "${bootstrap}" \
     --describe \
@@ -111,7 +113,14 @@ main() {
     | grep -ve '^TOPIC\|^$' \
     | grep -w "${node}" \
     | sort -V > ${TEMPFILE} \
-    || fail "Unable to get info from Kafka." ${STATE_CRITICAL}
+    && break
+  done
+
+  # If all brokers are unavailable, exit with unknown
+  if [ ! -s ${TEMPFILE} ]
+  then
+    fail "Unable to get info from Kafka." ${STATE_UNKNOWN}
+  fi
 
   # kafka-conusmer-groups doesn't return proper exit code on failure, check
   # file's content instead
