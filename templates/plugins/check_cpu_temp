@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/python2
 
 __author__ = 'forgodssake - https://github.com/forgodssake'
 __version__ = 0.1

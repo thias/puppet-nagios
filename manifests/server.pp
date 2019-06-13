@@ -267,7 +267,9 @@ class nagios::server (
 
   if $php {
     class { '::php::mod_php5': }
-    php::ini { '/etc/php.ini': }
+    php::ini { '/etc/php.ini':
+      date_timezone => 'Etc/UTC',
+    }
     if $php_apc { php::module { $php_apc_module: } }
   }
 

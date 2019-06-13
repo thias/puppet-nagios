@@ -24,6 +24,7 @@ avc:  denied  { write add_name } for  pid=5537 comm="MegaCli" name="megaraid_sas
 avc:  denied  { mknod } for  pid=6439 comm="MegaCli" capability=27  scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:system_r:nrpe_t:s0 tclass=capability
 avc:  denied  { create } for  pid=8122 comm="MegaCli" name="megaraid_sas_ioctl_node" scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:device_t:s0 tclass=chr_file
 avc:  denied  { send_msg } for msgtype=method_return dest=:1.22482 spid=8467 tpid=64469 scontext=system_u:system_r:systemd_logind_t:s0 tcontext=system_u:system_r:nagios_unconfined_plugin_t:s0 tclass=dbus  exe="/usr/bin/dbus-daemon" sauid=81 hostname=? addr=? terminal=?
+avc:  denied  { send_msg } for msgtype=method_return dest=:1.517 spid=1 tpid=23610 scontext=system_u:system_r:init_t:s0 tcontext=system_u:system_r:nagios_unconfined_plugin_t:s0 tclass=dbus permissive=0  exe="/usr/bin/dbus-daemon" sauid=81 hostname=? addr=? terminal=?
 # check_couchbase
 avc:  denied  { execute_no_trans } for  pid=4202 comm="cbstats" path="/opt/couchbase/lib/python/cbstats" dev=vda2 ino=13654 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:lib_t:s0 tclass=file
 avc:  denied  { name_connect } for  pid=4639 comm="python" dest=11219 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:port_t:s0 tclass=tcp_socket

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 # check_nginx is a Nagios to monitor nginx status
 # The version is 1.0.0 + major fixes
 
