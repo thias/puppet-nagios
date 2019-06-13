@@ -119,12 +119,12 @@ main() {
   # If all brokers are unavailable, exit with unknown
   if [ ! -s ${TEMPFILE} ]
   then
-    fail "Unable to get info from Kafka." ${STATE_UNKNOWN}
+    fail "Unable to get info from Kafka." $STATE_CRITICAL
   fi
 
   # kafka-conusmer-groups doesn't return proper exit code on failure, check
   # file's content instead
-  grep -Eq '^Error: ' ${TEMPFILE} && fail $(cat ${TEMPFILE}) $STATE_UNKNOWN
+  grep -Eq '^Error: ' ${TEMPFILE} && fail $(cat $TEMPFILE) $STATE_CRITICAL
 
   # Iterate over topics and find partition with largest lag per topic
   lags=()
@@ -152,7 +152,7 @@ main() {
     if [[ ! ${lag} =~ ^[0-9]+$ ]] || [ -z ${lag} ]
     then
       echo -n "${topic} topic's lag (${partition}): unknown "
-      state=${STATE_UNKNOWN}
+      state=$STATE_CRITICAL
     elif [ ${lag} -le ${warn} ] && [ ${lag} -le ${crit} ]
     then
       state=${state}
