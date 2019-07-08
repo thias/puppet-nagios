@@ -198,6 +198,7 @@ class nagios::client (
     if getvar('::nagios_kafka') {  class { '::nagios::check::kafka': } }
     if getvar('::nagios_clickhouse') {  class { '::nagios::check::clickhouse': } }
     if getvar('::nagios_chproxy') {  class { '::nagios::check::chproxy': } }
+    if getvar('::nagios_haproxy') {  class { '::nagios::check::haproxy': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
