@@ -4,6 +4,7 @@
 * Add AVC rules to fix nrpe+sudo with latest RHEL 7.6 systemd update.
 * Add support for RHEL8 (versioned python2 and new AVC rule).
 * Add nagios_haproxy fact with simple check_http by default.
+* Switch slack integration to official nagios plugin (#155, @lisuml).
 
 #### 2018-10-31 - 2.0.0
 * Restart service after resources are purged (#79, @vchepkov).
