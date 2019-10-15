@@ -439,10 +439,8 @@ If you want to have your nagios notifications in Slack, enable the slack plugin
 by setting `$plugin_slack` parameter to `true`.
 
 Additional parameters:
-* `$plugin_slack_webhost` (mandatory): an IP or FQDN for the host you installed nagios web interface
-* `$plugin_slack_webhook` (mandatory): Slack Web Hook url (grab it from Integration page at Slack Web Hook setup instruction section)
-* `$plugin_slack_channel` (default: '#alerts'): the channel where the bot will post in
-* `$plugin_slack_botname` (default: 'nagios'): the bot name
+* `$plugin_slack_domain` (mandatory): your team's Slack domain
+* `$plugin_slack_token` (mandatory): the token from your Nagios services page
 
 Sample Slack contact and commands configuration:
 
@@ -457,10 +455,10 @@ Sample Slack contact and commands configuration:
     host_notification_commands    => 'notify-host-by-slack',
   }
   nagios_command { 'notify-service-by-slack':
-    command_line => '$USER1$/slack_nagios -h "$HOSTNAME$" -n "$SERVICEDISPLAYNAME$" -o "$SERVICEOUTPUT$" -s "$SERVICESTATE$" -t "$NOTIFICATIONTYPE$" > /tmp/slack.log 2>&1',
+    command_line => '$USER1$/slack_nagios -field slack_channel=#exads-monitoring-nagios -field HOSTALIAS="$HOSTNAME$" -field SERVICEDESC="$SERVICEDESC$" -field SERVICESTATE="$SERVICESTATE$" -field SERVICEOUTPUT="$SERVICEOUTPUT$" -field NOTIFICATIONTYPE="$NOTIFICATIONTYPE$"',
   }
   nagios_command { 'notify-host-by-slack':
-    command_line => '$USER1$/slack_nagios -h "$HOSTNAME$" -O "$HOSTOUTPUT$" -S "$HOSTSTATE$" -t "$NOTIFICATIONTYPE$" > /tmp/slack.log 2>&1',
+    command_line => '$USER1$/slack_nagios -field slack_channel=#exads-monitoring-nagios -field HOSTALIAS="$HOSTNAME$" -field HOSTSTATE="$HOSTSTATE$" -field HOSTOUTPUT="$HOSTOUTPUT$" -field NOTIFICATIONTYPE="$NOTIFICATIONTYPE$"',
   }
 ```
 

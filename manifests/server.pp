@@ -89,10 +89,8 @@ class nagios::server (
   $plugin_nginx          = false,
   $plugin_xcache         = false,
   $plugin_slack          = false,
-  $plugin_slack_webhost  = undef,
-  $plugin_slack_channel  = '#alerts',
-  $plugin_slack_botname  = 'nagios',
-  $plugin_slack_webhook  = undef,
+  $plugin_slack_domain   = undef,
+  $plugin_slack_token    = undef,
   $plugin_redis          = false,
   $plugin_redis_sentinel = false,
   $selinux               = $::selinux,
@@ -169,9 +167,15 @@ class nagios::server (
     }
   }
   if $plugin_slack {
-    if ! $plugin_slack_webhost or ! $plugin_slack_webhook {
-      fail('$plugin_slack_webhost and $plugin_slack_webhook must be pass when $plugin_slack is enabled.')
+    if ! $plugin_slack_domain or ! $plugin_slack_token {
+      fail('$plugin_slack_domain and $plugin_slack_token must be pass when $plugin_slack is enabled.')
     }
+    ensure_packages(
+      [
+        'perl-libwww-perl',
+        'perl-IO-Socket-SSL',
+      ]
+    )
     file { "${plugin_dir}/slack_nagios":
       owner   => 'root',
       group   => 'root',
