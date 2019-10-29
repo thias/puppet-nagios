@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!<%= scope['::nagios::params::python_2_vs_3_interpreter'] %>
 
 import OpenSSL
 import os
@@ -53,7 +53,7 @@ args = parser.parse_args()
 
 # Basic sanity check
 if args.critical > args.warning:
-    print 'CRITICAL - Critical threshold can\'t be higher than warning.'
+    print('CRITICAL - Critical threshold can\'t be higher than warning.')
     exit(2)
 
 # Create warning and critical datetimes
@@ -106,8 +106,7 @@ for cert_filename in onlyfiles:
             continue
         if subj.CN in args.exclude_cn:
             continue
-
-        date_expiracy = datetime.datetime.strptime(cert.get_notAfter(), "%Y%m%d%H%M%SZ")
+        date_expiracy = datetime.datetime.strptime(cert.get_notAfter().decode('utf-8'), "%Y%m%d%H%M%SZ")
 
         # Critical found, don't need to check for warning
         if date_expiracy < date_expiracy_critical:
@@ -128,20 +127,20 @@ if len(e_load_certs) > 0:
     error_txt += 'Issues found while trying to load the following certs. {0}.\n '.format(','.join(e_load_certs))
 
 if error_txt != '':
-    print 'CRITICAL - {0}'.format(error_txt)
+    print('CRITICAL - {0}'.format(error_txt))
     exit(2)
 
 # Check for critical or warning certs
 if len(critical_certs) > 0:
     error_txt = 'CRITICAL - There are {0} certs that will expire in less than {1} days. '.format(
         len(critical_certs), args.critical)
-    print getTrunkatedOutput(error_txt,critical_certs,args.limit_output)
+    print(getTrunkatedOutput(error_txt,critical_certs,args.limit_output))
     exit(2)
 elif len(warning_certs) > 0:
     error_txt = 'WARNING - There are {0} certs that will expire in less than {1} days. '.format(
         len(warning_certs), args.warning)
-    print getTrunkatedOutput(error_txt, warning_certs, args.limit_output)
+    print(getTrunkatedOutput(error_txt, warning_certs, args.limit_output))
     exit(1)
 else:
-    print 'OK'
+    print('OK')
     exit(0)

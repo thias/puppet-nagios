@@ -31,7 +31,8 @@ class nagios::pnp4nagios (
     }
   }
 
-  package { 'pnp4nagios': ensure => installed }
+  package { 'pnp4nagios': ensure => 'installed' }
+  ensure_packages('perl-Time-HiRes')
 
   nagios_command { $nagios_command_name:
     command_line => "${nagios_command_line} ${perflog}",

@@ -1,6 +1,9 @@
+#
+# Class to enable MogoDB monitoring
+#
 class nagios::check::mongodb (
   $ensure                       = undef,
-  $package                      = 'python-pymongo',
+  $package                      = $::nagios::params::python_mongo,
   # common args for all modes 'as-is' for the check script
   $args                         = '',
   # common args for all modes as individual parameters
@@ -177,12 +180,12 @@ class nagios::check::mongodb (
 
   # Modes-specific definition
   $modes = $modes_base
-         + $modes_enabled_v2
-         + $modes_enabled_mmapv1
-         + $modes_enabled_replication
-         + $modes_enabled_sharding
-         + $modes_enabled_database
-         + $modes_enabled_collection
+    + $modes_enabled_v2
+    + $modes_enabled_mmapv1
+    + $modes_enabled_replication
+    + $modes_enabled_sharding
+    + $modes_enabled_database
+    + $modes_enabled_collection
 
   # An arbiter has no data, so remove all checks which are *never* relevant
   $modes_arbiter = [
