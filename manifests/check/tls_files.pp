@@ -1,7 +1,7 @@
 class nagios::check::tls_files (
   $ensure                   = undef,
   $args                     = '',
-  $package                  = [ 'pyOpenSSL' ],
+  $package                  = [ $::nagios::params::python_openssl ],
   $vendor_package           = undef,
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,

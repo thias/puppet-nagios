@@ -172,8 +172,8 @@ class nagios::server (
     }
     ensure_packages(
       [
-        'perl-libwww-perl',
-        'perl-IO-Socket-SSL',
+        'perl(LWP::Protocol::https)',
+        'perl(IO::Socket::SSL)',
       ]
     )
     file { "${plugin_dir}/slack_nagios":

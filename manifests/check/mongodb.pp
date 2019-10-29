@@ -1,6 +1,6 @@
 class nagios::check::mongodb (
   $ensure                       = undef,
-  $package                      = 'python-pymongo',
+  $package                      = $::nagios::params::python_mongo,
   # common args for all modes 'as-is' for the check script
   $args                         = '',
   # common args for all modes as individual parameters
