@@ -1,0 +1,2 @@
+type=AVC msg=audit(1571992860.521:11766): avc:  denied  { map } for  pid=28155 comm="rrdtool" path="/var/lib/pnp4nagios/x/zk_max_latency.rrd" dev="vda2" ino=5335133 scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:object_r:nagios_var_lib_t:s0 tclass=file permissive=0
+type=AVC msg=audit(1572347908.185:63462): avc:  denied  { map } for  pid=23519 comm="process_perfdat" path="/var/lib/pnp4nagios/x/ntp_time.rrd" dev="vda2" ino=9343839 scontext=system_u:system_r:nagios_t:s0 tcontext=system_u:object_r:nagios_var_lib_t:s0 tclass=file permissive=0

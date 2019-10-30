@@ -12,6 +12,7 @@ class nagios::pnp4nagios (
   $apache_httpd_conf_source  = undef,
   $apache_httpd_conf_file    = '/etc/httpd/conf.d/pnp4nagios.conf',
   # Other
+  Boolean $selinux           = true,
   $ssi                       = false
 ) {
 
@@ -31,7 +32,8 @@ class nagios::pnp4nagios (
     }
   }
 
-  package { 'pnp4nagios': ensure => installed }
+  package { 'pnp4nagios': ensure => 'installed' }
+  ensure_packages('perl(Time::HiRes)')
 
   nagios_command { $nagios_command_name:
     command_line => "${nagios_command_line} ${perflog}",
@@ -54,6 +56,13 @@ class nagios::pnp4nagios (
       source  => $apache_httpd_conf_source,
       notify  => Service['httpd'],
       require => Package['pnp4nagios'],
+    }
+  }
+
+  # With selinux, adjustements are needed for pnp4nagios
+  if $selinux and $::selinux_enforced {
+    selinux::audit2allow { 'pnp4nagios':
+      source => "puppet:///modules/${module_name}/messages.pnp4nagios",
     }
   }
 
