@@ -1,20 +1,7 @@
 #!/bin/bash
 
 #
-# Copyright 2018 EXADS
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# Script that perfroms various checks against ClickHouse server
 #
 
 set -eo pipefail
@@ -22,16 +9,12 @@ set -eo pipefail
 PROGNAME=$(basename $0)
 PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
 
-STATE_OK=0
-STATE_WARNING=1
-STATE_CRITICAL=2
-STATE_UNKNOWN=3
-STATE_DEPENDENT=4
+. $PROGPATH/utils.sh
 
 fail() {
   local msg="$@"
   echo "${msg}" 1>&2
-  exit ${STATE_CRITICAL}
+  exit ${STATE_UNKNOWN}
 }
 
 # Commands
