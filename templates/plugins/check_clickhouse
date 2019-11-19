@@ -30,13 +30,16 @@ STATE_DEPENDENT=4
 
 fail() {
   local msg="$@"
-  echo "${msg}" 1>&2
+  echo "${msg}"
   exit ${STATE_CRITICAL}
 }
 
 # Commands
-CHCMD="$(which clickhouse-client 2>/dev/null || \
-  fail "Required clickhouse-client command not found.") --format_csv_delimiter | -q "
+if ! CHCMD=$(which clickhouse-client 2>/dev/null)
+then
+  fail 'Required clickhouse-client command not found.'
+fi
+CHCMD="${CHCMD} --format_csv_delimiter | -q "
 
 # Available modes
 # <mode>=<desc>|<default_warning>|<default_critical>
@@ -160,7 +163,11 @@ check_replication() {
   # Check if any database / table has issue
   local state=$STATE_OK
   result=$($CHCMD "$query" 2> /dev/null)
-  [ $? -ne 0 ] && fail 'Unable to reach clickhouse'
+  if [ $? -ne 0 ]
+  then
+    state=$STATE_CRITICAL
+    bad='Unable to reach clickhouse'
+  fi
   for row in $result
   do
     db=$(echo $row | awk -F\| '{ print $1 }' | sed -s 's/"//g')
