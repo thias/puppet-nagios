@@ -1,6 +1,7 @@
 define nagios::client::nrpe_plugin (
   $ensure    = 'present',
   $erb       = false,
+  Optional[String] $template = undef,
   $perl      = false,
   $package   = false,
   $sudo_cmd  = undef,
@@ -33,12 +34,16 @@ define nagios::client::nrpe_plugin (
     true    => '.erb',
     default => '',
   }
+  $template_final = $template ? {
+    undef   => "${module_name}/plugins/${title}${suffix}",
+    default => $template,
+  }
   file { "${nagios::client::plugin_dir}/${title}":
     ensure  => $ensure,
     owner   => 'root',
     group   => 'root',
     mode    => '0755',
-    content => template("${module_name}/plugins/${title}${suffix}"),
+    content => template($template_final),
   }
 
 }
