@@ -240,7 +240,7 @@ do
                 OUTPUT="$OUTPUT ${full_path}/${next_file}: ${FILE_AGE_UNITS}${abbreviation}"
                 set_exit_status $STATE_CRITICAL
             elif [ $FILE_AGE -gt $MAX_WARN_AGE ]; then
-                OUTPUT="$OUTPUT ${next_file}: ${FILE_AGE_UNITS}${abbreviation}"
+                OUTPUT="$OUTPUT ${full_path}/${next_file}: ${FILE_AGE_UNITS}${abbreviation}"
                 set_exit_status $STATE_WARNING
             else
                 if [ "$verbose" ]; then
