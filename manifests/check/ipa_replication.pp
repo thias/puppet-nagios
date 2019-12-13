@@ -35,8 +35,8 @@ class nagios::check::ipa_replication (
 
 
   nagios::client::nrpe_plugin { 'check_ipa_replication':
-    ensure   => $ensure,
-    package  => $package,
+    ensure  => $ensure,
+    package => $package,
   }
 
   nagios::client::nrpe_file { 'check_ipa_replication':
