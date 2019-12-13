@@ -41,9 +41,9 @@ class nagios::check::krb5 (
 
 
   nagios::client::nrpe_plugin { 'check_krb5':
-    ensure   => $ensure,
-    perl     => true,
-    package  => $package,
+    ensure  => $ensure,
+    perl    => true,
+    package => $package,
   }
 
   nagios::client::nrpe_file { 'check_krb5':
