@@ -32,9 +32,9 @@ define nagios::check::zookeeper::key () {
     ( $keys_disabled_final != [] and ! ( $key in $keys_disabled_final ) ) )
   {
     nagios::client::nrpe_file { "check_${key}":
-      ensure    => $ensure,
-      plugin    => $plugin,
-      args      => "${args} --output=nagios --key=${title} ${args_key}",
+      ensure => $ensure,
+      plugin => $plugin,
+      args   => "${args} --output=nagios --key=${title} ${args_key}",
     }
     nagios::service { "check_${key}_${check_title}":
       ensure              => $ensure,
