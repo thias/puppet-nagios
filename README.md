@@ -668,6 +668,17 @@ nagios::check::kafka::brokers:
   - '1.1.1.2:9093'
 ```
 
+## HAProxy-stats
+
+HAProxy-stats check the state of Frontend, Servers and Backend.
+
+If you need more options just change the args as documented in the plugin page:
+```puppet
+  nagios::check::haproxy_stats::args: '-s /var/lib/haproxy/stats -P statistics -m'
+
+```
+https://github.com/tatref/nagios-scripts/
+
 ## Services
 Check status of system services for Linux, FreeBSD, OSX, and AIX.
 
