@@ -41,3 +41,5 @@ nagioscheck.py: https://github.com/PeerJ/pynagioscheck # Required by elascsearch
 check_ssd: https://github.com/forgodssake/check_ssd
 
 check_service: https://github.com/jonschipp/nagios-plugins/blob/master/check_service.sh
+
+check_http_alt: https://gist.github.com/edupr91/1e507ead9ff771be20fff93a9ded7efe
