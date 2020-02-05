@@ -22,7 +22,7 @@ class nagios::check::redis_sentinel (
     if $args !~ /-m/ and $master != undef {
       $arg_m = "-m ${master}"
     } else {
-      $arg_m = "-m localhost"
+      $arg_m = '-m localhost'
       notify{'redis_sentinel monitorization check requires master parameter':}
     }
 
