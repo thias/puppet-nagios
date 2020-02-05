@@ -6,6 +6,7 @@ class nagios::nagiosgraph (
   $nagios_command_line       = '/usr/libexec/nagiosgraph/insert.pl',
   $nagios_service_name       = 'nagiosgraph-service',
   $nagios_service_action_url = '/nagiosgraph/cgi-bin/show.cgi?host=$HOSTNAME$&service=$SERVICEDESC$',
+  $nagios_html_path          = '/usr/share/nagios/html/',
   # The apache config snippet, more useful as a template when using a custom
   $apache_httpd              = true,
   $apache_httpd_conf_content = undef,
@@ -82,7 +83,7 @@ class nagios::nagiosgraph (
 
   # Server-Side Include nagios CGI snippet for mouseover js code
   if $ssi {
-    file { '/usr/share/nagios/html/ssi/common-header.ssi':
+    file { "${nagios_html_path}/ssi/common-header.ssi":
       ensure  => 'link',
       target  => '/usr/share/nagiosgraph/examples/nagiosgraph.ssi',
       require => Package['nagios'],
@@ -91,7 +92,7 @@ class nagios::nagiosgraph (
 
   # Overwrite the original action image, as suggested in the INSTALL
   if $gif {
-    file { '/usr/share/nagios/html/images/action.gif':
+    file { "${nagios_html_path}/images/action.gif":
       ensure  => 'link',
       target  => '/usr/share/nagiosgraph/examples/graph.gif',
       require => Package['nagios'],
