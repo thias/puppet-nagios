@@ -209,6 +209,11 @@ class nagios::client (
     selinux::audit2allow { 'nrpe':
       source => "puppet:///modules/${module_name}/messages.nrpe",
     }
+    selboolean { 'nagios_run_sudo':
+      name       => 'nagios_run_sudo',
+      persistent => true,
+      value      => on,
+    }
   }
 
   # Custom (nrpe) services/nrpe files/plugins support
