@@ -24,7 +24,7 @@ drawback is that overrides which were set from manifests possibly need to be
 moved to hieradata.
 
 When upgrading from version 1, if you see checks changing arguments or getting
-added or removed, look at the check's parameters and migrate your exsting
+added or removed, look at the check's parameters and migrate your existing
 overrides, typically :
 
 ```yaml
