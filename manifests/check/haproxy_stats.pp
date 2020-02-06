@@ -1,6 +1,6 @@
 class nagios::check::haproxy_stats (
   $ensure                   = undef,
-  $args                     = '-s /var/lib/haproxy/stats -P statistics',
+  $args                     = '-s /var/lib/haproxy/stats -P statistics -m',
   $package                  = [ 'perl' ],
   $vendor_package           = undef,
   $check_title              = $::nagios::client::host_name,
