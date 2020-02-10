@@ -20,20 +20,20 @@ print_help() {
 }
 
 do_request(){
-  if [ -n "$1" ];then
-    p_port=":$1"
+  if [ -n "${1}" ];then
+    p_port=":${1}"
   fi
   
-  time_total=`curl $proxy_option $proxy$p_port $url $silence --connect-timeout 10 $redirection_option $redirection_path -w "%{time_total}"`
+  time_total=`curl ${proxy_option} ${proxy}${p_port} ${url} ${silence} --connect-timeout 10 ${redirection_option} ${redirection_path} -w '%{time_total}'`
   curl_status=$?
 
-  if [ $curl_status -eq 0 ]; then
-    [ -n "$1" ] && echo "${1}:${time_total}" || echo $time_total
-    return $STATE_OK
+  if [ ${curl_status} -eq 0 ]; then
+    [ -n "${1}" ] && echo "${1}:${time_total}" || echo ${time_total}
+    return ${STATE_OK}
   else
-    [ -n "$1" ] && echo "${1}:err_code_$curl_status" || echo "err_code_$time_total"
+    [ -n "${1}" ] && echo "${1}:err_code_${curl_status}" || echo "err_code_${curl_status}"
 
-    return $STATE_CRITICAL
+    return ${STATE_CRITICAL}
   fi
 }
 
@@ -42,31 +42,30 @@ STATE_WARNING=1
 STATE_CRITICAL=2
 STATE_UNKNOWN=3
 
-while test -n "$1"; do
-  case "$1" in
+while test -n "${1}"; do
+  case "${1}" in
     --help|-h)
       print_help
-      exit $STATE_OK
+      exit ${STATE_OK}
       ;;
-    --proxy|-x) proxy="$2"
+    --proxy|-x) proxy="${2}"
       shift
       ;;
-    --port|-p) port="$2"
+    --port|-p) port="${2}"
       shift
       ;;
-    --url|-u) url="$2"
+    --url|-u) url="${2}"
       shift
       ;;
-    --grace-period|-g) grace_period="$2"
+    --grace-period|-g) grace_period="${2}"
       shift
       ;;
     --verbose|-v) verbose=true
-      shift
       ;;
     *)
-      echo "Unknown argument: $1"
+      echo "Unknown argument: ${1}"
       print_usage
-      exit $STATE_UNKNOWN
+      exit ${STATE_UNKNOWN}
       ;;
   esac
 shift
@@ -78,11 +77,11 @@ if [ -z "${grace_period}" ] ||
    [ -z "${url}" ]; then
  echo "Specify more parameters..."
  print_usage
- exit $STATE_UNKNOWN
+ exit ${STATE_UNKNOWN}
 fi 
 
 
-if [ $verbose ]; then
+if [ ${verbose} ]; then
   silence='-v'
   redirection_option=''
   redirection_path=''
@@ -94,75 +93,75 @@ fi
 
 
 
-if [ $proxy ]; then
+if [ ${proxy} ]; then
   if [ -z "${port}" ]; then
    echo "Specify more parameters..."
    print_usage
-   exit $STATE_UNKNOWN
+   exit ${STATE_UNKNOWN}
   fi 
-  proxy_option="-x"
+  proxy_option='-x'
 else
   proxy_option=''
 fi
 
-if [ $port ]; then
+if [ ${port} ]; then
   if [ -z "${proxy}" ]; then
-   echo "Specify more parameters..."
+   echo 'Specify more parameters...'
    print_usage
-   exit $STATE_UNKNOWN
+   exit ${STATE_UNKNOWN}
   fi 
 fi
 # String to array
 IFS=','
-read -ra port_list <<< "$port"
+read -ra port_list <<< "${port}"
 
 
 bin_curl='/usr/bin/curl'
 
 counter=0
-if [ -z "$port" ]; then
-  output=$(do_request $port)
+if [ -z "${port}" ]; then
+  output=$(do_request ${port})
   if [ $? -ne 0 ]; then
-    counter=`expr $counter + 1`
+    counter=`expr ${counter} + 1`
   fi
 
 else 
   for single_port in "${port_list[@]}"
   do
-    output_=$(do_request $single_port)
+    output_=$(do_request ${single_port})
     if [ $? -ne 0 ]; then
-      counter=`expr $counter + 1`
+      counter=`expr ${counter} + 1`
     fi
-    output="$output $output_"
+    output="${output} ${output_}"
   done
 fi
 
-md5sum_hash=$(echo $url $proxy_host $port | md5sum | cut -d ' ' -f 1)
+md5sum_hash=$(echo ${url} ${proxy_host} ${port} | md5sum | cut -d ' ' -f 1)
 temp_file="/tmp/proxy_${md5sum_hash}"
 
 ports_number=`echo ${port_list[@]}| wc -w`
-if [ $ports_number -eq $counter ]; then
-  if [ ! -f $temp_file ]; then
-    echo "CRITICAL: $output"
-    exit $STATE_CRITICAL
+if [ ${ports_number} -eq ${counter} ]; then
+  if [ ! -f ${temp_file} ]; then
+    echo "CRITICAL: ${output}"
+    exit ${STATE_CRITICAL}
   fi 
   mtime_file=`stat -c %Y  ${temp_file}`
   current_time=`date +%s`
-  diff_time=`expr $current_time - $mtime_file`
-  if [ $diff_time -gt $grace_period ];then
-    echo "CRITICAL: $output"
-    exit $STATE_CRITICAL
+  diff_time=`expr ${current_time} - ${mtime_file}`
+  if [ ${diff_time} -gt ${grace_period} ];then
+    echo "CRITICAL: ${output}"
+    exit ${STATE_CRITICAL}
   else
-    echo "WARNING: $output"
-    exit $STATE_WARNING
+    echo "WARNING: ${output}"
+    exit ${STATE_WARNING}
   fi
 
-elif [ $counter -ne 0 ]; then
-  echo "WARNING: $output"
-  exit $STATE_WARNING
+elif [ ${counter} -ne 0 ]; then
+  echo "WARNING: ${output}"
+  exit ${STATE_WARNING}
 
 else 
-  touch $temp_file
-  echo "OK: $output"
-  exit $STATE_OK
+  touch ${temp_file}
+  echo "OK: ${output}"
+  exit ${STATE_OK}
 fi
