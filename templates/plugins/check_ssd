@@ -31,7 +31,7 @@
 # 1.6:          Add performance data, fix issues with non standar lsi cards, several fixes and extra options. Check changelog
 # 1.7:          Fix all shellcheck warning and recommandations. Use wear level value from smart-log if smart-log-add command does not exists
 
-set -o errexit
+set -o errexit -o pipefail
 
 VERSION="1.7"
 
@@ -194,7 +194,11 @@ function getDIDlist {
       for c in $(${STORCLI} show | grep -E "^  [0-9]" | awk '{ print $1 }'); do
         CONTROLLERS[$ITERATE]=$c
         BLOCKDEVICE[$ITERATE]=$(lsscsi -w "$c":*:*:*|awk '{print $NF}'|tail -1)
-        DIDLIST[$ITERATE]=$($STORCLI /c$ITERATE show | grep SSD | awk '{ print $2 }')
+        if ! $STORCLI /c$ITERATE show | grep -q SSD | awk '{ print $2 }'; then
+          DIDLIST[$ITERATE]=
+        else
+          DIDLIST[$ITERATE]=$($STORCLI /c$ITERATE show | grep SSD | awk '{ print $2 }')
+        fi
         if [ $DEBUG -eq 1 ]; then echo "Found controller #${CONTROLLERS[$ITERATE]} with associated blockdevice ${BLOCKDEVICE[$ITERATE]}"; fi;
 
         ITERATE=$((ITERATE + 1))
