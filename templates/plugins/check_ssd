@@ -197,7 +197,7 @@ function getDIDlist {
         if ! $STORCLI /c$ITERATE show | grep -q SSD | awk '{ print $2 }'; then
           DIDLIST[$ITERATE]=
         else
-          DIDLIST[$ITERATE]=$($STORCLI /c$ITERATE show | grep SSD | awk '{ print $2 }')
+          DIDLIST[$ITERATE]=$($STORCLI /c$ITERATE show | grep -w SSD | awk '{ print $2 }')
         fi
         if [ $DEBUG -eq 1 ]; then echo "Found controller #${CONTROLLERS[$ITERATE]} with associated blockdevice ${BLOCKDEVICE[$ITERATE]}"; fi;
 
@@ -265,6 +265,9 @@ function checkDID () {
           VALUE=$($SMARTCTL -A -d auto "$d" | awk '/^233/ || /^177/ { gsub ("^0*", "", $4); print $4}')
         fi
       else
+        if [ "$DRIVER" = "megaraid" ]; then
+          DRIVER="sat+megaraid"
+        fi
         VALUE=$(echo "$($SMARTCTL -A -d $DRIVER,"$d" "${BLOCKDEVICE[$1]}" | grep "^177\|^233" | head -n1 | awk '{ print $4 }')" + 0 | bc)
       fi
 
