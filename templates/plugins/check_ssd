@@ -194,6 +194,9 @@ function getDIDlist {
       for c in $(${STORCLI} show | grep -E "^  [0-9]" | awk '{ print $1 }'); do
         CONTROLLERS[$ITERATE]=$c
         BLOCKDEVICE[$ITERATE]=$(lsscsi -w "$c":*:*:*|awk '{print $NF}'|tail -1)
+        if [ -z "${BLOCKDEVICE[$ITERATE]}" ]; then
+          BLOCKDEVICE[$ITERATE]=$(lsscsi -w | grep -w LSI | awk '{print $NF}'|tail -1)
+        fi
         if ! $STORCLI /c$ITERATE show | grep -q SSD | awk '{ print $2 }'; then
           DIDLIST[$ITERATE]=
         else
