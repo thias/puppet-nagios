@@ -1,7 +1,7 @@
 class nagios::check::ssd (
   $ensure                   = undef,
   $args                     = '',
-  $package                  = [ 'bc', 'smartmontools', 'pciutils', 'lsscsi' ],
+  $package                  = [ 'bc', 'smartmontools', 'pciutils', 'lsscsi', 'nvme-cli' ],
   $vendor_package           = undef,
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
