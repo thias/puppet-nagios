@@ -157,9 +157,9 @@ class nagios::client (
     if getvar('::nagios_httpd') {            class { '::nagios::check::httpd': } }
     if getvar('::nagios_pci_megaraid_sas') {
       class { '::nagios::check::megaraid_sas': }
-      class { '::nagios::check::ssd': }
+      include ::nagios::check::ssd
     }
-    if /^nvme/ in $::disks {                 class { '::nagios::check::ssd': } }
+    if /^nvme/ in $::disks {                 include ::nagios::check::ssd }
     if getvar('::nagios_memcached') {        class { '::nagios::check::memcached': } }
     if getvar('::nagios_mongod') {           class { '::nagios::check::mongodb': } }
     if getvar('::nagios_mountpoints') {      class { '::nagios::check::mountpoints': } }
