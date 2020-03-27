@@ -22,7 +22,7 @@ define nagios::check::zookeeper::key () {
 
   # Disable follower only keys if needed
   if $leader == false {
-    $keys_disabled_final = concat($keys_disabled, 'zk_pending_syncs', 'zk_followers')
+    $keys_disabled_final = concat($keys_disabled, 'zk_pending_syncs', 'zk_synced_followers')
   } else {
     $keys_disabled_final = $keys_disabled
   }
