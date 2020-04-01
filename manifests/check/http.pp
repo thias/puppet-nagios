@@ -21,9 +21,9 @@ define nagios::check::http (
   }
 
   nagios::service { "check_http_${title}_${::nagios::client::host_name}":
-    ensure              => $ensure,
-    check_command       => "check_nrpe_http_${title}",
-    service_description => "http_${title}",
+    ensure                   => $ensure,
+    check_command            => "check_nrpe_http_${title}",
+    service_description      => "http_${title}",
     servicegroups            => $servicegroups,
     check_period             => $check_period,
     contact_groups           => $contact_groups,

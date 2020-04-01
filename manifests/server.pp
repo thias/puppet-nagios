@@ -36,6 +36,8 @@ class nagios::server (
   $cgi_authorized_for_all_host_commands         = 'nagiosadmin',
   $cgi_default_statusmap_layout                 = '5',
   $cgi_result_limit                             = '100',
+  # mail server installation is optionnal
+  $mailx_install                = true,
   # nagios.cfg
   $cfg_file = [
     # Where puppet managed types are
@@ -53,6 +55,7 @@ class nagios::server (
     '/etc/nagios/nagios_serviceescalation.cfg',
   ],
   $cfg_dir                        = [],
+  $cfg_template                   = $::nagios::params::cfg_template,
   $process_performance_data       = '0',
   $host_perfdata_command          = false,
   $service_perfdata_command       = false,
@@ -72,6 +75,7 @@ class nagios::server (
   $notification_timeout  = '30',
   $ocsp_timeout          = '5',
   $perfdata_timeout      = '5',
+  $enable_notifications  = '1',
   # private/resource.cfg for $USERx$ macros (from 1 to 32)
   $user = {
     '1' => $::nagios::params::plugin_dir,
@@ -231,7 +235,9 @@ class nagios::server (
 
   # Other packages
   # For the default email notifications to work
-  ensure_packages(['mailx'])
+  if $mailx_install {
+    ensure_packages(['mailx'])
+  }
 
   service { 'nagios':
     ensure    => 'running',
@@ -304,7 +310,7 @@ class nagios::server (
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    content => template($::nagios::params::cfg_template),
+    content => template($cfg_template),
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
@@ -808,8 +814,8 @@ class nagios::server (
   nagios_command { 'check_nrpe_zk_pending_syncs':
     command_line => "${nrpe} -c check_zk_pending_syncs",
   }
-  nagios_command { 'check_nrpe_zk_followers':
-    command_line => "${nrpe} -c check_zk_followers",
+  nagios_command { 'check_nrpe_zk_synced_followers':
+    command_line => "${nrpe} -c check_zk_synced_followers",
   }
   nagios_command { 'check_nrpe_mongodb_asserts':
     command_line => "${nrpe} -c check_mongodb_asserts",
@@ -1003,6 +1009,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_kafka':
     command_line => "${nrpe} -c check_kafka",
   }
+  nagios_command { 'check_nrpe_kafka_isr':
+    command_line => "${nrpe} -c check_kafka_isr",
+  }
   nagios_command { 'check_nrpe_clickhouse_replication_future_parts':
     command_line => "${nrpe} -c check_clickhouse_replication_future_parts",
   }
@@ -1032,6 +1041,9 @@ class nagios::server (
   }
   nagios_command { 'check_nrpe_http_chproxy':
     command_line => "${nrpe} -c check_http_chproxy",
+  }
+  nagios_command { 'check_nrpe_haproxy_stats':
+    command_line => "${nrpe} -c check_haproxy_stats",
   }
 
   # Collect virtual resources from check_service

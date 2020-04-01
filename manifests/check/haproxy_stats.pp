@@ -1,10 +1,8 @@
-class nagios::check::ipa_replication (
+class nagios::check::haproxy_stats (
   $ensure                   = undef,
-  $args                     = '',
-  $bind_dn                  = undef,
-  $bind_pass                = undef,
-  $ldap_uri                 = 'ldaps://localhost',
-  $package                  = [ 'python-ldap', 'pynag'],
+  $args                     = '-s /var/lib/haproxy/stats -P statistics -m',
+  $package                  = [ 'perl' ],
+  $vendor_package           = undef,
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
@@ -14,40 +12,21 @@ class nagios::check::ipa_replication (
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
 ) {
-
-  if $args !~ /-u/ and $ldap_uri != undef {
-    $arg_u = "-u ${ldap_uri} "
-  } else {
-    $arg_u = ''
-  }
-  if $args !~ /-D/ and $bind_dn != undef {
-    $arg_d = "-D ${bind_dn} "
-  } else {
-    $arg_d = ''
-  }
-  if $args !~ /-w/ and $bind_pass != undef {
-    $arg_p = "-w ${bind_pass} "
-  } else {
-    $arg_p = ''
+  nagios::client::nrpe_plugin { 'check_haproxy_stats':
+    ensure   => $ensure,
+    sudo_cmd => '/usr/lib64/nagios/plugins/check_haproxy_stats',
   }
 
-  $globalargs = strip(" ${arg_u}${arg_d}${arg_p}${args}")
-
-
-  nagios::client::nrpe_plugin { 'check_ipa_replication':
-    ensure  => $ensure,
-    package => $package,
-  }
-
-  nagios::client::nrpe_file { 'check_ipa_replication':
+  nagios::client::nrpe_file { 'check_haproxy_stats':
     ensure => $ensure,
-    args   => $globalargs,
+    sudo   => true,
+    args   => $args,
   }
 
-  nagios::service { "check_ipa_replication_${check_title}":
+  nagios::service { "check_haproxy_stats_${check_title}":
     ensure                   => $ensure,
-    check_command            => 'check_nrpe_ipa_replication',
-    service_description      => 'ipa_replication',
+    check_command            => 'check_nrpe_haproxy_stats',
+    service_description      => 'haproxy_stats',
     servicegroups            => $servicegroups,
     check_period             => $check_period,
     contact_groups           => $contact_groups,

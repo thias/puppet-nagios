@@ -1,12 +1,11 @@
-class nagios::check::ipa_replication (
+class nagios::check::kafka_isr (
   $ensure                   = undef,
   $args                     = '',
-  $bind_dn                  = undef,
-  $bind_pass                = undef,
-  $ldap_uri                 = 'ldaps://localhost',
-  $package                  = [ 'python-ldap', 'pynag'],
+  $zookeeper_ipaddr         = [],
+  $zookeeper_port           = 2181,
+  $zookeeper_chroot         = undef,
+  $package                  = [],
   $check_title              = $::nagios::client::host_name,
-  $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
   $contact_groups           = $::nagios::client::service_contact_groups,
   $first_notification_delay = $::nagios::client::service_first_notification_delay,
@@ -15,40 +14,31 @@ class nagios::check::ipa_replication (
   $use                      = $::nagios::client::service_use,
 ) {
 
-  if $args !~ /-u/ and $ldap_uri != undef {
-    $arg_u = "-u ${ldap_uri} "
-  } else {
-    $arg_u = ''
-  }
-  if $args !~ /-D/ and $bind_dn != undef {
-    $arg_d = "-D ${bind_dn} "
-  } else {
-    $arg_d = ''
-  }
-  if $args !~ /-w/ and $bind_pass != undef {
-    $arg_p = "-w ${bind_pass} "
-  } else {
-    $arg_p = ''
-  }
+  $zookeeper_hosts = join(map($zookeeper_ipaddr) |$ipaddr| { "${ipaddr}:${zookeeper_port}" }, ',')
+  $zookeeper_final = "${zookeeper_hosts}/${zookeeper_chroot}"
 
-  $globalargs = strip(" ${arg_u}${arg_d}${arg_p}${args}")
+  # Set options from parameters unless already set inside args
+  if $args !~ /-z/ and $zookeeper_final != undef {
+    $arg_z = "-z ${zookeeper_final} "
+  } else {
+    $arg_z = ''
+  }
+  $globalargs = strip("${arg_z}${args}")
 
-
-  nagios::client::nrpe_plugin { 'check_ipa_replication':
+  nagios::client::nrpe_plugin { 'check_kafka_isr':
     ensure  => $ensure,
     package => $package,
   }
 
-  nagios::client::nrpe_file { 'check_ipa_replication':
+  nagios::client::nrpe_file { 'check_kafka_isr':
     ensure => $ensure,
     args   => $globalargs,
   }
 
-  nagios::service { "check_ipa_replication_${check_title}":
+  nagios::service { "check_kafka_isr_${check_title}":
     ensure                   => $ensure,
-    check_command            => 'check_nrpe_ipa_replication',
-    service_description      => 'ipa_replication',
-    servicegroups            => $servicegroups,
+    check_command            => 'check_nrpe_kafka_isr',
+    service_description      => 'kafka_isr',
     check_period             => $check_period,
     contact_groups           => $contact_groups,
     first_notification_delay => $first_notification_delay,
