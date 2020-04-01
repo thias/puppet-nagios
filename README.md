@@ -688,6 +688,32 @@ Add the following on the client manifest:
    nagios::check::service { 'foo_service': }
 ```
 
+## Syncthing
+
+Check the Syncthing status via de API
+You'll need to they API key from your node.
+
+```yaml
+nagios::check::mongodb::api_key: 'l0r2m1psumd0l0rs1t4m3tC0ns3ct3tur'
+```
+
+You can enable and disable modes as with the previous checks with
+the `modes_enabled` and `modes_disabled` parameters
+```yaml
+# Enable only the following checks (modes)
+nagios::check::syncthing::modes_enabled:
+  - 'alive'
+  - 'devices'
+  - 'folders_status'
+```
+
+```yaml
+# Disable only the following checks (modes)
+nagios::check::syncthing::modes_disabled:
+  - 'last_scans'
+  - 'folders_status'
+```
+
 ## Custom (NRPE) services / NRPE files / NRPE plugins
 
 If you want to define a custom service (non-NRPE) without modifying module code:

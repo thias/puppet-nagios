@@ -1028,6 +1028,20 @@ class nagios::server (
   nagios_command { 'check_nrpe_http_chproxy':
     command_line => "${nrpe} -c check_http_chproxy",
   }
+  nagios_command { 'check_nrpe_syncthing_alive':
+    command_line => "${nrpe} -c check_syncthing_alive",
+  }
+  nagios_command { 'check_nrpe_syncthing_devices':
+    command_line => "${nrpe} -c check_syncthing_devices",
+  }
+  nagios_command { 'check_nrpe_syncthing_folders_status':
+    command_line => "${nrpe} -c check_syncthing_folders_status",
+  }
+  nagios_command { 'check_nrpe_syncthing_last_scans':
+    command_line => "${nrpe} -c check_syncthing_last_scans",
+  }
+
+
   nagios_command { 'check_nrpe_haproxy_stats':
     command_line => "${nrpe} -c check_haproxy_stats",
   }
@@ -1225,6 +1239,10 @@ class nagios::server (
   nagios_servicegroup { 'clickhouse':
     alias => 'ClickHouse service checks',
   }
+  nagios_servicegroup { 'syncthing':
+    alias => 'Syncthing service checks',
+  }
+
 
   # With selinux, adjustements are needed for nagiosgraph
   # lint:ignore:quoted_booleans
