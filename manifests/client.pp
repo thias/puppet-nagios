@@ -196,7 +196,10 @@ class nagios::client (
 
     if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temp': } }
     if getvar('::nagios_elasticsearch') {  class { '::nagios::check::elasticsearch': } }
-    if getvar('::nagios_kafka') {  class { '::nagios::check::kafka': } }
+    if getvar('::nagios_kafka') {
+      class { '::nagios::check::kafka': }
+      class { '::nagios::check::kafka_isr': }
+    }
     if getvar('::nagios_clickhouse') {  class { '::nagios::check::clickhouse': } }
     if getvar('::nagios_chproxy') {  class { '::nagios::check::chproxy': } }
     if getvar('::nagios_haproxy') {

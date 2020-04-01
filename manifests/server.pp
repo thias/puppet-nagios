@@ -998,6 +998,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_kafka':
     command_line => "${nrpe} -c check_kafka",
   }
+  nagios_command { 'check_nrpe_kafka_isr':
+    command_line => "${nrpe} -c check_kafka_isr",
+  }
   nagios_command { 'check_nrpe_clickhouse_replication_future_parts':
     command_line => "${nrpe} -c check_clickhouse_replication_future_parts",
   }
