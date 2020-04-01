@@ -1042,6 +1042,11 @@ class nagios::server (
   nagios_command { 'check_nrpe_http_chproxy':
     command_line => "${nrpe} -c check_http_chproxy",
   }
+  if $plugin_http_alt {
+    nagios_command { 'check_http_alt':
+      command_line => '$USER1$/check_http_alt $ARG1$',
+    }
+  }
   nagios_command { 'check_nrpe_haproxy_stats':
     command_line => "${nrpe} -c check_haproxy_stats",
   }
