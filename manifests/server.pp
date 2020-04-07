@@ -803,8 +803,8 @@ class nagios::server (
   nagios_command { 'check_nrpe_zk_pending_syncs':
     command_line => "${nrpe} -c check_zk_pending_syncs",
   }
-  nagios_command { 'check_nrpe_zk_followers':
-    command_line => "${nrpe} -c check_zk_followers",
+  nagios_command { 'check_nrpe_zk_synced_followers':
+    command_line => "${nrpe} -c check_zk_synced_followers",
   }
   nagios_command { 'check_nrpe_mongodb_asserts':
     command_line => "${nrpe} -c check_mongodb_asserts",
@@ -997,6 +997,9 @@ class nagios::server (
   }
   nagios_command { 'check_nrpe_kafka':
     command_line => "${nrpe} -c check_kafka",
+  }
+  nagios_command { 'check_nrpe_kafka_isr':
+    command_line => "${nrpe} -c check_kafka_isr",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_future_parts':
     command_line => "${nrpe} -c check_clickhouse_replication_future_parts",

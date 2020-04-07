@@ -193,16 +193,15 @@ class nagios::client (
       class { '::nagios::check::ipa_replication': }
       class { '::nagios::check::krb5': }
     }
-
     if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temp': } }
     if getvar('::nagios_elasticsearch') {  class { '::nagios::check::elasticsearch': } }
-    if getvar('::nagios_kafka') {  class { '::nagios::check::kafka': } }
+    if getvar('::nagios_kafka') {
+      class { '::nagios::check::kafka': }
+      class { '::nagios::check::kafka_isr': }
+    }
     if getvar('::nagios_clickhouse') {  class { '::nagios::check::clickhouse': } }
     if getvar('::nagios_chproxy') {  class { '::nagios::check::chproxy': } }
-    if getvar('::nagios_haproxy') {
-      class { '::nagios::check::haproxy': }
-      class { '::nagios::check::haproxy_stats': }
-    }
+    if getvar('::nagios_haproxy') { class { '::nagios::check::haproxy_stats': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work

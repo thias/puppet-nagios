@@ -428,7 +428,7 @@ nagios::check::zookeeper::zk_avg_latency: '--warning=1 --critical=10'
 When `nagios::check::zookeeper::leader` is set to `true`, the following
 additional checks are enabled by default:
 * `zk_pending_syncs`
-* `zk_followers`
+* `zk_synced_followers`
 
 For more info please refer to the `check_zookeeper` nagios plugin
 documentation: https://github.com/andreisavu/zookeeper-monitoring
