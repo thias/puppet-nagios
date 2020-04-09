@@ -422,6 +422,7 @@ class nagios::server (
     'nagios_hostdependency',
     'nagios_hostgroup',
     'nagios_service',
+    'nagios_servicedependency',
     'nagios_servicegroup',
     'nagios_timeperiod',
     'nagios_hostescalation',
