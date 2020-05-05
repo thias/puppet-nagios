@@ -22,8 +22,6 @@ fail() {
 # Default variables
 KAFKACMD=$(which kafka-topics 2>/dev/null || \
   fail "Required kafka-topics command not found." $STATE_UNKNOWN)
-WARN=2
-CRIT=1
 
 TEMPFILE=$(mktemp)
 
@@ -44,8 +42,6 @@ usage() {
 # Parses and validates passed arguemnts
 check_arguments() {
   kafkacmd=${KAFKACMD}
-  warn=${WARN}
-  crit=${CRIT}
   while getopts ":hz:k:" opt; do
       case $opt in
           h )
