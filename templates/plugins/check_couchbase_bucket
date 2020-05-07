@@ -31,8 +31,8 @@ usage() {
   echo -e "\t-p\t\tCouchBase password"
   echo -e "\t-H\t\tCouchBase hostname (default: localhost)"
   echo -e "\t-P\t\tCouchBase port (default: 8091)"
-  echo -e "\t-w\t\tWarning threshold for percenatge usage (default: 70)"
-  echo -e "\t-c\t\tCritical threshold for percenatge usage (default: 90)"
+  echo -e "\t-w\t\tWarning threshold for percentage usage (default: 70)"
+  echo -e "\t-c\t\tCritical threshold for percentage usage (default: 90)"
   echo -e "\t-h\t\tDisplay this help message"
   exit ${STATE_UNKNOWN}
 }
@@ -134,17 +134,17 @@ main() {
 
     if [[ ! ${value} =~ ^[0-9]+$ ]] || [ -z ${value} ]
     then
-      echo -n "${bucket} percenatge usage: unknown "
+      echo -n "${bucket} percentage usage: unknown "
       state=$STATE_CRITICAL
     elif [ ${value} -le ${warn} ] && [ ${value} -le ${crit} ]
     then
       state=${state}
     elif [ ${value} -gt ${warn} ] && [ ${value} -le ${crit} ]
     then
-      echo -n "${bucket} percenatge usage: ${value} "
+      echo -n "${bucket} percentage usage: ${value} "
       state=${STATE_WARNING}
     else
-      echo -n "${bucket} percenatge usage: ${value} "
+      echo -n "${bucket} percentage usage: ${value} "
       state=${STATE_CRITICAL}
     fi
     perfdata+=("${bucket}=${value};${warn};${crit}")   
