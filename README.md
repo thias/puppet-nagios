@@ -697,7 +697,7 @@ https://github.com/tatref/nagios-scripts/
 Consul check which connects to Consul health API in order to gather node's
 state.
 
-The default data center to check is 'default', but it may be controlled via
+The default data center to check is '', but it may be controlled via
 hiera:
 
 ```yaml
