@@ -668,6 +668,19 @@ nagios::check::kafka::brokers:
   - '1.1.1.2:9093'
 ```
 
+There is also ISR Kafka check, which stands for 'In-Sync Replicas'. It checks
+for under-replicated partitions.
+
+The accepted parameters are address or host of the zookeeper server and
+zookeeper chroot:
+
+```yaml
+nagios::check::kafka_isr::zookeeper_ipaddr:
+  - '1.1.1.1'
+  - '1.1.1.2'
+nagios::check::kafka_isr::zookeeper_chroot: 'my-cluster'
+```
+
 ## HAProxy-stats
 
 HAProxy-stats check the state of Frontend, Servers and Backend.
@@ -678,6 +691,25 @@ If you need more options just change the args as documented in the plugin page:
 
 ```
 https://github.com/tatref/nagios-scripts/
+
+## Consul
+
+Consul check which connects to Consul health API in order to gather node's
+state.
+
+The default data center to check is 'default', but it may be controlled via
+hiera:
+
+```yaml
+nagios::check::consul::datacenter: 'ovh'
+```
+
+If using ACLs, also consider passing the token with read permissions on node
+level:
+
+```yaml
+nagios::check::consul::token: 'foo'
+```
 
 ## Services
 Check status of system services for Linux, FreeBSD, OSX, and AIX.
