@@ -1,7 +1,6 @@
 #!/usr/bin/python
-"""Usage: 
+"""Usage:
     check-consul-health.py node NODE DC
-        [--addr=ADDR]
         [--token=TOKEN]
         [--CheckID=CheckID | --ServiceName=ServiceName]
         [--verbose]
@@ -13,7 +12,6 @@ Arguments:
 Options:
     -h --help                  show this
     -v --verbose               verbose output
-    --addr=ADDR                consul address [default: http://localhost:8500]
     --token=TOKEN              consul token [default: empty]
     --CheckID=CheckID          CheckID matcher
     --ServiceName=ServiceName  ServiceName matcher
@@ -26,7 +24,7 @@ def dump(it):
     if arguments['--verbose']: print it
 
 def buildNodeUrl():
-    url = "%(--addr)s/v1/health/node/%(NODE)s?dc=%(DC)s" % arguments
+    url = "http://localhost:8500/v1/health/node/%(NODE)s?dc=%(DC)s" % arguments
     dump("Url: " + url)
     return url
 

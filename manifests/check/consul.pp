@@ -1,9 +1,8 @@
 class nagios::check::consul (
   $ensure                   = undef,
   $args                     = '',
-  $address                  = undef,
   $node                     = $::hostname,
-  $datacenter               = 'default',
+  $datacenter               = '',
   $token                    = undef,
   $package                  = [ 'python-docopt', 'python-requests' ],
   $check_title              = $::nagios::client::host_name,
@@ -16,17 +15,12 @@ class nagios::check::consul (
 ) {
 
   # Set options from parameters unless already set inside args
-  if $args !~ /--addr/ and $address != undef {
-    $arg_a = "--addr ${address} "
-  } else {
-    $arg_a = ''
-  }
   if $args !~ /--token/ and $token != undef {
     $arg_t = "--token ${token} "
   } else {
     $arg_t = ''
   }
-  $globalargs = strip("node ${node} ${datacenter} ${arg_a}${arg_t}${args}")
+  $globalargs = strip("node ${node} '${datacenter}' ${arg_t}${args}")
 
   nagios::client::nrpe_plugin { 'check_consul':
     ensure  => $ensure,
