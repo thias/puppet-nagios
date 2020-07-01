@@ -86,4 +86,4 @@ if __name__ == '__main__':
     except exceptions.SystemExit: raise
     except:
         traceback.print_exc()
-        exit(3)
+        exit(2)
