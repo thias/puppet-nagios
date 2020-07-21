@@ -1037,6 +1037,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_haproxy_stats':
     command_line => "${nrpe} -c check_haproxy_stats",
   }
+  nagios_command { 'check_nrpe_ups':
+    command_line => "${nrpe} -c check_ups",
+  }
 
   # Collect virtual resources from check_service
   Nagios_command <<| tag == 'service' |>> {
