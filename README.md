@@ -24,7 +24,7 @@ drawback is that overrides which were set from manifests possibly need to be
 moved to hieradata.
 
 When upgrading from version 1, if you see checks changing arguments or getting
-added or removed, look at the check's parameters and migrate your exsting
+added or removed, look at the check's parameters and migrate your existing
 overrides, typically :
 
 ```yaml
@@ -428,7 +428,7 @@ nagios::check::zookeeper::zk_avg_latency: '--warning=1 --critical=10'
 When `nagios::check::zookeeper::leader` is set to `true`, the following
 additional checks are enabled by default:
 * `zk_pending_syncs`
-* `zk_followers`
+* `zk_synced_followers`
 
 For more info please refer to the `check_zookeeper` nagios plugin
 documentation: https://github.com/andreisavu/zookeeper-monitoring
@@ -667,6 +667,17 @@ nagios::check::kafka::brokers:
   - '1.1.1.1:9093'
   - '1.1.1.2:9093'
 ```
+
+## HAProxy-stats
+
+HAProxy-stats check the state of Frontend, Servers and Backend.
+
+If you need more options just change the args as documented in the plugin page:
+```puppet
+  nagios::check::haproxy_stats::args: '-s /var/lib/haproxy/stats -P statistics -m'
+
+```
+https://github.com/tatref/nagios-scripts/
 
 ## Services
 Check status of system services for Linux, FreeBSD, OSX, and AIX.

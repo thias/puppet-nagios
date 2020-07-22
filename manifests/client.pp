@@ -152,13 +152,17 @@ class nagios::client (
     class { '::nagios::check::ram': }
     class { '::nagios::check::swap': }
     # Conditional ones, once presence is detected using our custom facts
-    if getvar('::nagios_couchbase') {        class { '::nagios::check::couchbase': } }
+    if getvar('::nagios_couchbase') {
+      class { '::nagios::check::couchbase': }
+      class { '::nagios::check::couchbase_bucket': }
+    }
     if getvar('::nagios_pci_hpsa') {         class { '::nagios::check::hpsa': } }
     if getvar('::nagios_httpd') {            class { '::nagios::check::httpd': } }
     if getvar('::nagios_pci_megaraid_sas') {
       class { '::nagios::check::megaraid_sas': }
       class { '::nagios::check::ssd': }
     }
+    if /^nvme/ in $::disks {                 class { '::nagios::check::ssd': } }
     if getvar('::nagios_memcached') {        class { '::nagios::check::memcached': } }
     if getvar('::nagios_mongod') {           class { '::nagios::check::mongodb': } }
     if getvar('::nagios_mountpoints') {      class { '::nagios::check::mountpoints': } }
@@ -188,23 +192,30 @@ class nagios::client (
       class { '::nagios::check::redis_sentinel': }
     }
     if getvar('::nagios_ipa_server') {
-     class { '::nagios::check::ipa': }
-     class { '::nagios::check::ipa_replication': }
-     class { '::nagios::check::krb5': }
+      class { '::nagios::check::ipa': }
+      class { '::nagios::check::ipa_replication': }
+      class { '::nagios::check::krb5': }
     }
-
     if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temp': } }
     if getvar('::nagios_elasticsearch') {  class { '::nagios::check::elasticsearch': } }
-    if getvar('::nagios_kafka') {  class { '::nagios::check::kafka': } }
+    if getvar('::nagios_kafka') {
+      class { '::nagios::check::kafka': }
+      class { '::nagios::check::kafka_isr': }
+    }
     if getvar('::nagios_clickhouse') {  class { '::nagios::check::clickhouse': } }
     if getvar('::nagios_chproxy') {  class { '::nagios::check::chproxy': } }
-    if getvar('::nagios_haproxy') {  class { '::nagios::check::haproxy': } }
+    if getvar('::nagios_haproxy') { class { '::nagios::check::haproxy_stats': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
   if $selinux and 'selinux' in $facts['os'] and  $facts['os']['selinux']['enabled'] == true {
     selinux::audit2allow { 'nrpe':
       source => "puppet:///modules/${module_name}/messages.nrpe",
+    }
+    selboolean { 'nagios_run_sudo':
+      name       => 'nagios_run_sudo',
+      persistent => true,
+      value      => on,
     }
   }
 

@@ -1,0 +1,163 @@
+#!/bin/bash
+
+set -eo pipefail
+
+PROGNAME=$(basename $0)
+PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+
+. $PROGPATH/utils.sh
+
+fail() {
+  local msg="$1"
+  local state=$2
+  echo $msg
+  exit $state
+}
+
+# Default variables
+CMD_CURL="$(which curl) -s -f "
+CMD_JQ="$(which jq) -r "
+HOST='localhost'
+PORT=8091
+WARN=70
+CRIT=90
+
+# Functions
+# Prints usage
+usage() {
+  echo "Usage: $(basename $0) -u <username> -p <password> [-H <host>] [-P <port>] [-w <warn>] [-c <crit>] [-h]"
+  echo
+  echo -e "\t-u\t\tCouchBase user name"
+  echo -e "\t-p\t\tCouchBase password"
+  echo -e "\t-H\t\tCouchBase hostname (default: localhost)"
+  echo -e "\t-P\t\tCouchBase port (default: 8091)"
+  echo -e "\t-w\t\tWarning threshold for percentage usage (default: 70)"
+  echo -e "\t-c\t\tCritical threshold for percentage usage (default: 90)"
+  echo -e "\t-h\t\tDisplay this help message"
+  exit ${STATE_UNKNOWN}
+}
+
+# Parses and validates passed arguemnts
+check_arguments() {
+  host=${HOST}
+  port=${PORT}
+  warn=${WARN}
+  crit=${CRIT}
+  while getopts ":u:p:H:P:w:c:h" opt; do
+      case $opt in
+          h )
+             usage
+             ;;
+          u )
+             username="${OPTARG}"
+             ;;
+          p )
+             password="${OPTARG}"
+             ;;
+          H )
+             host="${OPTARG}"
+             ;;
+          P )
+             port="${OPTARG}"
+             ;;
+          w )
+             warn="${OPTARG}"
+             ;;
+          c )
+             crit="${OPTARG}"
+             ;;
+          \?)
+             fail "Invalid option: -${OPTARG}." $STATE_UNKNOWN
+             ;;
+          : )
+             fail "Option -"${OPTARG}" requires an argument." $STATE_UNKNOWN
+             ;;
+          * )
+             usage
+             ;;
+      esac
+  done
+  if [ -z "${username}" ] || [ -z "${password}" ]
+  then
+    usage
+  fi
+}
+
+join_by() {
+  local IFS="${1}"
+  shift
+  echo "${*}"
+}
+
+# Retirieves bucket list
+get_buckets() {
+  local json=${1}
+  local buckets=
+  
+  local result=$(${CMD_CURL} -u ${username}:${password} ${host}:${port}/pools/default/buckets) || \
+    fail "Connection to ${host}:${port} failed. Exiting." ${STATE_CRITICAL}
+
+  for bucket in $(echo "${result}" | jq -r '.[]' | jq -r '.name')
+  do
+    buckets="${buckets} ${bucket}"
+  done
+
+  echo ${buckets}
+}
+
+# Main function
+main() {
+  local buckets=$(get_buckets)
+  local buckets_data=()
+
+  # Gather data
+  # XXX: Only percentage_used for now
+  for bucket in ${buckets}
+  do
+    local result=$(${CMD_CURL} -u ${username}:${password} ${host}:${port}/pools/default/buckets/${bucket}/stats) || \
+      fail "Connection to ${host}:${port} failed. Exiting." ${STATE_CRITICAL}
+    local bucket_quota=$(echo ${result} | jq -r '.op.samples.ep_max_size[-1]')
+    local bucket_mem_used=$(echo ${result} | jq -r '.op.samples.mem_used[-1]')
+    local bucket_percentage_used=$((bucket_mem_used*100/bucket_quota))
+    buckets_data+=("${bucket}#${bucket_percentage_used}")
+  done
+
+  # Check against thresholds
+  state=${STATE_OK}
+  perfdata=()
+  for item in ${buckets_data[@]}
+  do
+    IFS='#'
+    read -ra data <<< "${item}"
+    local bucket=${data[0]}
+    local value=${data[1]}
+
+    if [[ ! ${value} =~ ^[0-9]+$ ]] || [ -z ${value} ]
+    then
+      echo -n "${bucket} percentage usage: unknown "
+      state=$STATE_CRITICAL
+    elif [ ${value} -le ${warn} ] && [ ${value} -le ${crit} ]
+    then
+      state=${state}
+    elif [ ${value} -gt ${warn} ] && [ ${value} -le ${crit} ]
+    then
+      echo -n "${bucket} percentage usage: ${value} "
+      state=${STATE_WARNING}
+    else
+      echo -n "${bucket} percentage usage: ${value} "
+      state=${STATE_CRITICAL}
+    fi
+    perfdata+=("${bucket}=${value};${warn};${crit}")   
+  done
+
+  [ ${state} -eq ${STATE_OK} ] && echo -n 'Buckets usage below thresholds.'
+
+  # Attach perfdata
+  echo "| $(join_by ' ' ${perfdata[@]})"
+
+  exit ${state}
+}
+
+# Main part starts here
+check_arguments $@
+main

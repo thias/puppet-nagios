@@ -16,7 +16,7 @@ class nagios::check::zookeeper (
   $args_zk_open_file_descriptor_count = '-w 3481 -c 3890',
   # Leader only keys
   $args_zk_pending_syncs              = '-w 10 -c 20',
-  $args_zk_followers                  = '-w 3 -c 3',
+  $args_zk_synced_followers           = '-w 3 -c 3',
 ) {
 
   # Generic overrides
@@ -47,7 +47,7 @@ class nagios::check::zookeeper (
     'zk_outstanding_requests',
     'zk_open_file_descriptor_count',
     'zk_pending_syncs',
-    'zk_followers',
+    'zk_synced_followers',
   ]:
   }
 

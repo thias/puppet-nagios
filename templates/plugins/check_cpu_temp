@@ -286,6 +286,48 @@ def restricted_float(x):
         raise argparse.ArgumentTypeError("%r not in range [0.0, 1.0]"%(x,))
     return x
 
+def get_chip_values_coretemp(chip):
+    max_tmp = 0
+    sen_high = 99999 # I guess all cores should have same limits but just in case
+    sen_crit = 99999
+    for feature in FeatureIterator(chip):
+        sfs = list(SubFeatureIterator(chip, feature))  # get a list of all subfeatures
+        # Get temperature
+        vals = [get_value(chip, sf.number) for sf in sfs]
+
+        max_tmp = max(int(vals[0]),max_tmp)
+        sen_high = min(int(vals[1]), sen_high)
+        sen_crit = min(int(vals[2]), sen_crit)
+
+    return max_tmp, sen_high, sen_crit
+
+def get_chip_values_nct6779(chip):
+    max_tmp = 0
+    sen_high = 99999 # I guess all cores should have same limits but just in case
+    for feature in FeatureIterator(chip):
+        sfs = list(SubFeatureIterator(chip, feature))  # get a list of all subfeatures
+        # Get temperature
+        vals = [get_value(chip, sf.number) for sf in sfs]
+
+        # Ugly, but I couldn't find a more reliable way to detect
+        # CPU temperature values. This should match both SYSTIN and CPUTIN.
+        if (feature.type != feature.TEMP or len(vals) != 7):
+            continue
+
+        # SYSTIN has 0 as HIGH/HYST values
+        if ((int(vals[1]) <= 0) or (int(vals[2]) <= 0)):
+            continue
+
+        # vals[0] = cpu temperature
+        # vals[1] = hysteresis value (useless)
+        # vals[2] = high temperature value
+        max_tmp = max(int(round(vals[0])),max_tmp)
+        sen_high = min(int(round(vals[2])), sen_high)
+
+    # Calculate critical temperature from that provided by the sensor
+    sen_crit = max(0, sen_high + 20)
+    return max_tmp, sen_high, sen_crit
+
 def main():
     try:
         import argparse
@@ -328,18 +370,15 @@ def main():
     # Detect temperature
     init()  # optionally takes config file
 
-    for chip in ChipIterator("coretemp-*"):  # optional arg like "coretemp-*" restricts iterator
-        max_tmp = 0
-        sen_high = 99999 # I guess all cores should have same limits but just in case
-        sen_crit = 99999
-        for feature in FeatureIterator(chip):
-            sfs = list(SubFeatureIterator(chip, feature))  # get a list of all subfeatures
+    for chip in ChipIterator():  # optional arg like "coretemp-*" restricts iterator
+        # To support a new chip just create a new function for it
+        cb = "get_chip_values_" + chip.prefix
+        if not cb in globals():
+            continue
 
-            # Get temperature
-            vals = [get_value(chip, sf.number) for sf in sfs]
-            max_tmp = max(int(vals[0]),max_tmp)
-            sen_high = min(int(vals[1]), sen_high)
-            sen_crit = min(int(vals[2]), sen_crit)
+        # Calls get_chip_values_* callback function
+        # So chip logic can be implemented separately
+        max_tmp, sen_high, sen_crit = globals()[cb](chip)
 
         # Time to calculate the real warning and critical thresholds
         sen_crit_auto = int(abs((sen_crit - sen_high)*args.ratio)+sen_high)
