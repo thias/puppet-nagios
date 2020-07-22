@@ -2,7 +2,6 @@ class nagios::check::ups (
   $ensure                   = undef,
   $args                     = '-H 127.0.0.1 -u nutdev1',
   $package                  = [ 'nagios-plugins-ups' ],
-# $install_plugin_script    = true,
   $sudo_user                = 'nut',
   $vendor_package           = undef,
   $check_title              = $::nagios::client::host_name,
@@ -15,13 +14,13 @@ class nagios::check::ups (
   $use                      = $::nagios::client::service_use,
 ) {
 
-#  nagios::client::nrpe_plugin { 'check_ups':
-#    ensure         => $ensure,
-#    package        => $package,
-#    sudo_cmd       => '/usr/lib64/nagios/plugins/check_ups',
-#    sudo_user      => $sudo_user,
-#    install_script => false,
-#  }
+  nagios::client::nrpe_plugin { 'check_ups':
+    ensure       => $ensure,
+    package      => $package,
+    sudo_cmd     => '/usr/lib64/nagios/plugins/check_ups',
+    sudo_user    => $sudo_user,
+    puppet_check => false,
+  }
 
   nagios::client::nrpe_file { 'check_ups':
     ensure    => $ensure,
