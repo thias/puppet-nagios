@@ -64,14 +64,16 @@ class nagios::params {
       $perl_memcached     = 'perl-Cache-Memcached'
       case versioncmp($::operatingsystemmajrelease, '8') {
         0: {
-          $python_openssl           = 'python3-pyOpenSSL'
-          $python_mongo             = 'python2-pymongo'
+          $python_openssl            = 'python3-pyOpenSSL'
+          $python_mongo              = 'python2-pymongo'
           $python_2_vs_3_interpreter = '/usr/libexec/platform-python'
+          $python_request            = 'python2-requests'
         }
         default: {
           $python_openssl            = 'pyOpenSSL'
           $python_mongo              = 'python-pymongo'
           $python_2_vs_3_interpreter = '/usr/bin/python2'
+          $python_request            = 'python-requests'
         }
       }
       @package { $nagios_plugins_packages:
