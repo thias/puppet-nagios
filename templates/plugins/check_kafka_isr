@@ -1,0 +1,125 @@
+#!/bin/bash
+
+#
+# The script queries topics data from Kafka and checks if there are any
+# under-replicated partitions.
+#
+
+set -eo pipefail
+
+PROGNAME=$(basename $0)
+PROGPATH=$(echo $0 | sed -e 's,[\\/][^\\/][^\\/]*$,,')
+
+. $PROGPATH/utils.sh
+
+fail() {
+  local msg="$1"
+  local state=$2
+  echo $msg
+  exit $state
+}
+
+# Default variables
+KAFKACMD=$(which kafka-topics 2>/dev/null || \
+  fail "Required kafka-topics command not found." $STATE_UNKNOWN)
+
+TEMPFILE=$(mktemp)
+
+# Trap to clean up on exit
+trap "rm -rf ${TEMPFILE}" EXIT
+
+# Functions
+# Prints usage
+usage() {
+  echo "Usage: $(basename $0) -z <address> [-k <path>] [-h]"
+  echo
+  echo -e "\t-z <address>\tAddress or host of zookeeper server, must be in host:port[,host:port]/cluster_name format (mandatory)"
+  echo -e "\t-k <path>\tPath to kafka-topics binary (default: /bin/kafka-topics)"
+  echo -e "\t-h\t\tDisplay this help message"
+  exit ${STATE_UNKNOWN}
+}
+
+# Parses and validates passed arguemnts
+check_arguments() {
+  kafkacmd=${KAFKACMD}
+  while getopts ":hz:k:" opt; do
+      case $opt in
+          h )
+             usage
+             ;;
+          z )
+             zookeeper="${OPTARG}"
+             ;;
+          k )
+             kafkacmd=${OPTARG}
+             ;;
+          \?)
+             fail "Invalid option: -${OPTARG}." $STATE_UNKNOWN
+             ;;
+          : )
+             fail "Option -"${OPTARG}" requires an argument." $STATE_UNKNOWN
+             ;;
+          * )
+             usage
+             ;;
+      esac
+  done
+  if [ -z "${zookeeper}" ]
+  then
+    usage
+  fi
+}
+
+# Joins arrays by given delimiter
+join_by() {
+  local IFS="${1}"
+  shift
+  echo "${*}"
+}
+
+# Main function
+main() {
+  # Dump data of consumer group to a file
+  rc=0
+  timeout 10 ${kafkacmd} \
+    --zookeeper "${zookeeper}" \
+    --describe \
+    --under-replicated-partitions > ${TEMPFILE} 2> /dev/null || rc=$?
+
+  # Check if we reached zookeeper / kafka
+  if [ $rc -ne 0 ]
+  then
+    fail "Unable to get info from Kafka." $STATE_CRITICAL
+  fi
+
+  # Iterate over file and catch replicas and ISR replicas
+  data=()
+  OIFS=$IFS
+  IFS=$'\n'
+  for line in $(cat ${TEMPFILE})
+  do
+    data+=($(echo $line | awk -v OFS='#' '{print $2, $4, $8, $10}'))
+  done
+  IFS=$OIFS
+
+  # Check results
+  state=${STATE_OK}
+  for item in ${data[@]}
+  do
+    topic=$(echo ${item} | awk -F# '{print $1}')
+    partition=$(echo ${item} | awk -F# '{print $2}')
+    replicas=$(echo ${item} | awk -F# '{print $3}')
+    replicas_isr=$(echo ${item} | awk -F# '{print $4}')
+    echo -n "${topic} topic's ISR replicas (${partition}): ${replicas_isr} (expected: ${replicas}) "
+    state=$STATE_CRITICAL
+  done
+
+  [ ${state} -eq ${STATE_OK} ] && echo -n 'No under-replicated partitions found.'
+
+  exit ${state}
+}
+
+# Main part starts here
+check_arguments $@
+main
+
