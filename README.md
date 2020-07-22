@@ -694,7 +694,7 @@ Check the Syncthing status via de API
 You'll need to they API key from your node.
 
 ```yaml
-nagios::check::mongodb::api_key: 'l0r2m1psumd0l0rs1t4m3tC0ns3ct3tur'
+nagios::check::syncthing::api_key: 'l0r2m1psumd0l0rs1t4m3tC0ns3ct3tur'
 ```
 
 You can enable and disable modes as with the previous checks with
