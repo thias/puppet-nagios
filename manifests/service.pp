@@ -49,7 +49,7 @@ define nagios::service (
 
   # Support an array of tags for multiple nagios servers
   $service_tag = regsubst($server,'^(.+)$','nagios-\1')
-  $contactgroups = split($contact_groups, ',')
+  $contactgroups = split(String($contact_groups), ',')
   @@nagios_service { $title:
     ensure                   => $ensure,
     host_name                => $host_name,
