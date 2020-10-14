@@ -1,7 +1,7 @@
 class nagios::check::consul (
   $ensure                   = undef,
   $args                     = '',
-  $node                     = $::hostname,
+  $node                     = $::fqdn,
   $datacenter               = '',
   $token                    = undef,
   $package                  = [ 'python-docopt', 'python-requests' ],
@@ -23,6 +23,7 @@ class nagios::check::consul (
   $globalargs = strip("node ${node} '${datacenter}' ${arg_t}${args}")
 
   nagios::client::nrpe_plugin { 'check_consul':
+    erb     => true,
     ensure  => $ensure,
     package => $package,
   }

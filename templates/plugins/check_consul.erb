@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!<%= scope['::nagios::params::python_2_vs_3_interpreter'] %>
 """Usage:
     check-consul-health.py node NODE DC
         [--token=TOKEN]
@@ -18,10 +18,14 @@ Options:
 """
 
 from docopt import docopt
-import requests, json, traceback, exceptions
+import requests, json, traceback
+try:
+    import exceptions
+except ImportError:
+    import builtins as exceptions
 
 def dump(it):
-    if arguments['--verbose']: print it
+    if arguments['--verbose']: print(it)
 
 def buildNodeUrl():
     url = "http://localhost:8500/v1/health/node/%(NODE)s?dc=%(DC)s" % arguments
@@ -37,7 +41,7 @@ def getJsonFromUrl(url):
     return r.json()
 
 def printCheck(check):
-    print "> %(Node)s:%(ServiceName)s:%(Name)s:%(CheckID)s:%(Status)s" % check
+    print ("> %(Node)s:%(ServiceName)s:%(Name)s:%(CheckID)s:%(Status)s" % check)
 
 def processFailing(checks):
     filters = map(lambda field: \
@@ -51,25 +55,25 @@ def processFailing(checks):
     critical = filter(lambda x: x['Status'] == 'critical', filtered)
 
     if len(checks) == 0:
-        print "There is no matching node!"
+        print("There is no matching node!")
         return 1
 
     if len(filtered) == 0:
-        print "There is no matching check!"
+        print("There is no matching check!")
         return 1
 
     checkOutput = lambda x: x["Name"] + ":" + x["Output"]
 
     if len(critical):
-        print "|".join(map(checkOutput, critical))
+        print("|".join(map(checkOutput, critical)))
         for check in critical:
             printCheck(check)
     if len(warning):
-        print "|".join(map(checkOutput, warning))
+        print("|".join(map(checkOutput, warning)))
         for check in warning:
             printCheck(check)
     if len(passing):
-        print "Passing: %d" % (len(passing))
+        print("Passing: %d" % (len(passing)))
         for check in passing:
             printCheck(check)
 
