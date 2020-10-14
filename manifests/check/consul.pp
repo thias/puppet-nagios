@@ -4,7 +4,7 @@ class nagios::check::consul (
   $node                     = $::fqdn,
   $datacenter               = '',
   $token                    = undef,
-  $package                  = [ 'python-docopt', 'python-requests' ],
+  $package                  = undef,
   $check_title              = $::nagios::client::host_name,
   $check_period             = $::nagios::client::service_check_period,
   $contact_groups           = $::nagios::client::service_contact_groups,
@@ -13,6 +13,16 @@ class nagios::check::consul (
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
 ) {
+
+  if package {
+    $package_final = $package
+  } else {
+    if versioncmp($::operatingsystemmajrelease,'8') >= 0 {
+      $package_final = [ 'python3-docopt', 'python3-requests' ]
+    } else {
+      $package_final = [ 'python-docopt', 'python-requests' ]
+    }
+  }
 
   # Set options from parameters unless already set inside args
   if $args !~ /--token/ and $token != undef {
@@ -25,7 +35,7 @@ class nagios::check::consul (
   nagios::client::nrpe_plugin { 'check_consul':
     erb     => true,
     ensure  => $ensure,
-    package => $package,
+    package => $package_final,
   }
 
   nagios::client::nrpe_file { 'check_consul':
@@ -46,3 +56,4 @@ class nagios::check::consul (
   }
 
 }
+
