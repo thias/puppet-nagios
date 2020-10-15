@@ -14,7 +14,7 @@ class nagios::check::consul (
   $use                      = $::nagios::client::service_use,
 ) {
 
-  if package {
+  if $package {
     $package_final = $package
   } else {
     if versioncmp($::operatingsystemmajrelease,'8') >= 0 {
