@@ -49,10 +49,10 @@ def processFailing(checks):
         ['CheckID', 'ServiceName']
     )
 
-    filtered = filter(lambda x: all(f(x) for f in filters), checks)
-    passing  = filter(lambda x: x['Status'] == 'passing', filtered)
-    warning  = filter(lambda x: x['Status'] == 'warning', filtered)
-    critical = filter(lambda x: x['Status'] == 'critical', filtered)
+    filtered = list(filter(lambda x: all(f(x) for f in filters), checks))
+    passing  = list(filter(lambda x: x['Status'] == 'passing', filtered))
+    warning  = list(filter(lambda x: x['Status'] == 'warning', filtered))
+    critical = list(filter(lambda x: x['Status'] == 'critical', filtered))
 
     if len(checks) == 0:
         print("There is no matching node!")
