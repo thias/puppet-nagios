@@ -28,6 +28,7 @@ class nagios::check::kafka (
   $globalargs = strip("${arg_t}${arg_b}${args}")
 
   nagios::client::nrpe_plugin { 'check_kafka':
+    erb     => true,
     ensure  => $ensure,
     package => $package,
   }
