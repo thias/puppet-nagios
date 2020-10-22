@@ -3,7 +3,7 @@ class nagios::check::kafka (
   $args                     = '',
   $topic                    = undef,
   $brokers                  = undef,
-  $package                  = [ 'python-harisekhon-utils', 'python-kafka' ],
+  $package                  = undef,
   $check_title              = $::nagios::client::host_name,
   $check_period             = $::nagios::client::service_check_period,
   $contact_groups           = $::nagios::client::service_contact_groups,
@@ -12,6 +12,16 @@ class nagios::check::kafka (
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
 ) {
+
+  if $package {
+    $package_final = $package
+  } else {
+    if versioncmp($::operatingsystemmajrelease,'8') >= 0 {
+      $package_final = [ 'python3-harisekhon-utils', 'python3-kafka' ]
+    } else {
+      $package_final = [ 'python-harisekhon-utils', 'python-kafka' ]
+    }
+  }
 
   # Set options from parameters unless already set inside args
   if $args !~ /-T/ and $args !~ /--topic/ and $topic != undef {
@@ -30,7 +40,7 @@ class nagios::check::kafka (
   nagios::client::nrpe_plugin { 'check_kafka':
     erb     => true,
     ensure  => $ensure,
-    package => $package,
+    package => $package_final,
   }
 
   nagios::client::nrpe_file { 'check_kafka':
