@@ -88,6 +88,6 @@ if __name__ == '__main__':
             json = getJsonFromUrl(url)
             exit(processFailing(json))
     except exceptions.SystemExit: raise
-    except:
-        traceback.print_exc()
+    except Exception as e:
+        print("CRITICAL - %s" % str(e.message))
         exit(2)
