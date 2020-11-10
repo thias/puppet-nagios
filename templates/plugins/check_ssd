@@ -259,11 +259,11 @@ function checkDID () {
       if [ $DEBUG -eq 1 ]; then echo "Checking DID number $d on controller $1 with driver $DRIVER"; fi
       if [ "$DRIVER" = "auto" ]; then
         if [[ $d =~ ^/dev/nvme.* ]]; then
-          if ! VALUE=$($NVMECLI smart-log-add "$d" 2>/dev/null | awk -F'[ %]+' '/wear_leveling/ {print $3}'); then
+          if ! VALUE=$($NVMECLI smart-log-add "$d" 2>/dev/null | awk -F'[\t %]+' '/wear_leveling/ {print $3}'); then
             if [ $DEBUG -eq 1 ]; then echo "no smart-log-add for $d on controller $1 with driver $DRIVER"; fi
-            VALUE=$(echo 100 - "$($NVMECLI smart-log "$d" 2>/dev/null | awk -F'[ %]+' '/percentage_used/ {print $3}')" | bc)
+            VALUE=$(echo 100 - "$($NVMECLI smart-log "$d" 2>/dev/null | awk -F'[\t %]+' '/percentage_used/ {print $3}')" | bc)
           fi
-          temperature=$($NVMECLI smart-log "$d" | awk '/^temperature/ {print $3}')
+          temperature=$($NVMECLI smart-log "$d" | awk -F'[\t ]+' '/^temperature/ {print $3}')
         else
           VALUE=$($SMARTCTL -A -d auto "$d" | awk '/^233/ || /^177/ { gsub ("^0*", "", $4); print $4}')
         fi
