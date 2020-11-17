@@ -52,6 +52,8 @@ avc:  denied  { write } for  pid=1961 comm="sudo" path="/run/systemd/sessions/c2
 avc:  denied  { send_msg } for msgtype=method_return dest=:1.144890 spid=16559 tpid=13268 scontext=system_u:system_r:systemd_logind_t:s0 tcontext=system_u:system_r:nagios_unconfined_plugin_t:s0 tclass=dbus  exe="/usr/bin/dbus-daemon" sauid=81 hostname=? addr=? terminal=?
 avc:  denied  { map } for  pid=145322 comm="sudo" path="/usr/bin/sudo" dev="vda2" ino=50988381 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:sudo_exec_t:s0 tclass=file permissive=0
 avc:  denied  { map } for  pid=146631 comm="unix_chkpwd" path="/usr/sbin/unix_chkpwd" dev="vda2" ino=513015 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:chkpwd_exec_t:s0 tclass=file permissive=0
+avc:  denied  { read write } for  pid=122776 comm="sudo" name="nrpe" dev="tmpfs" ino=899267 scontext=system_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:pam_var_run_t:s0 tclass=file permissive=0
+avc:  denied  { search } for  pid=122776 comm="sudo" name="sudo" dev="vda2" ino=853387 scontext=system_u:system_r:nrpe_t:s0 tcontext=system_u:object_r:sudo_db_t:s0 tclass=dir permissive=0
 # check_moxi
 avc:  denied  { write } for  pid=31159 comm="socat" name="moxi.sock" dev=sda2 ino=917520 scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:object_r:usr_t:s0 tclass=sock_file
 avc:  denied  { connectto } for  pid=31677 comm="socat" path="/opt/moxi/moxi.sock" scontext=unconfined_u:system_r:nrpe_t:s0 tcontext=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 tclass=unix_stream_socket
