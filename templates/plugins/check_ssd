@@ -3,8 +3,9 @@
 # NVMe functionality added by Lukas de Boer <lukas@luqq.nl>
 #
 # This script needs work:
-# We assume Samsung SSDs or Intel SSDs
-# We assume 'Wear_Leveling_Count' or 'Media_Wearout_Indicator' (can be different for different manufacturers)
+# We assume Samsung SSDs, Intel SSDs or Micron SSDs
+# We assume 'Wear_Leveling_Count', 'Media_Wearout_Indicator' or
+# 'Percent_Lifetime_Remain' (can be different for different manufacturers)
 #
 # According to http://www.anandtech.com/show/8239/update-on-samsung-850-pro-endurance-vnand-die-size
 # a drive should continue to work fine even when the value reaches 0, because:
@@ -49,7 +50,7 @@ PREFIX="SSD OK"
 TESTMODE=0
 DEBUG=0
 HAS_SSD=0
-BRAND="SAMSUNG\|INTEL"
+BRAND="SAMSUNG\|INTEL\|MICRON"
 WARNING=10
 CRITICAL=5
 NOSSD=0
@@ -96,7 +97,7 @@ case $i in
     echo -e ""
     echo -e "-c=,  --card=              Instead of autodetecting using lspci, set the card type. We accept \"lsi\", \"3ware\" and \"auto\" for now. Auto is autodetect"
     echo -e "-d=,  --device=            The blockdevice we should use for calling smartmontools. Can be any blockdevice in /dev, but is driver specific"
-    echo -e "-b=,  --brand=             The brand of SSD to search for. We accept \"samsung\" and \"intel\""
+    echo -e "-b=,  --brand=             The brand of SSD to search for. We accept \"samsung\", \"intel\" and \"micron\""
     echo -e ""
     echo -e "-d,   --debug              Enable debug output"
     echo -e "-t,   --test               Only test if there are SSDs present in the system. exits with 0 when found, 1 if not"
@@ -265,13 +266,13 @@ function checkDID () {
           fi
           temperature=$($NVMECLI smart-log "$d" | awk -F'[\t ]+' '/^temperature/ {print $3}')
         else
-          VALUE=$($SMARTCTL -A -d auto "$d" | awk '/^233/ || /^177/ { gsub ("^0*", "", $4); print $4}')
+          VALUE=$($SMARTCTL -A -d auto "$d" | awk '/^233/ || /^177/ || /^202/ { gsub ("^0*", "", $4); print $4}')
         fi
       else
         if [ "$DRIVER" = "megaraid" ]; then
           DRIVER="sat+megaraid"
         fi
-        VALUE=$(echo "$($SMARTCTL -A -d $DRIVER,"$d" "${BLOCKDEVICE[$1]}" | grep "^177\|^233" | head -n1 | awk '{ print $4 }')")
+        VALUE=$(echo "$($SMARTCTL -A -d $DRIVER,"$d" "${BLOCKDEVICE[$1]}" | grep "^177\|^202\|^233" | head -n1 | awk '{ print $4 }')")
         [ ! -z ${VALUE} ] && VALUE=$(echo ${VALUE} + 0 | bc)
       fi
 
