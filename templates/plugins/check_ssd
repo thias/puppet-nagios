@@ -278,17 +278,17 @@ function checkDID () {
 
       if [ ! -z ${VALUE} ]; then
         if [[ ${VALUE} -lt ${CRITICAL} ]]; then
-          MESSAGE+="Drive $d on $1 CRITICAL WLC/MWI ($VALUE). "
+          MESSAGE+="Drive $d on $1 CRITICAL WLC/MWI/PLR ($VALUE). "
           EXITCODE=2
           PREFIX="SSD CRITICAL"
         elif [[ ${VALUE} -lt ${WARNING} ]]; then
-          MESSAGE+="Drive $d on $1 MEDIUM WLC/MWI ($VALUE). "
+          MESSAGE+="Drive $d on $1 MEDIUM WLC/MWI/PLR ($VALUE). "
           if [ "$EXITCODE" -eq "0" ]; then
             EXITCODE=1
             PREFIX="SSD WARNING"
           fi
         else
-          MESSAGE+="Drive $d on $1 WLC/MWI $VALUE. "
+          MESSAGE+="Drive $d on $1 WLC/MWI/PLR $VALUE. "
         fi
         # ADD PERF DATA
         PERF_DATA+="Drive_${1}_${d}=${VALUE}% "
@@ -296,7 +296,7 @@ function checkDID () {
           PERF_DATA+="Drive_${1}_${d}_temp=$temperature "
         fi
       else
-        MESSAGE+="No WLC/MWI info found for drive ${d} on ${1}. "
+        MESSAGE+="No WLC/MWI/PLR info found for drive ${d} on ${1}. "
         EXITCODE=3
         PREFIX='UNKNOWN'
       fi
