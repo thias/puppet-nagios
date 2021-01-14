@@ -17,6 +17,7 @@ define nagios::service (
   $first_notification_delay = $nagios::client::service_first_notification_delay,
   $max_check_attempts       = $nagios::client::service_max_check_attempts,
   $notification_period      = $nagios::client::service_notification_period,
+  $notes_url                = undef,
   $use                      = $nagios::client::service_use,
 ) {
 
@@ -62,6 +63,7 @@ define nagios::service (
     first_notification_delay => $first_notification_delay,
     max_check_attempts       => $final_max_check_attempts,
     notification_period      => $final_notification_period,
+    notes_url                => $notes_url,
     use                      => $final_use,
     tag                      => $service_tag,
     require                  => Nagios_contactgroup[$contactgroups],
