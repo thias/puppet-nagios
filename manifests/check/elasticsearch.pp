@@ -66,7 +66,7 @@ class nagios::check::elasticsearch (
     first_notification_delay => $notification_delay,
     max_check_attempts       => $max_check_attempts,
     notification_period      => $notification_period,
-    use                      => $service_use,
+    use                      => $use,
   }
 
 }
