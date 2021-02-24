@@ -1,6 +1,6 @@
 class nagios::check::rabbitmq (
   $ensure                       = undef,
-  $package                      = 'python-requests',
+  $package                      = $::nagios::params::python_request,
   # common args for all modes 'as-is' for the check script
   $args                         = '',
   # common args for all modes as individual parameters
