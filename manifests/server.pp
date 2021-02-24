@@ -90,6 +90,7 @@ class nagios::server (
   $notify_service_by_email_command_line = '/usr/bin/printf "%b" "***** Nagios *****\n\nNotification Type: $NOTIFICATIONTYPE$\n\nService: $SERVICEDESC$\nHost: $HOSTALIAS$\nAddress: $HOSTADDRESS$\nState: $SERVICESTATE$\n\nDate/Time: $LONGDATETIME$\n\nAdditional Info:\n\n$SERVICEOUTPUT$" | /bin/mail -s "** $NOTIFICATIONTYPE$ Service Alert: $HOSTALIAS$/$SERVICEDESC$ is $SERVICESTATE$ **" $CONTACTEMAIL$',
   $timeperiod_workhours  = '09:00-17:00',
   $plugin_dir            = $::nagios::params::plugin_dir,
+  $plugin_http_alt       = false,
   $plugin_nginx          = false,
   $plugin_xcache         = false,
   $plugin_slack          = false,
@@ -144,6 +145,16 @@ class nagios::server (
   }
   # Plugin packages required on both the client and server sides
   Package <| tag == 'nagios-plugins-http' |>
+
+  # Custom plugin scripts required on the server
+  if $plugin_http_alt {
+    file { "${plugin_dir}/check_http_alt":
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template('nagios/plugins/check_http_alt'),
+    }
+  }
 
   # Custom plugin scripts required on the server
   if $plugin_nginx {
@@ -1033,6 +1044,11 @@ class nagios::server (
   }
   nagios_command { 'check_nrpe_http_chproxy':
     command_line => "${nrpe} -c check_http_chproxy",
+  }
+  if $plugin_http_alt {
+    nagios_command { 'check_http_alt':
+      command_line => '$USER1$/check_http_alt $ARG1$',
+    }
   }
   nagios_command { 'check_nrpe_haproxy_stats':
     command_line => "${nrpe} -c check_haproxy_stats",
