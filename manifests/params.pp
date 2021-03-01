@@ -51,15 +51,15 @@ class nagios::params {
       $nrpe_user          = 'nrpe'
       $nrpe_group         = 'nrpe'
       if ( $::operatingsystem != 'Fedora' and versioncmp($::operatingsystemrelease, '7') >= 0 ) {
-        $nrpe_pid_file    = hiera('nagios::params::nrpe_pid_file','/run/nrpe/nrpe.pid')
+        $nrpe_pid_file    = lookup('nagios::params::nrpe_pid_file',undef,undef,'/run/nrpe/nrpe.pid')
         $cfg_template     = 'nagios/nagios-4.cfg.erb'
 } else {
-        $nrpe_pid_file    = hiera('nagios::params::nrpe_pid_file','/var/run/nrpe/nrpe.pid')
+        $nrpe_pid_file    = lookup('nagios::params::nrpe_pid_file',undef,undef,'/var/run/nrpe/nrpe.pid')
         $cfg_template     = 'nagios/nagios.cfg.erb'
       }
-      $nrpe_cfg_dir       = hiera('nagios::params::nrpe_cfg_dir','/etc/nrpe.d')
-      $plugin_dir         = hiera('nagios::params::plugin_dir',"/usr/${libdir}/nagios/plugins")
-      $pid_file           = hiera('nagios::params::pid_file','/var/run/nagios/nagios.pid')
+      $nrpe_cfg_dir       = lookup('nagios::params::nrpe_cfg_dir',undef,undef,'/etc/nrpe.d')
+      $plugin_dir         = lookup('nagios::params::plugin_dir',undef,undef,"/usr/${libdir}/nagios/plugins")
+      $pid_file           = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios/nagios.pid')
       $megaclibin         = '/usr/sbin/MegaCli'
       $perl_memcached     = 'perl-Cache-Memcached'
       case versioncmp($::operatingsystemmajrelease, '8') {
@@ -109,11 +109,11 @@ class nagios::params {
       $nrpe_service              = 'nagios-nrpe-server'
       $nrpe_user                 = 'nagios'
       $nrpe_group                = 'nagios'
-      $nrpe_pid_file             = hiera('nagios::params::nrpe_pid_file','/var/run/nagios/nrpe.pid')
+      $nrpe_pid_file             = lookup('nagios::params::nrpe_pid_file',undef,undef,'/var/run/nagios/nrpe.pid')
       $cfg_template              = 'nagios/nagios.cfg.erb'
-      $nrpe_cfg_dir              = hiera('nagios::params::nrpe_cfg_dir','/etc/nagios/nrpe.d')
-      $plugin_dir                = hiera('nagios::params::plugin_dir','/usr/lib/nagios/plugins')
-      $pid_file                  = hiera('nagios::params::pid_file','/var/run/nagios/nagios.pid')
+      $nrpe_cfg_dir              = lookup('nagios::params::nrpe_cfg_dir',undef,undef,'/etc/nagios/nrpe.d')
+      $plugin_dir                = lookup('nagios::params::plugin_dir',undef,undef,'/usr/lib/nagios/plugins')
+      $pid_file                  = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios/nagios.pid')
       $megaclibin                = '/opt/bin/MegaCli'
       $perl_memcached            = 'libcache-memcached-perl'
       $python_openssl            = 'pyOpenSSL'
@@ -131,13 +131,13 @@ class nagios::params {
       $nrpe_service              = 'nrpe'
       $nrpe_user                 = 'nrpe'
       $nrpe_group                = 'nrpe'
-      $nrpe_pid_file             = hiera('nagios::params::nrpe_pid_file','/var/run/nrpe.pid')
+      $nrpe_pid_file             = lookup('nagios::params::nrpe_pid_file',undef,undef,'/var/run/nrpe.pid')
       $cfg_template              = 'nagios/nagios.cfg.erb'
-      $nrpe_cfg_dir              = hiera('nagios::params::nrpe_cfg_dir','/etc/nagios/nrpe.d')
-      $plugin_dir                = hiera('nagios::params::plugin_dir','/usr/libexec/nagios/plugins')
-      $pid_file                  = hiera('nagios::params::pid_file','/var/run/nagios.pid')
-      $megaclibin                = hiera('nagios::params::megaclibin','/usr/sbin/MegaCli')
-      $perl_memcached            = hiera('nagios::params::perl_memcached','perl-Cache-Memcached')
+      $nrpe_cfg_dir              = lookup('nagios::params::nrpe_cfg_dir',undef,undef,'/etc/nagios/nrpe.d')
+      $plugin_dir                = lookup('nagios::params::plugin_dir',undef,undef,'/usr/libexec/nagios/plugins')
+      $pid_file                  = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios.pid')
+      $megaclibin                = lookup('nagios::params::megaclibin',undef,undef,'/usr/sbin/MegaCli')
+      $perl_memcached            = lookup('nagios::params::perl_memcached',undef,undef,'perl-Cache-Memcached')
       $python_openssl            = 'pyOpenSSL'
       $python_mongo              = 'python-pymongo'
       $python_2_vs_3_interpreter = '/usr/bin/python2'
