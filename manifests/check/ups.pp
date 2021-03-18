@@ -3,7 +3,6 @@ class nagios::check::ups (
   $args                     = '-H 127.0.0.1 -u nutdev1',
   $package                  = [ 'nagios-plugins-ups' ],
   $sudo_user                = 'nut',
-  $vendor_package           = undef,
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
