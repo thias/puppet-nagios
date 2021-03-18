@@ -1,0 +1,195 @@
+#!/bin/bash
+# Nagios script that raises an critical after X grace period of time.
+# curl -x my.super.lan:223 http://foo.bar -s --connect-timeout 10
+
+print_usage() {
+  echo -n '
+ Options:
+  -u, --url                   URL to check
+  -I, --IP_address            IP address or name
+  -H, --hostname              Host name argument for servers using host headers
+  -b, --proxy_authorization   Username:password on proxy-servers
+                              with basic authentication
+  -p, --port(s)               Proxy port(s)
+  -g, --grace-period          Grace period since the first failing
+                              connection before raising a Critical alert
+  -h, --help                  Display this help and exit
+  -v, --verbose               Print full output of the request
+'
+}
+
+print_help() {
+  print_usage
+}
+
+do_request(){
+  if [ -n "${1}" ];then
+    p_port=":${1}"
+  fi
+  
+  time_total=`${bin_curl} ${proxy_option} ${IP_address}${p_port} ${proxy_hostname} --proxy-basic ${proxy_auth} ${proxy_authorization} ${url} ${silence} --connect-timeout 15 ${redirection_option} ${redirection_path} -w '%{time_total}'`
+  curl_status=$?
+
+  if [ ${curl_status} -eq 0 ]; then
+    [ -n "${1}" ] && echo "${1}:${time_total}" || echo ${time_total}
+    return ${STATE_OK}
+  else
+    [ -n "${1}" ] && echo "${1}:err_code_${curl_status}" || echo "err_code_${curl_status}"
+    return ${STATE_CRITICAL}
+  fi
+}
+
+STATE_OK=0
+STATE_WARNING=1
+STATE_CRITICAL=2
+STATE_UNKNOWN=3
+
+while test -n "${1}"; do
+  case "${1}" in
+    --help|-h)
+      print_help
+      exit ${STATE_OK}
+      ;;
+    --url|-u) url="${2}"
+      shift
+      ;;
+    --IP_address|-I) IP_address="${2}"
+      shift
+      ;;
+    --hostname|-H) hostname="${2}"
+      shift
+      ;;
+    --proxy_authorization|-b) proxy_authorization="${2}"
+      shift
+      ;;
+    --port|-p) port="${2}"
+      shift
+      ;;
+    --grace-period|-g) grace_period="${2}"
+      shift
+      ;;
+    --verbose|-v) verbose=true
+      ;;
+    *)
+      echo "Unknown argument: ${1}"
+      print_usage
+      exit ${STATE_UNKNOWN}
+      ;;
+  esac
+shift
+done
+
+
+
+if [ -z "${grace_period}" ] ||
+   [ -z "${url}" ]; then
+ echo 'Specify more parameters...'
+ print_usage
+ exit ${STATE_UNKNOWN}
+fi 
+
+
+if [ ${verbose} ]; then
+  silence='-v'
+  redirection_option=''
+  redirection_path=''
+else
+  silence='-s'
+  redirection_option='-o'
+  redirection_path='/dev/null'
+fi
+
+
+
+if [ ${IP_address} ]; then
+  if [ -z "${port}" ]; then
+   echo 'Specify more parameters...'
+   print_usage
+   exit ${STATE_UNKNOWN}
+  fi 
+  proxy_option='-x'
+else
+  proxy_option=''
+fi
+
+if [ ${hostname} ]; then
+  if [ -z "${IP_address}" ]; then
+    echo 'Specify more parameters...'
+    print_usage
+    exit ${STATE_UNKNOWN}
+  fi 
+  proxy_hostname="-H 'Host: ${hostname}'"
+fi
+
+if [ ${proxy_authorization} ]; then
+  if [ -z "${IP_address}" ]; then
+   echo 'Specify more parameters...'
+   print_usage
+   exit ${STATE_UNKNOWN}
+  fi 
+  proxy_auth='-U'
+else
+  proxy_auth=''
+fi
+
+if [ ${port} ]; then
+  if [ -z "${IP_address}" ]; then
+   echo 'Specify more parameters...'
+   print_usage
+   exit ${STATE_UNKNOWN}
+  fi 
+fi
+# String to array
+IFS=','
+read -ra port_list <<< "${port}"
+
+
+bin_curl='/usr/bin/curl'
+
+counter=0
+if [ -z "${port}" ]; then
+  output=$(do_request ${port})
+  if [ $? -ne 0 ]; then
+    counter=`expr ${counter} + 1`
+  fi
+
+else 
+  for single_port in "${port_list[@]}"
+  do
+    output_=$(do_request ${single_port})
+    if [ $? -ne 0 ]; then
+      counter=`expr ${counter} + 1`
+    fi
+    output="${output} ${output_}"
+  done
+fi
+
+md5sum_hash=$(echo ${url} ${IP_address} ${hostname} ${port} | md5sum | cut -d ' ' -f 1)
+temp_file="/tmp/proxy_${md5sum_hash}"
+
+ports_number=`echo ${port_list[@]}| wc -w`
+if [ ${ports_number} -eq ${counter} ]; then
+  if [ ! -f ${temp_file} ]; then
+    echo "CRITICAL: ${output}"
+    exit ${STATE_CRITICAL}
+  fi 
+  mtime_file=`stat -c %Y  ${temp_file}`
+  current_time=`date +%s`
+  diff_time=`expr ${current_time} - ${mtime_file}`
+  if [ ${diff_time} -gt ${grace_period} ];then
+    echo "CRITICAL: ${output}"
+    exit ${STATE_CRITICAL}
+  else
+    echo "WARNING: ${output}"
+    exit ${STATE_WARNING}
+  fi
+
+elif [ ${counter} -ne 0 ]; then
+  echo "WARNING: ${output}"
+  exit ${STATE_WARNING}
+
+else 
+  touch ${temp_file}
+  echo "OK: ${output}"
+  exit ${STATE_OK}
+fi

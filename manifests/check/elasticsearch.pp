@@ -1,24 +1,28 @@
+#
+# ElasticSearch nagios check
+#
 class nagios::check::elasticsearch (
-  $args                     = '',
-  $host                     = undef,
-  $port                     = undef,
-  $node                     = undef,
-  $modes_enabled            = [],
-  $modes_disabled           = [],
+  Enum['present','absent'] $ensure                   = 'present',
+  String                   $args                     = '',
+  Optional[String]         $host                     = undef,
+  Optional[String]         $port                     = undef,
+  Optional[String]         $node                     = undef,
+  Array[String]            $modes_enabled            = [],
+  Array[String]            $modes_disabled           = [],
   # Modes
-  $args_cluster_status      = '',
-  $args_jvm_usage           = '',
-  $args_nodes               = '',
-  $args_split_brain         = '',
-  $args_unassigned_shards   = '',
-  $check_title              = $::nagios::client::host_name,
-  $check_period             = $::nagios::client::service_check_period,
-  $contact_groups           = $::nagios::client::service_contact_groups,
-  $first_notification_delay = $::nagios::client::service_first_notification_delay,
-  $max_check_attempts       = $::nagios::client::service_max_check_attempts,
-  $notification_period      = $::nagios::client::service_notification_period,
-  $use                      = $::nagios::client::service_use,
-
+  String                   $args_cluster_status      = '',
+  String                   $args_jvm_usage           = '',
+  String                   $args_nodes               = '',
+  String                   $args_split_brain         = '',
+  String                   $args_unassigned_shards   = '',
+  Optional[String]         $check_title              = $::nagios::client::host_name,
+  Optional[String]         $check_period             = $::nagios::client::service_check_period,
+  Optional[String]         $contact_groups           = $::nagios::client::service_contact_groups,
+  Optional[String]         $first_notification_delay = $::nagios::client::service_first_notification_delay,
+  Optional[String]         $max_check_attempts       = $::nagios::client::service_max_check_attempts,
+  Optional[String]         $notification_period      = $::nagios::client::service_notification_period,
+  Optional[String]         $use                      = $::nagios::client::service_use,
+  Optional[String]         $servicegroups            = $::nagios::client::service_servicegroups,
 ) {
 
   # Set options from parameters unless already set inside args
@@ -63,10 +67,10 @@ class nagios::check::elasticsearch (
     check_title              => $check_title,
     check_period             => $check_period,
     contact_groups           => $contact_groups,
-    first_notification_delay => $notification_delay,
+    first_notification_delay => $first_notification_delay,
     max_check_attempts       => $max_check_attempts,
     notification_period      => $notification_period,
-    use                      => $service_use,
+    use                      => $use,
   }
 
 }

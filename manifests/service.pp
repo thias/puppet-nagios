@@ -10,7 +10,7 @@ define nagios::service (
   $server                   = $nagios::client::server,
   $host_name                = $nagios::client::host_name,
   $service_description      = $name,
-  $servicegroups            = undef,
+  $servicegroups            = $nagios::client::service_servicegroups,
   $check_interval           = $nagios::client::service_check_interval,
   $check_period             = $nagios::client::service_check_period,
   $contact_groups           = $nagios::client::service_contact_groups,
