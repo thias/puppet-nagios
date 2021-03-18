@@ -14,11 +14,11 @@ class nagios::check::ups (
 ) {
 
   nagios::client::nrpe_plugin { 'check_ups':
-    ensure       => $ensure,
-    package      => $package,
-    sudo_cmd     => '/usr/lib64/nagios/plugins/check_ups',
-    sudo_user    => $sudo_user,
-    puppet_check => false,
+    ensure          => $ensure,
+    package         => $package,
+    sudo_cmd        => '/usr/lib64/nagios/plugins/check_ups',
+    sudo_user       => $sudo_user,
+    plugin_template => false,
   }
 
   nagios::client::nrpe_file { 'check_ups':
