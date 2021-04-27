@@ -720,6 +720,16 @@ Add the following on the client manifest:
    nagios::check::service { 'foo_service': }
 ```
 
+## UPS
+
+check_ups provided by nagios-plugins-ups from https://www.nagios-plugins.org/
+
+If you need more options just change the args as documented in the plugin page:
+```puppet
+  nagios::check::ups::args: '-H 127.0.0.1 -u nutdev1'
+```
+
+
 ## Custom (NRPE) services / NRPE files / NRPE plugins
 
 If you want to define a custom service (non-NRPE) without modifying module code:
