@@ -43,3 +43,7 @@ check_ssd: https://github.com/forgodssake/check_ssd
 check_service: https://github.com/jonschipp/nagios-plugins/blob/master/check_service.sh
 
 check_syncthing: https://github.com/edupr91/nagios-plugin-syncthing
+
+check_http_alt: https://gist.github.com/edupr91/1e507ead9ff771be20fff93a9ded7efe
+
+check_ssl_cert: https://github.com/matteocorti/check_ssl_cert

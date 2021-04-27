@@ -28,7 +28,7 @@ KAFKACMD=$(which kafka-consumer-groups 2>/dev/null || \
 WARN=10000
 CRIT=30000
 
-TEMPFILE=$(mktemp)
+TEMPFILE="$(mktemp)"
 
 # Trap to clean up on exit
 trap "rm -rf ${TEMPFILE}" EXIT
@@ -101,23 +101,36 @@ join_by() {
   echo "${*}"
 }
 
+# Get position for the given field
+get_index() {
+  local value="${1}"
+  local array=("$@")
+
+  for i in "${!array[@]}"
+  do
+    if [[ "${headers[$i]}" == "${value}" ]]
+    then
+      echo $((i+1))
+      break
+    fi
+  done
+}
+
 # Main function
 main() {
   # Dump data of consumer group to a file
   for bootstrap in $bootstraps
   do
-  ${kafkacmd} \
-    --bootstrap-server "${bootstrap}" \
-    --describe \
-    --group "${group}" 2> /dev/null \
-    | grep -ve '^TOPIC\|^$' \
-    | grep -w "${node}" \
-    | sort -V > ${TEMPFILE} \
-    && break
+    ${kafkacmd} \
+      --bootstrap-server "${bootstrap}" \
+      --describe \
+      --group "${group}" 2> /dev/null \
+      | grep -w "${node}\|TOPIC" > ${TEMPFILE} \
+      && break
   done
 
   # If all brokers are unavailable, exit with unknown
-  if [ ! -s ${TEMPFILE} ]
+  if [ -z "$(tail -n +2 ${TEMPFILE})" ]
   then
     fail "Unable to get info from Kafka." $STATE_CRITICAL
   fi
@@ -126,16 +139,22 @@ main() {
   # file's content instead
   grep -Eq '^Error: ' ${TEMPFILE} && fail $(cat $TEMPFILE) $STATE_CRITICAL
 
+  # Map headers to indexes
+  mapfile -t headers < <( head -1 $TEMPFILE | tr -s ' '  '\n' )
+  idx_topic=$(get_index 'TOPIC' "${headers[@]}")
+  idx_partition=$(get_index 'PARTITION' "${headers[@]}")
+  idx_lag=$(get_index 'LAG' "${headers[@]}")
+
   # Iterate over topics and find partition with largest lag per topic
   lags=()
-  for topic in $(awk '{print $1}' ${TEMPFILE} | uniq)
+  for topic in $(tail -n +2 ${TEMPFILE} | awk "{print \$${idx_topic}}")
   do
     OIFS=$IFS
     IFS=$'\n'
-    for line in $(grep -e "^${topic}" ${TEMPFILE})
+    for line in $(awk "{ if (\$${idx_topic} == \"${topic}\") print \$0 }" ${TEMPFILE})
     do
-      partition=$(echo ${line} | awk '{print $2}')
-      lag=$(echo ${line} | awk '{print $5}')
+      partition=$(echo ${line} | awk "{print \$${idx_partition}}")
+      lag=$(echo ${line} | awk "{print \$${idx_lag}}")
       lags+=("${topic}#${partition}#${lag}")
     done
     IFS=$OIFS

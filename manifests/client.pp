@@ -45,6 +45,7 @@ class nagios::client (
   $service_max_check_attempts       = getvar('::nagios_service_max_check_attempts'),
   $service_notification_period      = getvar('::nagios_service_notification_period'),
   $service_use                      = 'generic-service',
+  $service_servicegroups            = getvar('::nagios_service_servicegroups'),
   # other
   $plugin_dir                       = $::nagios::params::plugin_dir,
   $selinux                          = true,
@@ -121,7 +122,7 @@ class nagios::client (
   }
 
   # The initial fact, to be used to know if a node is a nagios client
-  nagios::client::config { 'client': value => 'true' }
+  nagios::client::config { 'client': value => true }
 
   # The main nagios_host entry
   nagios::host { $host_name:
@@ -207,6 +208,7 @@ class nagios::client (
     if getvar('::nagios_haproxy') {
     if getvar('::nagios_haproxy') { class { '::nagios::check::haproxy_stats': } }
     if getvar('::nagios_syncthing') {  class { '::nagios::check::syncthing': } }
+    if getvar('::nagios_consul') { class { '::nagios::check::consul': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work

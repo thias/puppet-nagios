@@ -4,16 +4,16 @@
 
 define nagios::check (
   $executable,
-#  $parameters          = hiera("nagios::check::${title}::parameters", undef),
-  $description         = hiera("nagios::check::${title}::description", $title),
-  $nrpe_options        = hiera("nagios::check::${title}::nrpe_options", '-t 15'),
-  $ensure              = hiera("nagios::check::${title}::ensure", 'present'),
-#  $servicegroups       = hiera("nagios::check::${title}::description",[]),
-  $check_period        = hiera("nagios::check::${title}::check_period",undef),
-  $contact_groups      = hiera("nagios::check::${title}::contact_groups",undef),
-  $max_check_attempts  = hiera("nagios::check::${title}::max_check_attempts",undef),
-  $notification_period = hiera("nagios::check::${title}::notification_period",undef),
-  $use                 = hiera("nagios::check::${title}::use",undef),
+#  $parameters          = lookup("nagios::check::${title}::parameters"),
+  $description         = lookup("nagios::check::${title}::description", undef, undef, $title),
+  $nrpe_options        = lookup("nagios::check::${title}::nrpe_options", undef, undef, '-t 15'),
+  $ensure              = lookup("nagios::check::${title}::ensure", undef, undef, 'present'),
+#  $servicegroups       = lookup("nagios::check::${title}::description", undef, undef, []),
+  $check_period        = lookup("nagios::check::${title}::check_period"),
+  $contact_groups      = lookup("nagios::check::${title}::contact_groups"),
+  $max_check_attempts  = lookup("nagios::check::${title}::max_check_attempts"),
+  $notification_period = lookup("nagios::check::${title}::notification_period"),
+  $use                 = lookup("nagios::check::${title}::use"),
 ) {
 
   # We need to take default values from the nagios::client config

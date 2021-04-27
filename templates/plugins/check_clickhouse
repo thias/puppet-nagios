@@ -39,7 +39,6 @@ if ! CHCMD=$(which clickhouse-client 2>/dev/null)
 then
   fail 'Required clickhouse-client command not found.'
 fi
-CHCMD="${CHCMD} --format_csv_delimiter | -q "
 
 # Available modes
 # <mode>=<desc>|<default_warning>|<default_critical>
@@ -56,11 +55,25 @@ declare -A modes=(
 )
 
 # Functions
+query() {
+  local sql="$1"
+  local cmd="${CHCMD} --format_csv_delimiter |"
+  [ -z "$LOG_QUERIES" ] || cmd="${cmd} --log_queries ${LOG_QUERIES}"
+  [ -z "$CH_HOST" ]     || cmd="${cmd} -h ${CH_HOST}"
+  [ -z "$CH_USER" ]     || cmd="${cmd} -u ${CH_USER}"
+  [ -z "$CH_PASS" ]     || cmd="${cmd} --password ${CH_PASS}"
+  ${cmd} -q "${sql}" 2> /dev/null
+}
+
 usage() {
   tabs 2
-  echo "Usage: ${PROGNAME} -m <mode> [-w <warning>] [-c <critical>] [-h]"
+  echo "Usage: ${PROGNAME} -m <mode> [-u <user>] [-p <pass>] [-l 0|1] [-w <warning>] [-c <critical>] [-h]"
   echo
-  echo -e "\t-m <mode>\tMode tu run (see below)"
+  echo -e "\t-s <host>\tClickHouse host address (default 'localhost')"
+  echo -e "\t-u <user>\tClickHouse user (default 'default')"
+  echo -e "\t-p <pass>\tClickHouse password (empty by default)"
+  echo -e "\t-l <0|1>\tDisable/Enable query logging (default depends on user's profile settings)"
+  echo -e "\t-m <mode>\tMode to run (see below)"
   echo -e "\t-w <warning>\tWarning threshold (default depends on the mode, see below)"
   echo -e "\t-c <critical>\tCritical threshold (default depends on the mode, see below)"
   echo -e "\t-h Display this help message"
@@ -80,7 +93,7 @@ usage() {
 }
 
 check_arguments() {
-  while getopts ":hm:w:c:" opt
+  while getopts ":hm:w:c:u:s:p:l:" opt
   do
     case $opt in
       h )
@@ -94,6 +107,18 @@ check_arguments() {
         ;;
       c )
         crit=$OPTARG
+        ;;
+      u )
+        CH_USER=$OPTARG
+        ;;
+      s )
+        CH_HOST=$OPTARG
+        ;;
+      p )
+        CH_PASS=$OPTARG
+        ;;
+      l )
+        LOG_QUERIES=$OPTARG
         ;;
       \? )
         fail "Invalid option: '-${OPTARG}'."
@@ -109,6 +134,7 @@ check_arguments() {
 
   [ -z "${mode}" ] && usage
   [[ -n "${modes[$mode]}" ]] || fail "Mode '${mode}' isn't supported."
+  [[ "${LOG_QUERIES}" =~ ^[0|1]?$ ]] || fail "Option log queries (-l) can only be 0 or 1"
 
   # Default thresholds
   if [ -z $warn ]
@@ -162,7 +188,7 @@ check_replication() {
 
   # Check if any database / table has issue
   local state=$STATE_OK
-  result=$($CHCMD "$query" 2> /dev/null)
+  result=$(query "$query")
   if [ $? -ne 0 ]
   then
     state=$STATE_CRITICAL
