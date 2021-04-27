@@ -209,6 +209,7 @@ class nagios::client (
     if getvar('::nagios_haproxy') { class { '::nagios::check::haproxy_stats': } }
     if getvar('::nagios_syncthing') {  class { '::nagios::check::syncthing': } }
     if getvar('::nagios_consul') { class { '::nagios::check::consul': } }
+    if getvar('::nagios_ups') { class { '::nagios::check::ups': } }
   }
 
   # With selinux, some nrpe plugins require additional rules to work
