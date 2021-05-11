@@ -1,11 +1,12 @@
 define nagios::client::nrpe_plugin (
-  $ensure    = 'present',
-  $erb       = false,
+  $ensure          = 'present',
+  $erb             = false,
   Optional[String] $template = undef,
-  $perl      = false,
-  $package   = false,
-  $sudo_cmd  = undef,
-  $sudo_user = 'root',
+  $perl            = false,
+  $package         = false,
+  $sudo_cmd        = undef,
+  $sudo_user       = 'root',
+  $plugin_template = true,
 ) {
 
   # The check executes some command(s) using sudo
@@ -38,12 +39,14 @@ define nagios::client::nrpe_plugin (
     undef   => "${module_name}/plugins/${title}${suffix}",
     default => $template,
   }
-  file { "${nagios::client::plugin_dir}/${title}":
-    ensure  => $ensure,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template($template_final),
+  if $plugin_template == true {
+    file { "${nagios::client::plugin_dir}/${title}":
+      ensure  => $ensure,
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template($template_final),
+    }
   }
 
 }
