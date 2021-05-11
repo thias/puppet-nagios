@@ -233,13 +233,6 @@ class nagios::server (
     package { 'rubygem-redis' : ensure => absent }
   }
 
-  file { "${plugin_dir}/check_ssl_cert":
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template('nagios/plugins/check_ssl_cert'),
-  }
-
   # Other packages
   # For the default email notifications to work
   if $mailx_install {
@@ -550,9 +543,6 @@ class nagios::server (
   }
   nagios_command { 'check_redis_sentinel':
     command_line => '$USER1$/check_sentinel_master_health $ARG1$',
-  }
-  nagios_command { 'check_ssl_cert':
-    command_line => '$USER1$/check_ssl_cert -H $HOSTADDRESS$ $ARG1$',
   }
 
   # Custom NRPE-based commands
