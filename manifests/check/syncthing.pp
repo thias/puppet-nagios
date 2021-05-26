@@ -1,6 +1,6 @@
 class nagios::check::syncthing (
   $ensure                   = undef,
-  $package                  = 'python-requests',
+  $package                  = 'python2-requests',
   # common args for all modes 'as-is' for the check script
   $args                     = '',
   # common args for all modes as individual parameters

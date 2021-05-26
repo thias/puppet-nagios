@@ -205,7 +205,6 @@ class nagios::client (
     }
     if getvar('::nagios_clickhouse') {  class { '::nagios::check::clickhouse': } }
     if getvar('::nagios_chproxy') {  class { '::nagios::check::chproxy': } }
-    if getvar('::nagios_haproxy') {
     if getvar('::nagios_haproxy') { class { '::nagios::check::haproxy_stats': } }
     if getvar('::nagios_syncthing') {  class { '::nagios::check::syncthing': } }
     if getvar('::nagios_consul') { class { '::nagios::check::consul': } }
