@@ -5,7 +5,7 @@ class nagios::check::krb5 (
   $principal                = undef,
   $port                     = undef,
   $realm                    = undef,
-  $package                  = [ 'perl-Krb5', 'perl-File-MkTemp'],
+  $package                  = [ 'perl-Authen-Krb5', 'perl-File-MkTemp'],
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
