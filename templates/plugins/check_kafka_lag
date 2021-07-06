@@ -147,7 +147,7 @@ main() {
 
   # Iterate over topics and find partition with largest lag per topic
   lags=()
-  for topic in $(tail -n +2 ${TEMPFILE} | awk "{print \$${idx_topic}}")
+  for topic in $(tail -n +2 ${TEMPFILE} | awk "{print \$${idx_topic}}" | sort | uniq)
   do
     OIFS=$IFS
     IFS=$'\n'
