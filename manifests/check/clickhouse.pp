@@ -2,24 +2,24 @@
 # Class to enable ClickHouse monitoring
 #
 class nagios::check::clickhouse (
-  Variant[String,Undef] $ensure                   = undef,
-  Variant[String,Undef] $args                     = undef,
-  Variant[String,Undef] $check_period             = undef,
-  Variant[String,Undef] $first_notification_delay = undef,
-  Variant[String,Undef] $notification_period      = undef,
-  Array[String]         $modes_enabled            = [],
-  Array[String]         $modes_disabled           = [],
-  String                $plugin                   = 'check_clickhouse',
+  Optional[String] $ensure                              = undef,
+  Optional[String] $args                                = undef,
+  Optional[String] $check_period                        = undef,
+  Optional[String] $first_notification_delay            = undef,
+  Optional[String] $notification_period                 = undef,
+  Array[String]    $modes_enabled                       = [],
+  Array[String]    $modes_disabled                      = [],
+  String           $plugin                              = 'check_clickhouse',
   # Modes
-  String $args_replication_future_parts           = '',
-  String $args_replication_inserts_in_queue       = '',
-  String $args_replication_is_readonly            = '',
-  String $args_replication_is_session_expired     = '',
-  String $args_replication_log_delay              = '',
-  String $args_replication_parts_to_check         = '',
-  String $args_replication_queue_size             = '',
-  String $args_replication_total_replicas         = '',
-  String $args_replication_active_replicas        = '',
+  String           $args_replication_future_parts       = '',
+  String           $args_replication_inserts_in_queue   = '',
+  String           $args_replication_is_readonly        = '',
+  String           $args_replication_is_session_expired = '',
+  String           $args_replication_log_delay          = '',
+  String           $args_replication_parts_to_check     = '',
+  String           $args_replication_queue_size         = '',
+  String           $args_replication_total_replicas     = '',
+  String           $args_replication_active_replicas    = '',
 ) {
 
   # Generic overrides
@@ -34,7 +34,7 @@ class nagios::check::clickhouse (
   }
 
   nagios::client::nrpe_plugin { 'check_clickhouse':
-    ensure  => $ensure,
+    ensure => $ensure,
   }
 
   # Modes-specific definition

@@ -93,7 +93,7 @@ join_by() {
 get_buckets() {
   local json=${1}
   local buckets=
-  
+
   local result=$(${CMD_CURL} -u ${username}:${password} ${host}:${port}/pools/default/buckets) || \
     fail "Connection to ${host}:${port} failed. Exiting." ${STATE_CRITICAL}
 
@@ -147,7 +147,7 @@ main() {
       echo -n "${bucket} percentage usage: ${value} "
       state=${STATE_CRITICAL}
     fi
-    perfdata+=("${bucket}=${value};${warn};${crit}")   
+    perfdata+=("${bucket}=${value};${warn};${crit}")
   done
 
   [ ${state} -eq ${STATE_OK} ] && echo -n 'Buckets usage below thresholds.'

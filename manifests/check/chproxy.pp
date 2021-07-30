@@ -14,13 +14,13 @@ class nagios::check::chproxy (
 
   # Generic overrides
   if $check_period {
-    Nagios_service { check_period => $::nagios_check_clickhouse_period }
+    Nagios_service { check_period => $::nagios_check_chproxy_period }
   }
   if $first_notification_delay {
-    Nagios_service { first_notification_delay => $::nagios_check_clickhouse_first_notification_delay }
+    Nagios_service { first_notification_delay => $::nagios_check_chproxy_first_notification_delay }
   }
   if $notification_period {
-    Nagios_service { notification_period => $::nagios_check_clickhouse_notification_period }
+    Nagios_service { notification_period => $::nagios_check_chproxy_notification_period }
   }
 
   # Set options from parameters unless already set inside args
