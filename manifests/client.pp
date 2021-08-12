@@ -157,6 +157,7 @@ class nagios::client (
       class { '::nagios::check::couchbase': }
       class { '::nagios::check::couchbase_bucket': }
     }
+    if getvar('::nagios_aerospike') {        class { '::nagios::check::aerospike': } }
     if getvar('::nagios_pci_hpsa') {         class { '::nagios::check::hpsa': } }
     if getvar('::nagios_httpd') {            class { '::nagios::check::httpd': } }
     if getvar('::nagios_pci_megaraid_sas') {

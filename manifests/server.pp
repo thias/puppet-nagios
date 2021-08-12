@@ -583,6 +583,18 @@ class nagios::server (
   nagios_command { 'check_nrpe_couchbase_bucket':
     command_line => "${nrpe} -c check_couchbase_bucket",
   }
+  nagios_command { 'check_nrpe_aerospike_cluster_size':
+    command_line => "${nrpe} -c check_aerospike_cluster_size",
+  }
+  nagios_command { 'check_nrpe_aerospike_uptime':
+    command_line => "${nrpe} -c check_aerospike_uptime",
+  }
+  nagios_command { 'check_nrpe_aerospike_query_long_running':
+    command_line => "${nrpe} -c check_aerospike_query_long_running",
+  }
+  nagios_command { 'check_nrpe_aerospike_objects':
+    command_line => "${nrpe} -c check_aerospike_objects",
+  }
   nagios_command { 'check_nrpe_moxi':
     command_line => "${nrpe} -c check_moxi",
   }
@@ -1267,6 +1279,9 @@ class nagios::server (
   }
   nagios_servicegroup { 'syncthing':
     alias => 'Syncthing service checks',
+  }
+  nagios_servicegroup { 'aerospike':
+    alias => 'Aerospike service checks',
   }
 
 
