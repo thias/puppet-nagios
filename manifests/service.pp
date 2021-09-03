@@ -66,6 +66,7 @@ define nagios::service (
     notes_url                => $notes_url,
     use                      => $final_use,
     tag                      => $service_tag,
+    target                   => "/etc/nagios/puppet_checks.d/${host_name}.cfg",
     require                  => Nagios_contactgroup[$contactgroups],
   }
 

@@ -322,6 +322,13 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+  file { '/etc/nagios/puppet_checks.d':
+    owner   => 'root',
+    group   => 'root',
+    recurse => true,
+    mode    => '0644',
+    require => Package['nagios'],
+  }
 
   # Realize all nagios related exported resources for this server
   # Automatically reload nagios for relevant configuration changes
