@@ -323,6 +323,7 @@ class nagios::server (
     require => Package['nagios'],
   }
   file { '/etc/nagios/puppet_checks.d':
+    ensure  => 'directory',
     owner   => 'root',
     group   => 'root',
     recurse => true,
