@@ -150,7 +150,7 @@ class nagios::server (
   if $plugin_http_alt {
     file { "${plugin_dir}/check_http_alt":
       owner   => 'root',
-      group   => 'root',
+      group   => 'nagios',
       mode    => '0755',
       content => template('nagios/plugins/check_http_alt'),
     }
