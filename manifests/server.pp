@@ -327,6 +327,7 @@ class nagios::server (
     owner   => 'root',
     group   => 'nagios',
     recurse => true,
+    purge   => true,
     mode    => '0644',
     require => Package['nagios'],
   }
