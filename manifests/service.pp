@@ -74,6 +74,7 @@ define nagios::service (
     require                  => [
       Nagios_contactgroup[$contactgroups],
       File[dirname($target)],
+      Nagios_command[$check_command],
     ],
   }
 
