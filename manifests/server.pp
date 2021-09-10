@@ -150,7 +150,7 @@ class nagios::server (
   if $plugin_http_alt {
     file { "${plugin_dir}/check_http_alt":
       owner   => 'root',
-      group   => 'nagios',
+      group   => 'root',
       mode    => '0755',
       content => template('nagios/plugins/check_http_alt'),
     }
@@ -325,7 +325,7 @@ class nagios::server (
   file { '/etc/nagios/puppet_checks.d':
     ensure  => 'directory',
     owner   => 'root',
-    group   => 'root',
+    group   => 'nagios',
     recurse => true,
     mode    => '0644',
     require => Package['nagios'],
