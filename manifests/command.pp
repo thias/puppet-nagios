@@ -14,11 +14,10 @@ define nagios::command (
 
   # Support an array of tags for multiple nagios servers
   $service_tag = regsubst($server,'^(.+)$','nagios-\1')
-  $contactgroups = split(String($contact_groups), ',')
   @@nagios_command { $title:
     ensure                   => $ensure,
     mode                     => '0640',
-    owner                    => 'root',
+    owner                    => 'nagios',
     group                    => 'nagios',
     command_line             => $command_line,
     tag                      => $service_tag,
