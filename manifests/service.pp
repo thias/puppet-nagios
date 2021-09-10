@@ -54,6 +54,9 @@ define nagios::service (
   $contactgroups = split(String($contact_groups), ',')
   @@nagios_service { $title:
     ensure                   => $ensure,
+    mode                     => '0640',
+    owner                    => 'root',
+    group                    => 'nagios',
     host_name                => $host_name,
     check_command            => $check_command,
     service_description      => $service_description,
