@@ -324,7 +324,7 @@ class nagios::server (
   }
   file { '/etc/nagios/puppet_checks.d':
     ensure  => 'directory',
-    owner   => 'root',
+    owner   => 'nagios',
     group   => 'nagios',
     recurse => true,
     purge   => true,
