@@ -55,7 +55,7 @@ define nagios::service (
   @@nagios_service { $title:
     ensure                   => $ensure,
     mode                     => '0640',
-    owner                    => 'root',
+    owner                    => 'nagios',
     group                    => 'nagios',
     host_name                => $host_name,
     check_command            => $check_command,
@@ -74,6 +74,7 @@ define nagios::service (
     require                  => [
       Nagios_contactgroup[$contactgroups],
       File[dirname($target)],
+      Nagios_command[$check_command],
     ],
   }
 
