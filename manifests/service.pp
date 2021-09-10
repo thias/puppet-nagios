@@ -9,6 +9,7 @@ define nagios::service (
   $ensure                   = undef,
   $server                   = $nagios::client::server,
   $host_name                = $nagios::client::host_name,
+  $target                   = "/etc/nagios/puppet_checks.d/${host_name}.cfg",
   $service_description      = $name,
   $servicegroups            = $nagios::client::service_servicegroups,
   $check_interval           = $nagios::client::service_check_interval,
@@ -66,7 +67,11 @@ define nagios::service (
     notes_url                => $notes_url,
     use                      => $final_use,
     tag                      => $service_tag,
-    require                  => Nagios_contactgroup[$contactgroups],
+    target                   => $target,
+    require                  => [
+      Nagios_contactgroup[$contactgroups],
+      File[dirname($target)],
+    ],
   }
 
 }
