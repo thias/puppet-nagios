@@ -54,10 +54,6 @@ define nagios::service (
   $contactgroups = split(String($contact_groups), ',')
   @@nagios_service { $title:
     ensure                   => $ensure,
-    mode                     => '0640',
-    owner                    => 'nagios',
-    group                    => 'nagios',
-    host_name                => $host_name,
     check_command            => $check_command,
     service_description      => $service_description,
     servicegroups            => $servicegroups,
@@ -75,6 +71,17 @@ define nagios::service (
       Nagios_contactgroup[$contactgroups],
       File[dirname($target)],
     ],
+  }
+  # Work around a puppet bug where created files are 600 root:root
+  # Also, restart service after resources are purged
+  @@file { $target:
+    ensure => 'present',
+    owner  => 'root',
+    group  => 'nagios',
+    mode   => '0640',
+    audit  => 'content',
+    tag    => $service_tag,
+    notify => Service['nagios'],
   }
 
 }

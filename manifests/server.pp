@@ -324,10 +324,11 @@ class nagios::server (
   }
   file { '/etc/nagios/puppet_checks.d':
     ensure  => 'directory',
-    owner   => 'nagios',
+    owner   => 'root',
     group   => 'nagios',
     recurse => true,
     purge   => true,
+    force   => true,
     mode    => '0644',
     require => Package['nagios'],
   }
@@ -360,6 +361,10 @@ class nagios::server (
     require => Package['nagios'],
   }
   Nagios_service <<| tag == "nagios-${nagios_server}" |>> {
+    notify  => Service['nagios'],
+    require => Package['nagios'],
+  }
+  File <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
