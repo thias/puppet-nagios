@@ -16,9 +16,6 @@ define nagios::command (
   $service_tag = regsubst($server,'^(.+)$','nagios-\1')
   @@nagios_command { $title:
     ensure                   => $ensure,
-    mode                     => '0640',
-    owner                    => 'nagios',
-    group                    => 'nagios',
     command_line             => $command_line,
     tag                      => $service_tag,
     target                   => $target,
