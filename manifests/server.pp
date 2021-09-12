@@ -364,10 +364,6 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
-  File <<| tag == "nagios-${nagios_server}" |>> {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
   Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -388,6 +384,8 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+
+  Nagios::File_perm <<| tag == "nagios-${nagios_server}" |>>
 
   # Auto reload and parent dir, but for non-exported resources
   # FIXME: This does not work from outside here, wrong scope.
