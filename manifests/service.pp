@@ -72,18 +72,9 @@ define nagios::service (
       File[dirname($target)],
     ],
   }
-  # Work around a puppet bug where created files are 600 root:root
-  # Also, restart service after resources are purged
-  $file_params = {
-    ensure => 'present',
-    owner  => 'root',
-    group  => 'nagios',
-    mode   => '0640',
-    audit  => 'content',
+  @@nagios::file_perm { $title:
+    target => $target,
     tag    => $service_tag,
-    notify => Service['nagios'],
   }
-  ensure_resource('@@file', $target, $file_params)
 
 }
-

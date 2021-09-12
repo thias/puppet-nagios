@@ -21,6 +21,10 @@ define nagios::command (
     target                   => $target,
     require                  => File[dirname($target)],
   }
+  @@nagios::file_perm { $title:
+    target => $target,
+    tag    => $service_tag,
+  }
 
 }
 
