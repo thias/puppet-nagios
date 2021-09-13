@@ -56,7 +56,7 @@ define nagios::check (
   }
 
   # Export the precious resource with all modified parameters
-  @@nagios_service { "check_${title}_${host_name}":
+  nagios::service { "check_${title}_${host_name}":
     ensure              => $ensure,
     host_name           => $host_name,
     check_command       => "check_${title}",
@@ -67,8 +67,6 @@ define nagios::check (
     max_check_attempts  => $final_max_check_attempts,
     notification_period => $final_notification_period,
     use                 => $final_use,
-    # Support an arrays of tags for multiple nagios servers
-    tag                 => regsubst($server,'^(.+)$','nagios-\1'),
   }
 
   # Default line for nrpe invoke (used in the nagios_command)
@@ -80,10 +78,9 @@ define nagios::check (
 #    default => "-a $parameters",
 #  }
 
-  @@nagios_command { "check_${title}":
+  nagios::command { "check_${title}":
 #   command_line => "${nrpe} -c check_${title} $command_parameters",
     command_line => "${nrpe} -c check_${title}",
-    tag          => regsubst($server,'^(.+)$','nagios-\1'),
   }
 
 }
