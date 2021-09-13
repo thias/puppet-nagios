@@ -73,8 +73,9 @@ define nagios::service (
     ],
   }
   @@nagios::file_perm { $title:
-    target => $target,
-    tag    => $service_tag,
+    target  => $target,
+    tag     => $service_tag,
+    require => Nagios_service[$title],
   }
 
 }

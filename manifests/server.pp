@@ -385,8 +385,6 @@ class nagios::server (
     require => Package['nagios'],
   }
 
-  Nagios::File_perm <<| tag == "nagios-${nagios_server}" |>>
-
   # Auto reload and parent dir, but for non-exported resources
   # FIXME: This does not work from outside here, wrong scope.
   # We'll need to wrap around these types with our own
@@ -435,6 +433,8 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+
+  Nagios::File_perm <<| tag == "nagios-${nagios_server}" |>>
 
   # Works great, but only if the "target" is the default (known limitation)
   resources { [
