@@ -61,6 +61,7 @@ define nagios::service (
     check_period             => $final_check_period,
     contact_groups           => $contact_groups,
     first_notification_delay => $first_notification_delay,
+    host_name                => $host_name,
     max_check_attempts       => $final_max_check_attempts,
     notification_period      => $final_notification_period,
     notes_url                => $notes_url,
