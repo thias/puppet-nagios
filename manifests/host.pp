@@ -48,6 +48,8 @@ define nagios::host (
         default => $use,
     }
 
+    # Support an array of tags for multiple nagios servers
+    $service_tag = regsubst($server,'^(.+)$','nagios-\1')
     @@nagios_host { $title:
         address             => $final_address,
         alias               => $host_alias,
@@ -60,7 +62,7 @@ define nagios::host (
         notification_period => $notification_period,
         use                 => $final_use,
         # Support an arrays of tags for multiple nagios servers
-        tag                 => regsubst($server,'^(.+)$','nagios-\1'),
+        tag                 => $service_tag,
         target              => $target,
     }
     @@nagios::file_perm { $title:
