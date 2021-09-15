@@ -8,6 +8,7 @@ define nagios::servicedependency (
     $ensure                        = undef,
     $server                        = $nagios::client::server,
     $host_name                     = $nagios::client::host_name,
+    $target                        = "/etc/nagios/puppet_checks.d/${host_name}.cfg",
     $service_description           = $name,
     $dependent_host_name           = $nagios::client::host_name,
     $dependent_service_description = undef,
@@ -16,6 +17,8 @@ define nagios::servicedependency (
 
 ) {
 
+    # Support an array of tags for multiple nagios servers
+    $service_tag = regsubst($server,'^(.+)$','nagios-\1')
     @@nagios_servicedependency { $title:
         ensure                        => $ensure,
         host_name                     => $host_name,
@@ -24,9 +27,13 @@ define nagios::servicedependency (
         dependent_service_description => $dependent_service_description,
         execution_failure_criteria    => $execution_failure_criteria,
         notification_failure_criteria => $notification_failure_criteria,
-        # Support an arrays of tags for multiple nagios servers
-        tag                           => regsubst($server,
-                                                  '^(.+)$','nagios-\1'),
+        tag                           => $service_tag,
+        target                        => $target,
+    }
+    @@nagios::file_perm { $title:
+        target  => $target,
+        tag     => $service_tag,
+        require => Nagios_servicedependency[$title],
     }
 
 }

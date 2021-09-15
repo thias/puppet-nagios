@@ -9,6 +9,7 @@
 #
 define nagios::host (
     $server              = $nagios::client::server,
+    $target              = "/etc/nagios/puppet_checks.d/${title}.cfg",
     $address             = $nagios::client::host_address,
     $host_alias          = $nagios::client::host_alias,
     $check_period        = $nagios::client::host_check_period,
@@ -60,6 +61,12 @@ define nagios::host (
         use                 => $final_use,
         # Support an arrays of tags for multiple nagios servers
         tag                 => regsubst($server,'^(.+)$','nagios-\1'),
+        target              => $target,
+    }
+    @@nagios::file_perm { $title:
+      target  => $target,
+      tag     => $service_tag,
+      require => Nagios_host[$title],
     }
 
 }
