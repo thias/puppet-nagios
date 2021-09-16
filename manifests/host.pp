@@ -51,6 +51,7 @@ define nagios::host (
     # Support an array of tags for multiple nagios servers
     $service_tag = regsubst($server,'^(.+)$','nagios-\1')
     @@nagios_host { $title:
+        host_name           => $title,
         address             => $final_address,
         alias               => $host_alias,
         check_period        => $check_period,
