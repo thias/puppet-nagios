@@ -52,7 +52,7 @@ define nagios::host (
     $service_tag = regsubst($server,'^(.+)$','nagios-\1')
     @@nagios_host { $title:
         host_name           => $title,
-        _host_fqdn          => $host_fqdn,
+        nagios_alias        => $host_fqdn,
         address             => $final_address,
         alias               => $host_alias,
         check_period        => $check_period,
