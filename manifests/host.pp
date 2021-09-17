@@ -18,6 +18,7 @@ define nagios::host (
     $notes               = $nagios::client::host_notes,
     $notes_url           = $nagios::client::host_notes_url,
     $notification_period = $nagios::client::host_notification_period,
+    $host_fqdn           = $nagios::client::host_fqdn,
     $use                 = $nagios::client::host_use
 ) {
 
@@ -51,6 +52,7 @@ define nagios::host (
     $service_tag = regsubst($server,'^(.+)$','nagios-\1')
     @@nagios_host { $title:
         host_name           => $title,
+        _host_fqdn          => $host_fqdn,
         address             => $final_address,
         alias               => $host_alias,
         check_period        => $check_period,

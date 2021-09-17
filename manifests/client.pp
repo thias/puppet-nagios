@@ -4,6 +4,7 @@
 #
 class nagios::client (
   $nagios_host_name                 = getvar('::nagios_host_name'),
+  $host_fqdn                        = %::fqdn,
   $nagios_server                    = getvar('::nagios_server'),
   # nrpe
   $nrpe_package                     = $::nagios::params::nrpe_package,
