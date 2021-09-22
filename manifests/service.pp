@@ -52,6 +52,8 @@ define nagios::service (
   # Support an array of tags for multiple nagios servers
   $service_tag = regsubst($server,'^(.+)$','nagios-\1')
   $contactgroups = split(String($contact_groups), ',')
+  $command_name  = regsubst(String($check_command), '([^!]+).*', '\\1')
+{
   @@nagios_service { $title:
     ensure                   => $ensure,
     check_command            => $check_command,
@@ -69,7 +71,9 @@ define nagios::service (
     tag                      => $service_tag,
     target                   => $target,
     require                  => [
+      Nagios_host[$host_name],
       Nagios_contactgroup[$contactgroups],
+      Nagios_commmand[$command_name],
       File[dirname($target)],
     ],
   }
