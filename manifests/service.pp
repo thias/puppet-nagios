@@ -72,7 +72,7 @@ define nagios::service (
     require                  => [
       Nagios_host[$host_name],
       Nagios_contactgroup[$contactgroups],
-      Nagios_commmand[$command_name],
+      Nagios_command[$command_name],
       File[dirname($target)],
     ],
   }
