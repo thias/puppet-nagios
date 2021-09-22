@@ -53,7 +53,6 @@ define nagios::service (
   $service_tag = regsubst($server,'^(.+)$','nagios-\1')
   $contactgroups = split(String($contact_groups), ',')
   $command_name  = regsubst(String($check_command), '([^!]+).*', '\\1')
-{
   @@nagios_service { $title:
     ensure                   => $ensure,
     check_command            => $check_command,
