@@ -19,7 +19,11 @@ define nagios::command (
     command_line             => $command_line,
     tag                      => $service_tag,
     target                   => $target,
-    require                  => File[dirname($target)],
+    notify                   => Service['nagios'],
+    require                  => [
+      Package['nagios'],
+      File[dirname($target)],
+    ],
   }
   @@nagios::file_perm { $title:
     target  => $target,

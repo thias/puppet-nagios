@@ -336,10 +336,7 @@ class nagios::server (
   # Realize all nagios related exported resources for this server
   # Automatically reload nagios for relevant configuration changes
   # Require the package for the parent directory to exist initially
-  Nagios_command <<| tag == "nagios-${nagios_server}" |>> {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
+  Nagios_command <<| tag == "nagios-${nagios_server}" |>>
   Nagios_contact <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -361,10 +358,7 @@ class nagios::server (
     require => Package['nagios'],
   }
   Nagios_service <<| tag == "nagios-${nagios_server}" |>>
-  Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>> {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
+  Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>>
   Nagios_servicegroup <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -386,10 +380,6 @@ class nagios::server (
   # FIXME: This does not work from outside here, wrong scope.
   # We'll need to wrap around these types with our own
   # definitions like for "host"
-  Nagios_command {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
   Nagios_contact {
     notify  => Service['nagios'],
     require => Package['nagios'],
