@@ -360,10 +360,7 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
-  Nagios_service <<| tag == "nagios-${nagios_server}" |>> {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
+  Nagios_service <<| tag == "nagios-${nagios_server}" |>>
   Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -410,10 +407,6 @@ class nagios::server (
     require => Package['nagios'],
   }
   Nagios_hostgroup {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
-  Nagios_service {
     notify  => Service['nagios'],
     require => Package['nagios'],
   }

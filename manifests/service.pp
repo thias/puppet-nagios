@@ -69,7 +69,9 @@ define nagios::service (
     use                      => $final_use,
     tag                      => $service_tag,
     target                   => $target,
+    notify                   => Service['nagios'],
     require                  => [
+      Package['nagios'],
       Nagios_host[$host_name],
       Nagios_contactgroup[$contactgroups],
       Nagios_command[$command_name],
