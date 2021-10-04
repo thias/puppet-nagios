@@ -27,7 +27,11 @@ define nagios::servicedependency (
         execution_failure_criteria    => $execution_failure_criteria,
         notification_failure_criteria => $notification_failure_criteria,
         tag                           => $service_tag,
-        require                       => Nagios_host[$host_name,$dependent_host_name],
+        notify  => Service['nagios'],
+        require => [
+          Package['nagios'],
+          Nagios_host[$host_name,$dependent_host_name],
+        ],
     }
 
 }
