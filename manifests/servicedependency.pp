@@ -18,6 +18,7 @@ define nagios::servicedependency (
 
     # Support an array of tags for multiple nagios servers
     $service_tag = regsubst($server,'^(.+)$','nagios-\1')
+    $required_hosts = flatten($host_name, split($dependent_host_name, ','))
     @@nagios_servicedependency { $title:
         ensure                        => $ensure,
         host_name                     => $host_name,
@@ -30,7 +31,7 @@ define nagios::servicedependency (
         notify  => Service['nagios'],
         require => [
           Package['nagios'],
-          Nagios_host[$host_name],
+          Nagios_host[$required_hosts],
         ],
     }
 
