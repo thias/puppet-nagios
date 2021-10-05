@@ -1080,6 +1080,11 @@ class nagios::server (
     command_line => "${nrpe} -c check_ups",
   }
 
+  # not a real check
+  nagios_command { 'foo':
+    command_line => '/bin/true',
+  }
+
   # Nagios contacts and contactgroups
   # Taken from contacts.cfg
   nagios_contact { 'nagiosadmin':
