@@ -30,7 +30,7 @@ define nagios::servicedependency (
         notify  => Service['nagios'],
         require => [
           Package['nagios'],
-          Nagios_host[$host_name,$dependent_host_name],
+          Nagios_host[$host_name],
         ],
     }
 
