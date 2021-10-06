@@ -71,7 +71,7 @@ define nagios::host (
     @@nagios::file_perm { $title:
         target  => $target,
         tag     => $service_tag,
-        require => Nagios_service[$title],
+        require => Nagios_host[$title],
     }
 
 }
