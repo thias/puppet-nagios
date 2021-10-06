@@ -9,7 +9,7 @@ define nagios::command (
   $ensure                   = undef,
   $server                   = $nagios::client::server,
   $host_name                = $nagios::client::host_name,
-  $target                   = "/etc/nagios/puppet_checks.d/${host_name}.cfg",
+  $target                   = "/etc/nagios/nagios_command.cfg.d/${host_name}.cfg",
 ) {
 
   # Support an array of tags for multiple nagios servers

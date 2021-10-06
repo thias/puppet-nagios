@@ -11,7 +11,7 @@ define nagios::host (
     $server              = $nagios::client::server,
     $address             = $nagios::client::host_address,
     $host_alias          = $nagios::client::host_alias,
-    $target              = "/etc/nagios/puppet_checks.d/${title}.cfg",
+    $target              = "/etc/nagios/nagios_host.cfg.d/${title}.cfg",
     $check_period        = $nagios::client::host_check_period,
     $check_command       = $nagios::client::host_check_command,
     $contact_groups      = $nagios::client::host_contact_groups,

@@ -9,7 +9,7 @@ define nagios::service (
   $ensure                   = undef,
   $server                   = $nagios::client::server,
   $host_name                = $nagios::client::host_name,
-  $target                   = "/etc/nagios/puppet_checks.d/${host_name}.cfg",
+  $target                   = "/etc/nagios/nagios_service.cfg.d/${host_name}.cfg",
   $service_description      = $name,
   $servicegroups            = $nagios::client::service_servicegroups,
   $check_interval           = $nagios::client::service_check_interval,
