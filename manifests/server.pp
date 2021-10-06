@@ -54,7 +54,7 @@ class nagios::server (
     '/etc/nagios/nagios_hostescalation.cfg',
     '/etc/nagios/nagios_serviceescalation.cfg',
   ],
-  $cfg_dir                        = [],
+  $cfg_dir                        = [ '/etc/nagios/nagios_command.cfg.d', '/etc/nagios/nagios_host.cfg.d', '/etc/nagios/nagios_service.cfg.d' ],
   $cfg_template                   = $::nagios::params::cfg_template,
   $process_performance_data       = '0',
   $host_perfdata_command          = false,
@@ -322,7 +322,7 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
-  file { '/etc/nagios/puppet_checks.d':
+  file { $cfg_dir:
     ensure  => 'directory',
     owner   => 'root',
     group   => 'nagios',
@@ -336,6 +336,7 @@ class nagios::server (
   # Realize all nagios related exported resources for this server
   # Automatically reload nagios for relevant configuration changes
   # Require the package for the parent directory to exist initially
+  Nagios_command <<| tag == "nagios-${nagios_server}" |>>
   Nagios_contact <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -344,6 +345,7 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+  Nagios_host <<| tag == "nagios-${nagios_server}" |>>
   Nagios_hostdependency <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -352,6 +354,8 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+  Nagios_service <<| tag == "nagios-${nagios_server}" |>>
+  Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>>
   Nagios_servicegroup <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -368,11 +372,6 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
-
-  Nagios_host <<| tag == "nagios-${nagios_server}" |>>
-  -> Nagios_command <<| tag == "nagios-${nagios_server}" |>>
-  -> Nagios_service <<| tag == "nagios-${nagios_server}" |>>
-  -> Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>>
 
   # Auto reload and parent dir, but for non-exported resources
   # FIXME: This does not work from outside here, wrong scope.
