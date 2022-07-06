@@ -64,6 +64,11 @@ class nagios::pnp4nagios (
     selinux::audit2allow { 'pnp4nagios':
       source => "puppet:///modules/${module_name}/messages.pnp4nagios",
     }
+    # With PHP 7.x+ and JIT enabled by default, this is required
+    selboolean { 'httpd_execmem':
+      persistent => true,
+      value      => 'on',
+    }
   }
 
   # Server-Side Include nagios CGI snippet for mouseover js code

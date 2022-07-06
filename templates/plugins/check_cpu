@@ -1,6 +1,6 @@
-#!/usr/bin/python2
+#!<%= scope['::nagios::params::python_2_vs_3_interpreter'] %>
 
-import string, os, sys,  re
+import os, sys,  re
 #from optik import OptionParser
 from optparse import OptionParser
 
@@ -32,11 +32,11 @@ fullHelp = check_cpu_version + intro + preamble + use +  options + bugs + query
 
 
 def helpFunc(option, opt, value, parser):
-        print fullHelp
+        print(fullHelp)
         sys.exit(3)
 
 def verFunc(option, opt, value, parser):
-        print check_cpu_version
+        print(check_cpu_version)
         sys.exit(3)
 
 
@@ -66,19 +66,19 @@ timeout = options.timeout
 
 
 if -3 > critical or 101 < critical:
-        print "Critical value is a percentage and must be between 0 and 100.\n" + use
+        print("Critical value is a percentage and must be between 0 and 100.\n" + use)
         sys.exit(3)
 
 if -2 > warning or 101 < warning:
-        print "Warning value is a percentage and must be between 0 and 100.\n" + use
+        print("Warning value is a percentage and must be between 0 and 100.\n" + use)
         sys.exit(3)
 
 if critical >= warning:
-        print "Critical value must be less than the warning value.\n" + use 
+        print("Critical value must be less than the warning value.\n" + use)
         sys.exit(3)
 
 if sample >= timeout -1:
-        print "Sample time must be 2 seconds less than timeout.\n" + use 
+        print("Sample time must be 2 seconds less than timeout.\n" + use)
         sys.exit(3)
 
 strSample = str(sample)
@@ -103,7 +103,7 @@ elif l == "NetBSD\n":
 elif l == "SunOS\n":
         vmcmd = "/usr/bin/vmstat " + strSample + " 2"
 else:
-        print "Unknown operating system, unable to continue.\n"
+        print("Unknown operating system, unable to continue.\n")
         sys.exit(3)
 
 
@@ -116,7 +116,7 @@ vmstat = os.popen( vmcmd, "r" )
 statOut = vmstat.read()
 
 
-statLines = string.split( statOut, '\n')
+statLines = statOut.split('\n')
 lastLine = statLines[-2].strip()
 
 n = len(statLines)
@@ -128,17 +128,17 @@ for i in range(0, n):
 
 
 idStr = re.sub( "[ \t\n\r\v]+", " ", idLine )
-idList = string.split(idStr, " ")
+idList = idStr.split(" ")
 idColumn = idList.index("id")
 
 valueStr = re.sub( "[ \t\n\r\v]+", " ", lastLine )
-values = string.split( valueStr, ' ')
+values = valueStr.split(' ')
 
 idleCPU = values[idColumn]
 sysCPU = values[-2]
 userCPU = values[-3]
 
-idleValue = string.atoi(idleCPU)
+idleValue = int(idleCPU)
 busyValue = 100 - idleValue
 
 
@@ -151,18 +151,18 @@ perfdata = " | cpu=" + str(busyValue) + "%;" + str(100 - warning) + ";" + str(10
 
 if idleValue <= critical:
         status = "CPU CRITICAL"
-        print status + ": CPU is only " + idleCPU + "% idle" + perfdata
+        print(status + ": CPU is only " + idleCPU + "% idle" + perfdata)
         sys.exit(2) 
 elif idleValue <= warning:
         status = "WARNING"
-        print status + ": CPU is only " + idleCPU + "% idle" + perfdata
+        print(status + ": CPU is only " + idleCPU + "% idle" + perfdata)
         sys.exit(1)
 elif warning < idleValue:
         status = "OK"
-        print status + ": CPU is " + idleCPU + "% idle" + perfdata
+        print(status + ": CPU is " + idleCPU + "% idle" + perfdata)
         sys.exit(0)
 else:
         status = "CPU STATUS UNKNOWN"
-        print status + ": Could not complete check."
+        print(status + ": Could not complete check.")
         sys.exit(3)
 
