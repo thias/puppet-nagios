@@ -27,6 +27,7 @@ class nagios::check::mysql_health (
   $args_slave_io_running         = '',
   $args_slave_sql_running        = '',
   $args_open_files               = '',
+  $notes_url                     = undef,
 ) {
 
   # Generic overrides
