@@ -26,6 +26,7 @@ class nagios::check::redis (
   $max_check_attempts       = $::nagios::client::service_max_check_attempts,
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
+  $notes_url                = undef,
 ) {
 
   nagios::client::nrpe_plugin { 'check_redis':
