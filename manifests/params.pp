@@ -78,6 +78,11 @@ class nagios::params {
         $python_2_vs_3_interpreter = '/usr/bin/python2'
         $python_request            = 'python-requests'
       }
+      # On RHEL9 the 's-nail' package is used as 'mailx' replacement
+      $mailx_package = (versioncmp($::operatingsystemmajrelease, '9') >= 0) ? {
+        true  => 's-nail',
+        false => 'mailx',
+      }
       @package { $nagios_plugins_packages:
         ensure => installed,
         tag    => $name,
