@@ -62,16 +62,11 @@ class nagios::params {
       $pid_file           = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios/nagios.pid')
       $megaclibin         = '/usr/sbin/MegaCli'
       $perl_memcached     = 'perl-Cache-Memcached'
-      if versioncmp($::operatingsystemmajrelease, '9') >= 0 {
+      if versioncmp($::operatingsystemmajrelease, '8') >= 0 {
         $python_openssl            = 'python3-pyOpenSSL'
         $python_mongo              = 'python3-pymongo'
         $python_2_vs_3_interpreter = '/usr/libexec/platform-python'
         $python_request            = 'python3-requests'
-      } elsif versioncmp($::operatingsystemmajrelease, '8') == 0 {
-        $python_openssl            = 'python3-pyOpenSSL'
-        $python_mongo              = 'python2-pymongo'
-        $python_2_vs_3_interpreter = '/usr/libexec/platform-python'
-        $python_request            = 'python2-requests'
       } else {
         $python_openssl            = 'pyOpenSSL'
         $python_mongo              = 'python-pymongo'
