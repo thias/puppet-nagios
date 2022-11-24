@@ -2,10 +2,12 @@ class nagios::check::disk (
   $ensure                   = undef,
   $args                     = '',
   # -l : Do not check network mounts, local (and checked) elsewhere
-  # binfmt_misc : Denied by default, not useful to monitor
-  # rpc_pipefs  : Denied by default, not useful to monitor
-  # cgroup      : Denied by default, not useful to monitor
-  $original_args            = '-l -X binfmt_misc -X rpc_pipefs -X cgroup',
+  # Denied by default and not useful to monitor:
+  # binfmt_misc
+  # rpc_pipefs
+  # cgroup /sys/fs/cgroup/*
+  # tracefs /sys/kernel/debug/tracing
+  $original_args            = '-l -X binfmt_misc -X rpc_pipefs -X cgroup -X tracefs',
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
