@@ -1,5 +1,6 @@
 class nagios::check::syncthing (
   $ensure                   = undef,
+  $package                  = getvar('::nagios::params::python_request'),
   # common args for all modes 'as-is' for the check script
   $args                     = '',
   # common args for all modes as individual parameters
@@ -7,16 +8,18 @@ class nagios::check::syncthing (
   # modes selectively enabled and/or disabled
   $modes_enabled            = [],
   $modes_disabled           = [],
-  # service
-  $check_title              = $::nagios::client::host_name,
-  $servicegroups            = 'syncthing',
-  $check_period             = $::nagios::client::service_check_period,
-  $contact_groups           = $::nagios::client::service_contact_groups,
-  $first_notification_delay = $::nagios::client::service_first_notification_delay,
-  $max_check_attempts       = $::nagios::client::service_max_check_attempts,
-  $notification_period      = $::nagios::client::service_notification_period,
-  $use                      = $::nagios::client::service_use,
+  $args_alive               = '',
+  $args_devices             = '',
+  $args_folder_status       = '',
+  $args_last_scans          = '',
+
 ) {
+
+  #if versioncmp($::operatingsystemmajrelease, '8') >= 0 {
+  #  $package = 'python3-requests'
+  #} else {
+  #  $package = 'python2-requests'
+  #}
 
   nagios::client::nrpe_plugin { 'check_syncthing':
     ensure  => $ensure,
@@ -39,19 +42,6 @@ class nagios::check::syncthing (
     'last_scans',
   ]
   nagios::check::syncthing::mode { $modes:
-    ensure                   => $ensure,
-    globalargs               => $globalargs,
-    modes_enabled            => $modes_enabled,
-    modes_disabled           => $modes_disabled,
-    # service
-    check_title              => $check_title,
-    servicegroups            => $servicegroups,
-    check_period             => $check_period,
-    contact_groups           => $contact_groups,
-    first_notification_delay => $first_notification_delay,
-    max_check_attempts       => $max_check_attempts,
-    notification_period      => $notification_period,
-    use                      => $use,
   }
 
 }
