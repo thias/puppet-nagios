@@ -6,7 +6,7 @@ user    = scope['::nagios::check::couchbase::couchbase_user']
 pass    = scope['::nagios::check::couchbase::couchbase_pass']
 bucket  = scope['::nagios::check::couchbase::couchbase_bucket']
 -%>
-#!/usr/bin/python2
+#!<%= scope['::nagios::params::python_2_vs_3_interpreter'] %>
 #
 # Copyright 2009-2011 AppFirst, Inc
 #
@@ -66,10 +66,10 @@ class CouchbaseStats():
                     resource_value = items[1]
                     try:
                         self.prev_stats[resource_name] = int(resource_value)
-                    except Exception,e:
+                    except Exception as e:
                         pass
             file.close()
-        except Exception,e:
+        except Exception as e:
             pass
         
     def after_work(self):
@@ -84,12 +84,12 @@ class CouchbaseStats():
             pass
                 
     def usage(self):
-        print "usage:\n\tcouchbase_stats.py [-l|--list|-h|--help]\n\tcouchbase_stats.py metric|all\n\t\tWhere metric is one of the metrics shown with a -l|--list"
+        print("usage:\n\tcouchbase_stats.py [-l|--list|-h|--help]\n\tcouchbase_stats.py metric|all\n\t\tWhere metric is one of the metrics shown with a -l|--list")
     
     def get_status(self):
         #str_stats = subprocess.Popen("/opt/couchbase/bin/ep_engine/management/stats 127.0.0.1:11210 all",
         str_stats = subprocess.Popen("<%= cbstats %><% if user %> -u <%= user %><% end %><% if pass %> -p <%= pass %><% end %> <%= host %>:<%= port %> all<% if bucket %> -b <%= bucket %><% end %>",
-                                     shell = True, stdout=subprocess.PIPE).communicate()[0]
+                                     shell = True, stdout=subprocess.PIPE).communicate()[0].decode('utf-8')
         stats = str_stats.split('\n')
         for i in range(len(stats) - 1):
             j = stats[i].index(':')
@@ -103,9 +103,9 @@ class CouchbaseStats():
     def main(self):
         try:
             opts, args = getopt.getopt(sys.argv[1:], "lh", ["list", "help"])
-        except getopt.GetoptError, err:
+        except getopt.GetoptError as err:
             # print help information and exit:
-            print str(err) # will print something like "option -a not recognized"
+            print(str(err)) # will print something like "option -a not recognized"
             usage()
             sys.exit(2)
             
@@ -123,7 +123,7 @@ class CouchbaseStats():
         
         if self.list is True:
             for k in self.self.d_stats.iterkeys():
-                print k
+                print(k)
             sys.exit(0)
         #
         # Nagios developer docs define perfomance data format as:
@@ -146,25 +146,25 @@ class CouchbaseStats():
         perf_data += self.get_resident_ratio()
         perf_data += self.get_cache_miss_ratio()
         perf_data += self.get_replica_resident_ratio()
-        print perf_data
+        print(perf_data)
         self.after_work()
         
     def process_data(self, key):
         ret = " "
-        if self.resource_name_mapping.has_key(key):
+        if key in self.resource_name_mapping:
             type = "current"
             name = key
-            if self.resource_name_mapping[key].has_key('name'):
+            if ('name' in self.resource_name_mapping[key]):
                 name = self.resource_name_mapping[key]['name']
-            if self.resource_name_mapping[key].has_key('type'):
+            if ('type' in self.resource_name_mapping[key]):
                 type = self.resource_name_mapping[key]['type']
-            if type == "cumulative": 
+            if type == "cumulative":
                 tmp = self.d_stats[key]
-                if self.prev_stats.has_key(key):
+                if (key in self.prev_stats):
                     self.d_stats[key] = self.d_stats[key] - self.prev_stats[key]
                     if self.d_stats[key] < 0: #somehow couchbase is reseted
                         tmp = 0
-                    else:    
+                    else:
                         ret = "%s=%s%s " % (name, self.d_stats[key], self.resource_name_mapping[key]['unit'])
                 self.prev_stats[key] = tmp # update the value we are keeping track of     
             else:
@@ -172,32 +172,32 @@ class CouchbaseStats():
         else:
             ret = "%s=%s " % (key,self.d_stats[key])
         return ret
-    
+
     def get_resident_ratio(self):
         resident_item_ratio = 100
-        if self.d_stats.has_key('ep_num_active_non_resident') and self.d_stats.has_key('curr_items') \
+        if ('ep_num_active_non_resident' in self.d_stats) and ('curr_items' in self.d_stats) \
             and self.d_stats['curr_items'] > 0:
              resident_item_ratio = 100 - float(self.d_stats['ep_num_active_non_resident']) / float(self.d_stats['curr_items']) * 100
         if resident_item_ratio < 0:
             resident_item_ratio = 0
-        return "%s=%s%s " % ('resident_item_ratio', resident_item_ratio, '%')  
-    
+        return "%s=%s%s " % ('resident_item_ratio', resident_item_ratio, '%')
+
     def get_cache_miss_ratio(self):
         cache_miss_ratio = 0
-        if self.d_stats.has_key('get_hits') and self.d_stats.has_key('ep_bg_fetched') and self.d_stats['get_hits'] > 0:
+        if ('get_hits' in self.d_stats) and ('ep_bg_fetched' in self.d_stats) and self.d_stats['get_hits'] > 0:
             cache_miss_ratio = float(self.d_stats['ep_bg_fetched']) / float(self.d_stats['get_hits']) * 100
         return "%s=%s%s " % ('cache_miss_ratio', cache_miss_ratio, '%')
-    
+
     def get_replica_resident_ratio(self):
         replica_resident_ratio = 100
-        if self.d_stats.has_key('ep_num_non_resident') and self.d_stats.has_key('curr_items_tot') \
-            and self.d_stats['curr_items_tot'] > 0 and self.d_stats.has_key("curr_items") and self.d_stats.has_key('ep_num_active_non_resident'):
+        if ('ep_num_non_resident' in self.d_stats) and ('curr_items_tot' in self.d_stats) \
+            and self.d_stats['curr_items_tot'] > 0 and ('curr_items' in self.d_stats) and ('ep_num_active_non_resident' in self.d_stats):
             if self.d_stats['curr_items_tot'] > self.d_stats['curr_items']:
                 replica_resident_ratio = 100 - float(self.d_stats['ep_num_non_resident'] - self.d_stats['ep_num_active_non_resident']) / float(self.d_stats['curr_items_tot'] - self.d_stats['curr_items']) * 100
             if replica_resident_ratio < 0:
                 replica_resident_ratio = 0
         return "%s=%s%s " % ('replica_resident_ratio', replica_resident_ratio, '%')
-    
+
 if __name__ == "__main__":
     stat = CouchbaseStats()
     stat.main()
