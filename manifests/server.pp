@@ -210,12 +210,12 @@ class nagios::server (
       mode    => '0755',
       content => template('nagios/plugins/check_redis'),
     }
-    package { 'perl-Redis' : ensure => present }
+    ensure_packages(['perl-Redis'], { ensure => present })
   } else {
     file { "${plugin_dir}/check_redis":
       ensure => 'absent',
     }
-    package { 'perl-Redis' : ensure => absent }
+    ensure_packages(['perl-Redis'], { ensure => absent })
   }
 
   if $plugin_redis_sentinel {
