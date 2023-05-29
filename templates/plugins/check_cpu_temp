@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!<%= scope['::nagios::params::python_2_vs_3_interpreter'] %>
 
 __author__ = 'forgodssake - https://github.com/forgodssake'
 __version__ = 0.1
@@ -372,7 +372,7 @@ def main():
 
     for chip in ChipIterator():  # optional arg like "coretemp-*" restricts iterator
         # To support a new chip just create a new function for it
-        cb = "get_chip_values_" + chip.prefix
+        cb = "get_chip_values_" + chip.prefix.decode()
         if not cb in globals():
             continue
 
