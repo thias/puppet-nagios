@@ -61,7 +61,11 @@ class nagios::params {
       $plugin_dir         = lookup('nagios::params::plugin_dir',undef,undef,"/usr/${libdir}/nagios/plugins")
       $pid_file           = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios/nagios.pid')
       $megaclibin         = '/usr/sbin/MegaCli'
-      $perl_memcached     = 'perl-Cache-Memcached'
+      if $::operatingsystem == 'Fedora' or versioncmp($::operatingsystemmajrelease, '9') >= 0 {
+        $perl_memcached   = [ 'perl-Cache-Memcached', 'perl-lib' ]
+      } else {
+        $perl_memcached     = 'perl-Cache-Memcached'
+      }
       if versioncmp($::operatingsystemmajrelease, '8') >= 0 {
         $python_openssl            = 'python3-pyOpenSSL'
         $python_mongo              = 'python3-pymongo'
