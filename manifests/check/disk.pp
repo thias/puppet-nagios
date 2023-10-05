@@ -7,7 +7,9 @@ class nagios::check::disk (
   # rpc_pipefs
   # cgroup /sys/fs/cgroup/*
   # tracefs /sys/kernel/debug/tracing
-  $original_args            = '-l -X binfmt_misc -X rpc_pipefs -X cgroup -X tracefs',
+  # overlay /var/lib/docker/overlay2/<hash>/merged
+  # nsfs /run/docker/netns/<hash>
+  $original_args            = '-l -X binfmt_misc -X rpc_pipefs -X cgroup -X tracefs -X overlay -X nsfs',
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,
