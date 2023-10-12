@@ -14,10 +14,9 @@ define nagios::check::service (
 
   $nrpe_command   = $::nagios::params::nrpe_command
   $nrpe_options   = $::nagios::params::nrpe_options
-  $nrpe           = "${nrpe_command} ${nrpe_options}"
 
   @@nagios_command { "check_nrpe_service_${title}_${::fqdn}":
-    command_line => "${nrpe} -c check_service_${title}",
+    command_line => "${nrpe_command} -c check_service_${title} ${options}",
     tag          => 'service',
   }
 
