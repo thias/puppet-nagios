@@ -61,22 +61,26 @@ class nagios::params {
       $plugin_dir         = lookup('nagios::params::plugin_dir',undef,undef,"/usr/${libdir}/nagios/plugins")
       $pid_file           = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios/nagios.pid')
       $megaclibin         = '/usr/sbin/MegaCli'
-      $perl_memcached     = 'perl-Cache-Memcached'
-      if versioncmp($::operatingsystemmajrelease, '9') >= 0 {
+      if $::operatingsystem == 'Fedora' or versioncmp($::operatingsystemmajrelease, '9') >= 0 {
+        $perl_memcached   = [ 'perl-Cache-Memcached', 'perl-lib' ]
+      } else {
+        $perl_memcached     = 'perl-Cache-Memcached'
+      }
+      if versioncmp($::operatingsystemmajrelease, '8') >= 0 {
         $python_openssl            = 'python3-pyOpenSSL'
         $python_mongo              = 'python3-pymongo'
         $python_2_vs_3_interpreter = '/usr/libexec/platform-python'
         $python_request            = 'python3-requests'
-      } elsif versioncmp($::operatingsystemmajrelease, '8') == 0 {
-        $python_openssl            = 'python3-pyOpenSSL'
-        $python_mongo              = 'python2-pymongo'
-        $python_2_vs_3_interpreter = '/usr/libexec/platform-python'
-        $python_request            = 'python2-requests'
       } else {
         $python_openssl            = 'pyOpenSSL'
         $python_mongo              = 'python-pymongo'
         $python_2_vs_3_interpreter = '/usr/bin/python2'
-        $python_request            = 'python-requests'
+        $python_request            = 'python2-requests'
+      }
+      # On RHEL9 the 's-nail' package is used as 'mailx' replacement
+      $mailx_package = (versioncmp($::operatingsystemmajrelease, '9') >= 0) ? {
+        true  => 's-nail',
+        false => 'mailx',
       }
       @package { $nagios_plugins_packages:
         ensure => installed,

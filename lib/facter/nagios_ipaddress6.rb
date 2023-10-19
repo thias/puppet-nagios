@@ -28,7 +28,7 @@ if Facter.version.to_f < 3.0
 
 else
   nagios_ipaddress6 = Facter.value(:networking)['interfaces'].
-    reject { |i,_| i =~ /lo.*/ }.
+    reject { |i,_| i =~ /(lo|dummy).*/ }.
     values.
     map { |x| x['bindings6'] }
   if nagios_ipaddress6.any?

@@ -14,6 +14,7 @@ class nagios::check::haproxy_stats (
 ) {
   nagios::client::nrpe_plugin { 'check_haproxy_stats':
     ensure   => $ensure,
+    package  => $package,
     sudo_cmd => '/usr/lib64/nagios/plugins/check_haproxy_stats',
   }
 

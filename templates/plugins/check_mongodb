@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!<%= scope['::nagios::params::python_2_vs_3_interpreter'] %>
 
 #
 # A MongoDB Nagios check script
@@ -20,6 +20,12 @@
 #   - Max Vernimmen - @mvernimmen-CG / @mvernimmen on github
 #   - Kris Nova - @kris@nivenly.com github.com/kris-nova
 #   - Jan Kantert - firstname@lastname.net
+#
+# Also modified from original the following items or calls:
+# - To avoid "replicaset must be passed in when using replica_primary check" we changed the conditions on lines @@ -205,7 +205,13 @@
+# - To avoid "General MongoDB Error: not authorized on local to execute command" we changed db.system.namespaces.find_one to db.listCollections.find_one
+# - Added also mongo_version as a parameter in the call current_lock 
+# - Changed in line 1227 the return check_levels(None, warning, critical, message) to return check_levels(0, warning, critical, message) to avoid the error "CRITICAL - General MongoDB Error: '>=' not supported between instances of 'NoneType' and 'int'"
 #
 # USAGE
 #
@@ -206,7 +212,13 @@ def main(argv):
     retry_writes_disabled = options.retry_writes_disabled
 
     if action == 'replica_primary' and replicaset is None:
-        return "replicaset must be passed in when using replica_primary check"
+        err_f, con_f = mongo_connect(host, port, ssl, user, passwd)
+        if err_f != 0:
+            return err_f
+        if not replicaset:
+            replicaset = con_f.admin.command("replSetGetStatus")['set']
+        if not replicaset:
+            return "replicaset must be passed in when using replica_primary check"
     elif not action == 'replica_primary' and replicaset:
         return "passing a replicaset while not checking replica_primary does not work"
 
@@ -242,7 +254,7 @@ def main(argv):
     elif action == "lock":
         return check_lock(con, warning, critical, perf_data, mongo_version)
     elif action == "current_lock":
-        return check_current_lock(con, host, port, warning, critical, perf_data)
+        return check_current_lock(con, host, port, warning, critical, perf_data, mongo_version)
     elif action == "flushing":
         return check_flushing(con, warning, critical, True, perf_data)
     elif action == "last_flush_time":
@@ -1213,7 +1225,7 @@ def check_oplog(con, warning, critical, perf_data):
                 oplog = "oplog.$main"
             else:
                 message = "neither master/slave nor replica set replication detected"
-                return check_levels(None, warning, critical, message)
+                return check_levels(0, warning, critical, message)
 
         try:
                 set_read_preference(con.admin)
@@ -1339,13 +1351,16 @@ def check_opcounters(con, host, port, warning, critical, perf_data):
         return exit_with_general_critical("problem reading data from temp file")
 
 
-def check_current_lock(con, host, port, warning, critical, perf_data):
+def check_current_lock(con, host, port, warning, critical, perf_data, mongo_version):
     """ A function to get current lock percentage and not a global one, as check_lock function does"""
     warning = warning or 10
     critical = critical or 30
     data = get_server_status(con)
 
-    lockTime = float(data['globalLock']['lockTime'])
+    if mongo_version >= 3:
+      lockTime = float(data['globalLock']['activeClients']['total'])
+    else:
+      lockTime = float(data['globalLock']['lockTime'])
     totalTime = float(data['globalLock']['totalTime'])
 
     err, delta = maintain_delta([totalTime, lockTime], host, port, "locktime")
@@ -1593,7 +1608,8 @@ def check_row_count(con, database, collection, warning, critical, perf_data):
 
 def build_file_name(host, port, action):
     #done this way so it will work when run independently and from shell
-    module_name = re.match('(.*//*)*(.*)\..*', __file__).group(2)
+    #module_name = re.match('(.*//*)*(.*)\..*', __file__).group(2)
+    module_name = re.match('(.*//*)*(.*)(\..*)?', __file__).group(2)
 
     if (port == 27017):
         return "/tmp/" + module_name + "_data/" + host + "-" + action + ".data"

@@ -37,7 +37,11 @@ def getJsonFromUrl(url):
     r = requests.get(url, headers=headers)
     dump("Response: " + r.text)
     dump("Status code: " + str(r.status_code))
-    r.raise_for_status()
+    try:
+      r.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+      print("CRITICAL - %s" % str(e.response.text))
+      exit(2)
     return r.json()
 
 def printCheck(check):

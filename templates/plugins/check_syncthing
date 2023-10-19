@@ -1,4 +1,4 @@
-#!/usr/bin/python2
+#!<%= scope['::nagios::params::python_2_vs_3_interpreter'] %>
 
 # Main Author
 #   - David Castaneda <edupr91@gmail.com>
@@ -24,6 +24,10 @@ parser.add_argument('--action', default='check_alive',
                              'check_folders_status'
                              ],
                     help='Check to do, default check_alive')
+parser.add_argument('-w',
+                    help='Warning threshold time for check_devices and check_last_scans')
+parser.add_argument('-c',
+                    help='Warning threshold time for check_devices and check_last_scans')
 args = vars(parser.parse_args())
 
 
@@ -35,7 +39,7 @@ def check_status(http_endpoint, headers):
     except Exception:
         print('CRITICAL: Error while getting Connection')
         sys.exit(2)
-    print('OK: Syncthing is running. {} secs uptime'.format(data['uptime']))
+    print(('OK: Syncthing is running. {} secs uptime'.format(data['uptime'])))
     sys.exit(0)
 
 
@@ -50,7 +54,7 @@ def get_id(http_endpoint, headers):
     return data['myID']
 
 
-def check_folder_lc(http_endpoint, headers):
+def check_folder_lc(http_endpoint, headers, warning_time, critical_time):
     url = '{}/rest/stats/folder'.format(http_endpoint)
     try:
         resp = requests.get(url=url, headers=headers)
@@ -65,13 +69,13 @@ def check_folder_lc(http_endpoint, headers):
     for folder in data:
         last_scan_str = data[folder]['lastScan'][:-4]
         last_scan = datetime.datetime.strptime(
-            last_scan_str, '%Y-%m-%dT%H:%M:%S.%f'
+            last_scan_str, '%Y-%m-%dT%H:%M'
         )
-        delta_time_70 = datetime.timedelta(minutes=70)
-        delta_time_80 = datetime.timedelta(minutes=80)
+        delta_time_warning = datetime.timedelta(minutes=warning_time)
+        delta_time_critical = datetime.timedelta(minutes=critical_time)
         current_time = datetime.datetime.utcnow()
-        current_time_70 = current_time - delta_time_70
-        current_time_80 = current_time - delta_time_80
+        current_time_70 = current_time - delta_time_warning
+        current_time_80 = current_time - delta_time_critical
         if current_time_80 > last_scan:
             folder_critical += [folder]
         elif current_time_70 > last_scan:
@@ -81,24 +85,23 @@ def check_folder_lc(http_endpoint, headers):
     separator = ', '
     if 0 != len(folder_critical):
         folder_critical_str = separator.join(folder_critical)
-        print(
-            'CRITICAL: we have this/these folder(s) with Errors'
-            ' {}'.format(folder_critical_str))
+        print(('CRITICAL: Last scan older than {} min for these device(s): '
+              '{}'.format(critical_time, folder_critical_str)))
         sys.exit(2)
     elif 0 != len(folder_warning):
         folder_warning_str = separator.join(folder_warning)
-        print(
-            'WARNING: we have this/these folder(s) with Errors'
-            ' {}'.format(folder_warning_str))
+        print((
+            'WARNING: Last scan older than {} min for these device(s): '
+            ' {}'.format(warning_time, folder_warning_str)))
         sys.exit(1)
     else:
         folder_ok_str = separator.join(folder_ok)
-        print('OK: all good with this/these folder(s)'
-              '{}'.format(folder_ok_str))
+        print(('OK: all good with this/these folder(s) '
+              '{}'.format(folder_ok_str)))
         sys.exit(0)
 
 
-def check_devices(http_endpoint, headers):
+def check_devices(http_endpoint, headers, warning_time, critical_time):
     myID = get_id(http_endpoint, headers)
     url = '{}/rest/stats/device'.format(http_endpoint)
     try:
@@ -113,15 +116,15 @@ def check_devices(http_endpoint, headers):
     device_ok = []
     for device in data:
         # No need to check the last time you the server has seen himself
-        # it always print '1970-01-01T00:00:00Z'
+        # it always print '1970-01-01T00:00Z'
         if device == myID:
             continue
         last_scan_str = data[device]['lastSeen'][:-4]
         last_scan = datetime.datetime.strptime(
-            last_scan_str, '%Y-%m-%dT%H:%M:%S.%f')
+            last_scan_str, '%Y-%m-%dT%H:%M')
 
-        delta_time_5 = datetime.timedelta(minutes=5)
-        delta_time_10 = datetime.timedelta(minutes=10)
+        delta_time_5 = datetime.timedelta(minutes=warning_time)
+        delta_time_10 = datetime.timedelta(minutes=critical_time)
         current_time = datetime.datetime.utcnow()
         current_time_5 = current_time - delta_time_5
         current_time_10 = current_time - delta_time_10
@@ -137,16 +140,16 @@ def check_devices(http_endpoint, headers):
     device_ok_len = len(device_ok)
 
     if 0 != device_critical_len:
-        print('CRITICAL: {} device(s) that haven\'t '
-              'been seen in more than 10 min'.format(device_critical_len))
+        print(('CRITICAL: {} device(s) that haven\'t '
+              'been seen in more than {} min'.format(device_critical_len, critical_time)))
         sys.exit(2)
     elif 0 != device_warning_len:
-        print('WARNING: {} device(s) that haven\'t been '
-              'seen in the last 5 min'.format(device_warning_len))
+        print(('WARNING: {} device(s) that haven\'t been '
+              'seen in the last {} min'.format(device_warning_len, warning_time)))
         sys.exit(1)
 
     else:
-        print('OK: {} devices have been seen lately'.format(device_ok_len))
+        print(('OK: {} devices have been seen lately'.format(device_ok_len)))
         sys.exit(0)
 
 
@@ -181,35 +184,55 @@ def check_folder_status(http_endpoint, headers):
     separator = ', '
     if len(folder_critical) > 0:
         folder_critical_str = separator.join(folder_critical)
-        print('CRITICAL: folder_id:number_of_error - '
-              '{}'.format(folder_critical_str))
+        print(('CRITICAL: folder_id:number_of_error - '
+              '{}'.format(folder_critical_str)))
         sys.exit(2)
     elif len(folder_warning) > 0:
         folder_warning_str = separator.join(folder_warning)
-        print('WARNING: folder_id:bytes_behind - '
-              '{}'.format(folder_warning_str))
+        print(('WARNING: folder_id:bytes_behind - '
+              '{}'.format(folder_warning_str)))
         sys.exit(1)
     else:
         print("OK: All folders are 'UP to Date'")
         sys.exit(0)
 
 
-def action_to_do(action, http_endpoint, headers):
-    if action == 'check_alive':
-        check_status(http_endpoint, headers),
-    elif action == 'check_devices':
-        check_devices(http_endpoint, headers),
-    elif action == 'check_last_scans':
-        check_folder_lc(http_endpoint, headers),
-    elif action == 'check_folders_status':
-        check_folder_status(http_endpoint, headers),
-
-
 action = args['action']
+
+
 if args['https']:
     http_endpoint = 'https://{}:{}'.format(args['host'], args['port'])
 else:
     http_endpoint = 'http://{}:{}'.format(args['host'], args['port'])
 headers = {'X-API-Key': args['api_key']}
 
-action_to_do(action, http_endpoint, headers)
+if action == 'check_alive':
+    check_status(http_endpoint, headers),
+elif action == 'check_devices':
+    if args['w'] is not None:
+        warning = int(args['w'])
+    else:
+        warning = 5
+
+    if args['c'] is not None:
+        critical = int(args['c'])
+    else:
+        critical = 10
+
+    check_devices(http_endpoint, headers, warning, critical),
+elif action == 'check_last_scans':
+    if args['w'] is not None:
+        warning = int(args['w'])
+    else:
+        warning = 70
+
+    if args['c'] is not None:
+        critical = int(args['c'])
+    else:
+        critical = 80
+
+    check_folder_lc(http_endpoint, headers, warning, critical),
+elif action == 'check_folders_status':
+    check_folder_status(http_endpoint, headers),
+
+

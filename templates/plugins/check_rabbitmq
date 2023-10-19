@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!<%= scope['::nagios::params::python_2_vs_3_interpreter'] %>
 from optparse import OptionParser
 import shlex
 import subprocess
@@ -57,15 +57,15 @@ def check_connection_count(username, password, cluster, timeout, critical, warni
     try:
         count = len(RabbitCmdWrapper.list_connections(username, password, cluster, timeout))
         if count >= critical:
-            print "CRITICAL - Connection Count %d | connection=%d;%d;%d" % (count,count,warning,critical)
+            print("CRITICAL - Connection Count %d | connection=%d;%d;%d" % (count,count,warning,critical))
             sys.exit(2)
         elif count >= warning:
-            print "WARNING - Connection count: %d | connection=%d;%d;%d" % (count,count,warning,critical)
+            print("WARNING - Connection count: %d | connection=%d;%d;%d" % (count,count,warning,critical))
             sys.exit(1)
         else:
-            print "OK - Connection count: %d | connection=%d;%d;%d" % (count,count,warning,critical)
-    except Exception, err:
-        print "CRITICAL - Script error. Please debug - %s" % err
+            print("OK - Connection count: %d | connection=%d;%d;%d" % (count,count,warning,critical))
+    except Exception as err:
+        print("CRITICAL - Script error. Please debug - %s" % err)
         sys.exit(2)
 
 
@@ -92,23 +92,23 @@ def check_queues_count(username, password, cluster, virtualhost, timeout, critic
             #print desc
             #print desc_graph
             if critical_q:
-                print "CRITICAL - %s |  %s " % (", ".join(critical_q),desc_graph)
+                print("CRITICAL - %s |  %s " % (", ".join(critical_q),desc_graph))
                 sys.exit(2)
             elif warning_q:
-                print "WARNING - %s | %s " % (", ".join(warning_q),desc_graph)
+                print("WARNING - %s | %s " % (", ".join(warning_q),desc_graph))
                 sys.exit(1)
             else:
-                print "OK - NO QUEUES EXCEED THRESHOLDS - %s | %s" % (desc, desc_graph)
+                print("OK - NO QUEUES EXCEED THRESHOLDS - %s | %s" % (desc, desc_graph))
                 sys.exit(0)
         elif raw_request.status_code != 200:
-            print "CRITICAL - RabbitMQ Error: %s" % raw_request.content
+            print("CRITICAL - RabbitMQ Error: %s" % raw_request.content)
             sys.exit(2)
         else:
-            print "UNKNOWN - RABBITMQ queues status"
+            print("UNKNOWN - RABBITMQ queues status")
             sys.ext(1)
-            print 'check_queues_count -- %s'  % results
-    except Exception, err:
-        print "CRITICAL - Script error. Please debug - %s" % err
+            print('check_queues_count -- %s'  % results)
+    except Exception as err:
+        print("CRITICAL - Script error. Please debug - %s" % err)
         sys.exit(2)
 
 def check_mem_usage(username, password, cluster, nodename, timeout, critical, warning):
@@ -126,23 +126,23 @@ def check_mem_usage(username, password, cluster, nodename, timeout, critical, wa
             memory_limit = results['mem_limit']
             percent_usage = int( ( memory_used * 100 )/memory_limit)
             if percent_usage > critical:
-                print "CRITICAL - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,warning,critical)
+                print("CRITICAL - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,warning,critical))
                 sys.exit(2)
             elif percent_usage > warning:
-                print "WARNING - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,warning,critical)
+                print("WARNING - RABBITMQ RAM USAGE at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,warning,critical))
                 sys.exit(1)
             else:
-                print "OK - RABBITMQ RAM USAGE OK at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,warning,critical)
+                print("OK - RABBITMQ RAM USAGE OK at %s%% of max | ram=%s;%d;%d" % (percent_usage,percent_usage,warning,critical))
                 sys.exit(0)
         elif raw_request.status_code != 200:
-            print "CRITICAL - RabbitMQ Error: %s" % raw_request.content
+            print("CRITICAL - RabbitMQ Error: %s" % raw_request.content)
             sys.exit(2)
         else:
-            print "UNKNOWN - RABBITMQ memory usage status"
+            print("UNKNOWN - RABBITMQ memory usage status")
             sys.ext(1)
-            print 'check_mem_usage -- %s'  % results
-    except Exception, err:
-        print "CRITICAL - Script error. Please debug - %s" % err
+            print('check_mem_usage -- %s'  % results)
+    except Exception as err:
+        print("CRITICAL - Script error. Please debug - %s" % err)
         sys.exit(2)
 
 def check_aliveness(username, password, timeout, cluster, virtualhost):
@@ -150,16 +150,16 @@ def check_aliveness(username, password, timeout, cluster, virtualhost):
       try:
           r = requests.get("http://%s:15672/api/aliveness-test/%s" % (cluster, virtualhost), auth=(username, password), timeout=timeout)
       except requests.exceptions.RequestException as e: # Throw error if rabbitmq is down
-        print "Critical - %s" % e
+        print("Critical - %s" % e)
         sys.exit(2)
       if r.status_code == 200:
-          print "OK - RABBITMQ Aliveness Test Returns: %s" % r
+          print("OK - RABBITMQ Aliveness Test Returns: %s" % r)
           sys.exit(0)
       elif r.status_code != 200:
-          print "CRITICAL - RabbitMQ Error: %s" % r.content
+          print("CRITICAL - RabbitMQ Error: %s" % r.content)
           sys.exit(2)
       else:
-          print "UNKNOWN - RABBITMQ Aliveness Test"
+          print("UNKNOWN - RABBITMQ Aliveness Test")
           sys.ext(1)
 
 def check_cluster(username, password, timeout, cluster):
@@ -168,7 +168,7 @@ def check_cluster(username, password, timeout, cluster):
         url = "http://%s:15672/api/nodes" % cluster
         r = requests.get(url, auth=(username, password), timeout=timeout)
     except requests.exceptions.RequestException as e: # Throw error if no response
-        print "Critical - %s" % e
+        print("Critical - %s" % e)
         sys.exit(2)
     text = r.text
     nodes = json.loads(text)
@@ -181,13 +181,13 @@ def check_cluster(username, password, timeout, cluster):
         if node['running']:
             running_nodes.append(node['name'])
     if len(failed_nodes) == 1:
-       print "WARNING: RabbitMQ cluster is degraged: Not running %s" % failed_nodes[0]
+       print("WARNING: RabbitMQ cluster is degraged: Not running %s" % failed_nodes[0])
        sys.exit(1)
     elif len(failed_nodes) >= 2:
-       print "CRITICAL: RabbitMQ cluster is critical: Not running %s" % failed_nodes
+       print("CRITICAL: RabbitMQ cluster is critical: Not running %s" % failed_nodes)
        sys.exit(2)
     else:
-       print "OK: RabbitMQ cluster members: %s" % (" ".join(running_nodes))
+       print("OK: RabbitMQ cluster members: %s" % (" ".join(running_nodes)))
        sys.exit(0)
 
 
@@ -250,7 +250,7 @@ if __name__ == "__main__":
         check_queues_count(options.username, options.password, options.cluster, options.virtualhost, options.timeout, critical_value, warning_value)
     elif options.action == "mem_usage":
         if options.nodename is None:
-            print "Node Name is required (-n|--nodename <Node name>)"
+            print("Node Name is required (-n|--nodename <Node name>)")
             exit(1)
         if options.critical is None:
             critical_value = 75
@@ -263,11 +263,12 @@ if __name__ == "__main__":
         check_mem_usage(options.username, options.password, options.cluster, options.nodename, options.timeout, critical_value, warning_value)
     elif options.action == "aliveness":
         if options.virtualhost is None:
-            print "virtual host is required (-v|--vhost <vhost>)"
+            print("virtual host is required (-v|--vhost <vhost>)")
             exit(1)
         check_aliveness(options.username, options.password, options.timeout, options.cluster, options.virtualhost)
     elif options.action == "cluster_status":
         check_cluster(options.username, options.password, options.timeout, options.cluster)
     else:
-        print "Invalid action: %s" % options.action
-        print USAGE
+        print("Invalid action: %s" % options.action)
+        print(USAGE)
+

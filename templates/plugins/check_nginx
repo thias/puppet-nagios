@@ -1,14 +1,21 @@
-#!/usr/bin/python2
+#!<%= scope['::nagios::params::python_2_vs_3_interpreter'] %>
 # check_nginx is a Nagios to monitor nginx status
 # The version is 1.0.0 + major fixes
 
 import string
-import urllib2
 import getopt
 import sys
 
+try:
+    # Python 3
+    from urllib.request import urlopen, Request as http_request, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, build_opener, install_opener
+    from urllib.error import HTTPError
+except ImportError:
+    # Python 2
+    from urllib2 import urlopen, HTTPError, Request as http_request, HTTPPasswordMgrWithDefaultRealm, HTTPBasicAuthHandler, build_opener, install_opener
+
 def usage():
-    print """Usage: check_nginx [OPTION]...
+    print("""Usage: check_nginx [OPTION]...
 Checks nginx status for nagios integration.
 
 Mandatory arguments to long options are mandatory for short options too.
@@ -23,7 +30,7 @@ Mandatory arguments to long options are mandatory for short options too.
 Examples:
   check_nginx -H www.nginx.com -P /nginx-status -u igor -p nginx -w 500 -c 800
   check_nginx -H www.nginx.com -P /nginx-status -w 1000 -c 2000
-  check_nginx -H 192.168.0.1"""
+  check_nginx -H 192.168.0.1""")
     sys.exit(3)
 
 try:
@@ -53,14 +60,14 @@ for name,value in options:
     if name in ("-c","--critical"):
        critical = int(value)
 try:
-    req = urllib2.Request(url+path)
+    req = http_request(url+path)
     if 'user' in dir() and 'passwd' in dir():
-        passman = urllib2.HTTPPasswordMgrWithDefaultRealm()
+        passman = HTTPPasswordMgrWithDefaultRealm()
         passman.add_password(None, url+path, user, passwd)
-        authhandler = urllib2.HTTPBasicAuthHandler(passman)
-        opener = urllib2.build_opener(authhandler)
-        urllib2.install_opener(opener)
-    response = urllib2.urlopen(req)
+        authhandler = HTTPBasicAuthHandler(passman)
+        opener = build_opener(authhandler)
+        install_opener(opener)
+    response = urlopen(req)
     # Poor man's page parsing
     the_page = response.readline()
     conn = the_page.split()
@@ -74,23 +81,23 @@ try:
     writing = int(b[3])
     waiting = int(b[5])
     output = 'ActiveConn:%s Reading:%s Writing:%s Waiting:%s' % (ActiveConn,reading,writing,waiting)
-except Exception:
-    print "CRITICAL: Error while getting Connection"
+except Exception as e:
+    print("CRITICAL: Error while getting Connection - " + str(e))
     sys.exit(2)
 
 if 'warning' in dir() and 'critical' in dir():
     perfdata = 'activeconn=%s;%s;%s;0; reading=%s writing=%s waiting=%s' % (ActiveConn,warning,critical,reading,writing,waiting)
     if ActiveConn >= critical:
-        print 'CRITICAL - %s|%s' % (output,perfdata)
+        print('CRITICAL - %s|%s' % (output,perfdata))
         sys.exit(2)
     elif ActiveConn >= warning:
-        print 'WARNING - %s|%s' % (output,perfdata)
+        print('WARNING - %s|%s' % (output,perfdata))
         sys.exit(1)
     else:
-        print 'OK - %s|%s' % (output,perfdata)
+        print('OK - %s|%s' % (output,perfdata))
         sys.exit(0)
 else:
     perfdata = 'activeconn=%s reading=%s writing=%s waiting=%s' % (ActiveConn,reading,writing,waiting)
-    print 'OK - %s|%s' % (output,perfdata)
+    print('OK - %s|%s' % (output,perfdata))
     sys.exit(0)
 
