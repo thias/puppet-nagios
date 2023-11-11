@@ -64,9 +64,8 @@ define nagios::check::postgres::custom_query () {
       service_description => "postgres_cq_${query_name}",
       servicegroups       => 'postgres',
     }
-    @@nagios_command { "check_nrpe_postgres_cq_${query_name}":
+    nagios::command { "check_nrpe_postgres_cq_${query_name}":
       command_line => "${nrpe} -c check_postgres_cq_${query_name}",
-      tag          => regsubst($server,'^(.+)$','nagios-\1'),
     }
   } elsif ($query_ensure == 'absent') {
     nagios::client::nrpe_file { "check_postgres_cq_${query_name}":

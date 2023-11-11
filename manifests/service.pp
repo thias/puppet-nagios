@@ -9,6 +9,7 @@ define nagios::service (
   $ensure                   = undef,
   $server                   = $nagios::client::server,
   $host_name                = $nagios::client::host_name,
+  $target                   = "/etc/nagios/nagios_service.cfg.d/${host_name}.cfg",
   $service_description      = $name,
   $servicegroups            = $nagios::client::service_servicegroups,
   $check_interval           = $nagios::client::service_check_interval,
@@ -17,6 +18,7 @@ define nagios::service (
   $first_notification_delay = $nagios::client::service_first_notification_delay,
   $max_check_attempts       = $nagios::client::service_max_check_attempts,
   $notification_period      = $nagios::client::service_notification_period,
+  $notes_url                = undef,
   $use                      = $nagios::client::service_use,
 ) {
 
@@ -49,9 +51,10 @@ define nagios::service (
 
   # Support an array of tags for multiple nagios servers
   $service_tag = regsubst($server,'^(.+)$','nagios-\1')
+  $contactgroups = split(String($contact_groups), ',')
+  $command_name  = regsubst(String($check_command), '([^!]+).*', '\\1')
   @@nagios_service { $title:
     ensure                   => $ensure,
-    host_name                => $host_name,
     check_command            => $check_command,
     service_description      => $service_description,
     servicegroups            => $servicegroups,
@@ -59,11 +62,26 @@ define nagios::service (
     check_period             => $final_check_period,
     contact_groups           => $contact_groups,
     first_notification_delay => $first_notification_delay,
+    host_name                => $host_name,
     max_check_attempts       => $final_max_check_attempts,
     notification_period      => $final_notification_period,
+    notes_url                => $notes_url,
     use                      => $final_use,
     tag                      => $service_tag,
+    target                   => $target,
+    notify                   => Service['nagios'],
+    require                  => [
+      Package['nagios'],
+      Nagios_host[$host_name],
+      Nagios_contactgroup[$contactgroups],
+      Nagios_command[$command_name],
+      File[dirname($target)],
+    ],
+  }
+  @@nagios::file_perm { $title:
+    target  => $target,
+    tag     => $service_tag,
+    require => Nagios_service[$title],
   }
 
 }
-

@@ -13,6 +13,7 @@ define nagios::check::mysql_health::mode () {
   $args           = $::nagios::check::mysql_health::args
   $modes_enabled  = $::nagios::check::mysql_health::modes_enabled
   $modes_disabled = $::nagios::check::mysql_health::modes_disabled
+  $notes_url      = $::nagios::check::mysql_health::notes_url
   $ensure         = $::nagios::check::mysql_health::ensure
 
   # Get the args passed to the main class for our mode
@@ -32,6 +33,7 @@ define nagios::check::mysql_health::mode () {
       check_command       => "check_nrpe_mysql_health_${mode_u}",
       service_description => "mysql_health_${mode_u}",
       servicegroups       => 'mysql_health',
+      notes_url           => $notes_url,
     }
   } else {
     nagios::client::nrpe_file { "check_mysql_health_${mode_u}":
