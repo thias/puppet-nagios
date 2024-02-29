@@ -1,2 +1,6 @@
 Defaults !requiretty
-<%= scope['nagios::client::nrpe_user'] %> ALL = (<%= @privileged_user %>) NOPASSWD: <%= scope['nagios::client::plugin_dir'] %>/<%= @plugin %>
+<%-
+require 'pathname'
+plugincmd = Pathname.new(@plugin).absolute? ? @plugin : "#{scope['nagios::client::plugin_dir']}/#{@plugin}"
+-%>
+<%= scope['nagios::client::nrpe_user'] %> ALL = (<%= @privileged_user %>) NOPASSWD: <%= plugincmd %>

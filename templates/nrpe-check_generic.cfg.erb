@@ -1,2 +1,7 @@
 # Configuration for <%= @title %> (from the generic template)
-command[<%= @command %>]=<% if @sudo %>sudo <% if @sudo_user %>-u <%= @sudo_user %> <% end %><% end %><%= scope.lookupvar('nagios::client::plugin_dir') %>/<%= @plugin %><% if @args.to_s != '' %> <%= @args %><% end %>
+<%-
+require 'pathname'
+plugincmd = Pathname.new(@plugin).absolute? ? @plugin : "#{scope.lookupvar('nagios::client::plugin_dir')}/#{@plugin}"
+sudooption = @sudo ? ('sudo ' + (@sudo_user ? "-u #{@sudo_user} " : '')) : ''
+-%>
+command[<%= @command %>]=<%= sudooption %><%= plugincmd %><% if @args %> <%= @args %><% end %>
