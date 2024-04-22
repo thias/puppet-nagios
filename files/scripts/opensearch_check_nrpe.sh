@@ -1,5 +1,4 @@
 #!/bin/bash
-#FIXME: Review the UNKOWNs to CRITICAL
 # Default values
 HOST="localhost"
 PORT="9200"
