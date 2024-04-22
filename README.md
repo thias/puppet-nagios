@@ -644,6 +644,52 @@ nagios::check::elasticsearch::args_jvm_usage: '-N 10.0.0.1 -C 90 -W 80'
 nagios::check::elasticsearch::args_nodes: '-E 5' # Expected nodes in cluester
 ```
 
+## OpenSearch
+
+The OpenSearch monitoring integration offers several 'modes' for comprehensive health and performance checks of your OpenSearch clusters. By default, all checks are enabled.
+
+You have the flexibility to customize which checks are active either by disabling specific modes or enabling a select few:
+
+If you prefer to exclude certain checks, specify them in the `modes_disabled` configuration. For example, to disable JVM usage and disk usage checks:
+
+```yaml
+# Disable some checks (modes)
+nagios::check::opensearch::modes_disabled:
+  - 'jvm_usage'
+  - 'disk_usage'
+```
+
+Alternatively, you can enable only specific checks by listing them in the `modes_enabled` configuration. This is useful for focusing monitoring on particular areas of interest or concern:
+
+```yaml
+# Enable only the following checks (modes)
+nagios::check::opensearch::modes_enabled:
+  - 'cluster_status'
+  - 'nodes'
+  - 'unassigned_shards'
+```
+
+For each mode, you can pass arguments to adjust warning and critical threshold values or specify other options such as node names or expected node counts. This customization allows you to tailor monitoring to your cluster's specific needs and operational parameters:
+
+```yaml
+# Example setting critical and warning for jvm_usage and 5 expected nodes
+nagios::check::opensearch::mode_args:
+   jvm_usage: '-C 90 -W 80'
+   nodes: '-E 5'
+```
+
+Available Checks (Modes):
+
+- **`cluster_status`**: Checks the overall health status of the OpenSearch cluster.
+- **`nodes`**: Monitors the number of active nodes against expected counts.
+- **`unassigned_shards`**: Alerts on unassigned shards within the cluster.
+- **`disk_usage`**: Monitors disk space usage on cluster nodes.
+- **`jvm_usage`**: Assesses JVM memory usage across nodes.
+- **`thread_pool_queues`**: Checks the sizes of thread pool queues to identify high load conditions.
+- **`no_replica_indices`**: Check for indices without replicas.
+- **`node_uptime`**: Check if node uptime is less than 10 minutes.
+- **`check_disk_space_for_resharding`**: Check disk space for index resharding.
+
 ## Kafka
 
 Kafka monitoring checks producing to and consuming from specific Kafka topic,

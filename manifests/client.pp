@@ -200,6 +200,7 @@ class nagios::client (
     }
     if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temp': } }
     if getvar('::nagios_elasticsearch') {  class { '::nagios::check::elasticsearch': } }
+    if getvar('::nagios_opensearch') {  class { '::nagios::check::opensearch': } }
     if getvar('::nagios_kafka') {
       class { '::nagios::check::kafka': }
       class { '::nagios::check::kafka_isr': }
