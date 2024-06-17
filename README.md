@@ -644,6 +644,31 @@ nagios::check::elasticsearch::args_jvm_usage: '-N 10.0.0.1 -C 90 -W 80'
 nagios::check::elasticsearch::args_nodes: '-E 5' # Expected nodes in cluester
 ```
 
+## Fluent Bit
+
+The Fluent Bit monitoring uses the `/api/v1/health` endpoint to determine the health status of Fluent Bit.
+
+The health check is performed by a custom script named `check_fluentbit_health`,
+which is located by default at `/usr/lib64/nagios/plugins/`.
+This script checks the health of the Fluent Bit service by accessing the API endpoint `/api/v1/health`,
+which provides health status directly from the Fluent Bit service.
+
+### Configuring Fluent Bit Health Service
+
+To utilize the health check functionality, Fluent Bit must be configured to enable its built-in HTTP server,
+which exposes the `/api/v1/health` endpoint.
+
+For more information please check [Health Check for Fluent Bit](https://docs.fluentbit.io/manual/administration/monitoring#health-check-for-fluent-bit)
+
+### Script Configuration
+
+By default, localhost and port 2020 are used for the check but you can customize it from hiera:
+
+```yaml
+# Fluent Bit health check parameters
+nagios::check::fluentbit::args: '-H your-fluentbit-host -p your-port-number'
+```
+
 ## Kafka
 
 Kafka monitoring checks producing to and consuming from specific Kafka topic,

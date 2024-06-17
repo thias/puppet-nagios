@@ -1025,6 +1025,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_elasticsearch_unassigned_shards':
     command_line => "${nrpe} -c check_elasticsearch_unassigned_shards",
   }
+  nagios_command { 'check_nrpe_fluentbit_health':
+    command_line => "${nrpe} -c check_fluentbit_health",
+  }
   nagios_command { 'check_nrpe_ssd':
     command_line => "${nrpe} -c check_ssd",
   }
