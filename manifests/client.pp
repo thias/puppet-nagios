@@ -24,6 +24,14 @@ class nagios::client (
   $nrpe_debug                       = '0',
   $nrpe_command_timeout             = '60',
   $nrpe_connection_timeout          = '300',
+  # nrpe ssl options are available in nrpe 3 and later
+  $nrpe_ssl_version                 = undef,
+  $nrpe_ssl_cipher_list             = undef,
+  $nrpe_ssl_cacert_file             = undef,
+  $nrpe_ssl_cert_file               = undef,
+  $nrpe_ssl_privatekey_file         = undef,
+  $nrpe_ssl_client_certs            = undef,
+  $nrpe_ssl_logging                 = undef,
   # host defaults
   $host_address                     = getvar('::nagios_host_address'),
   $host_address6                    = getvar('::nagios_host_address6'),
