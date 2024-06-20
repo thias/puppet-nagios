@@ -41,6 +41,7 @@ class nagios::params {
     'nagios-plugins-sensors',
     'nagios-plugins-swap',
     'nagios-plugins-users',
+    'nagios-plugins-uptime',
   ]
 
   case $::operatingsystem {

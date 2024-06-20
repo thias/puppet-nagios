@@ -1096,6 +1096,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_ups':
     command_line => "${nrpe} -c check_ups",
   }
+  nagios_command { 'check_nrpe_uptime':
+    command_line => "${nrpe} -c check_uptime",
+  }
   # Collect virtual resources from check_service
   Nagios_command <<| tag == 'service' |>> {
     notify  => Service['nagios'],
