@@ -3,3 +3,5 @@ Defaults !requiretty
 <%= scope['nagios::client::nrpe_user'] %> ALL = (root) NOPASSWD: /usr/sbin/smartctl
 <%= scope['nagios::client::nrpe_user'] %> ALL = (root) NOPASSWD: /usr/sbin/nvme
 <%= scope['nagios::client::nrpe_user'] %> ALL = (root) NOPASSWD: /usr/sbin/tw_cli
+<%= scope['nagios::client::nrpe_user'] %> ALL = (root) NOPASSWD: /opt/MegaRAID/storcli/storcli64
+<%= scope['nagios::client::nrpe_user'] %> ALL = (root) NOPASSWD: /opt/MegaRAID/perccli/perccli64

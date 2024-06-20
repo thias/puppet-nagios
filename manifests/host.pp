@@ -11,6 +11,7 @@ define nagios::host (
     $server              = $nagios::client::server,
     $address             = $nagios::client::host_address,
     $host_alias          = $nagios::client::host_alias,
+    $target              = "/etc/nagios/nagios_host.cfg.d/${title}.cfg",
     $check_period        = $nagios::client::host_check_period,
     $check_command       = $nagios::client::host_check_command,
     $contact_groups      = $nagios::client::host_contact_groups,
@@ -47,7 +48,10 @@ define nagios::host (
         default => $use,
     }
 
+    # Support an array of tags for multiple nagios servers
+    $service_tag = regsubst($server,'^(.+)$','nagios-\1')
     @@nagios_host { $title:
+        host_name           => $title,
         address             => $final_address,
         alias               => $host_alias,
         check_period        => $check_period,
@@ -59,7 +63,15 @@ define nagios::host (
         notification_period => $notification_period,
         use                 => $final_use,
         # Support an arrays of tags for multiple nagios servers
-        tag                 => regsubst($server,'^(.+)$','nagios-\1'),
+        tag                 => $service_tag,
+        target              => $target,
+        notify              => Service['nagios'],
+        require             => Package['nagios'],
+    }
+    @@nagios::file_perm { $title:
+        target  => $target,
+        tag     => $service_tag,
+        require => Nagios_host[$title],
     }
 
 }

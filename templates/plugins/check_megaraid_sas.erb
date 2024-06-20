@@ -199,7 +199,9 @@ ADAPTER: for ( my $adp = 0; $adp < $adapters; $adp++ ) {
 			if ( $fwstate eq 'Hotspare' ) {
 				$hotsparecount++;
 			} elsif ( $fwstate eq 'Online' ) {
-				# Do nothing
+        # Do nothing
+      } elsif ( $fwstate eq 'JBOD' ) {
+        # Do nothing
 			} elsif ( $fwstate eq 'Unconfigured' ) {
 				# A drive not in anything, or a non drive device
 				$pdcount--;

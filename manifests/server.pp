@@ -54,7 +54,7 @@ class nagios::server (
     '/etc/nagios/nagios_hostescalation.cfg',
     '/etc/nagios/nagios_serviceescalation.cfg',
   ],
-  $cfg_dir                        = [],
+  $cfg_dir                        = [ '/etc/nagios/nagios_command.cfg.d', '/etc/nagios/nagios_host.cfg.d', '/etc/nagios/nagios_service.cfg.d' ],
   $cfg_template                   = $::nagios::params::cfg_template,
   $process_performance_data       = '0',
   $host_perfdata_command          = false,
@@ -210,12 +210,12 @@ class nagios::server (
       mode    => '0755',
       content => template('nagios/plugins/check_redis'),
     }
-    package { 'perl-Redis' : ensure => present }
+    ensure_packages(['perl-Redis'], { ensure => present })
   } else {
     file { "${plugin_dir}/check_redis":
       ensure => 'absent',
     }
-    package { 'perl-Redis' : ensure => absent }
+    ensure_packages(['perl-Redis'], { ensure => absent })
   }
 
   if $plugin_redis_sentinel {
@@ -231,13 +231,6 @@ class nagios::server (
       ensure => 'absent',
     }
     package { 'rubygem-redis' : ensure => absent }
-  }
-
-  file { "${plugin_dir}/check_ssl_cert":
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template('nagios/plugins/check_ssl_cert'),
   }
 
   # Other packages
@@ -329,14 +322,21 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
+  file { $cfg_dir:
+    ensure  => 'directory',
+    owner   => 'root',
+    group   => 'nagios',
+    recurse => true,
+    purge   => true,
+    force   => true,
+    mode    => '0644',
+    require => Package['nagios'],
+  }
 
   # Realize all nagios related exported resources for this server
   # Automatically reload nagios for relevant configuration changes
   # Require the package for the parent directory to exist initially
-  Nagios_command <<| tag == "nagios-${nagios_server}" |>> {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
+  Nagios_command <<| tag == "nagios-${nagios_server}" |>>
   Nagios_contact <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -345,10 +345,7 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
-  Nagios_host <<| tag == "nagios-${nagios_server}" |>> {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
+  Nagios_host <<| tag == "nagios-${nagios_server}" |>>
   Nagios_hostdependency <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -357,14 +354,8 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
-  Nagios_service <<| tag == "nagios-${nagios_server}" |>> {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
-  Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>> {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
+  Nagios_service <<| tag == "nagios-${nagios_server}" |>>
+  Nagios_servicedependency <<| tag == "nagios-${nagios_server}" |>>
   Nagios_servicegroup <<| tag == "nagios-${nagios_server}" |>> {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -386,10 +377,6 @@ class nagios::server (
   # FIXME: This does not work from outside here, wrong scope.
   # We'll need to wrap around these types with our own
   # definitions like for "host"
-  Nagios_command {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
   Nagios_contact {
     notify  => Service['nagios'],
     require => Package['nagios'],
@@ -398,19 +385,11 @@ class nagios::server (
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
-  Nagios_host {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
   Nagios_hostdependency {
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
   Nagios_hostgroup {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
-  }
-  Nagios_service {
     notify  => Service['nagios'],
     require => Package['nagios'],
   }
@@ -431,6 +410,8 @@ class nagios::server (
     require => Package['nagios'],
   }
 
+  Nagios::File_perm <<| tag == "nagios-${nagios_server}" |>>
+
   # Works great, but only if the "target" is the default (known limitation)
   resources { [
     'nagios_command',
@@ -440,6 +421,7 @@ class nagios::server (
     'nagios_hostdependency',
     'nagios_hostgroup',
     'nagios_service',
+    'nagios_servicedependency',
     'nagios_servicegroup',
     'nagios_timeperiod',
     'nagios_hostescalation',
@@ -549,9 +531,6 @@ class nagios::server (
   }
   nagios_command { 'check_redis_sentinel':
     command_line => '$USER1$/check_sentinel_master_health $ARG1$',
-  }
-  nagios_command { 'check_ssl_cert':
-    command_line => '$USER1$/check_ssl_cert -H $HOSTADDRESS$ $ARG1$',
   }
 
   # Custom NRPE-based commands
@@ -1096,10 +1075,10 @@ class nagios::server (
   nagios_command { 'check_nrpe_ups':
     command_line => "${nrpe} -c check_ups",
   }
-  # Collect virtual resources from check_service
-  Nagios_command <<| tag == 'service' |>> {
-    notify  => Service['nagios'],
-    require => Package['nagios'],
+
+  # not a real check
+  nagios_command { 'foo':
+    command_line => '/bin/true',
   }
 
   # Nagios contacts and contactgroups

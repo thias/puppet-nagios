@@ -3,7 +3,7 @@
 class nagios::check::cpu_temp (
   $ensure                   = undef,
   $args                     = '',
-  $package                  = 'lm_sensors',
+  $package                  = $::osfamily ? {'Debian' => 'lm-sensors',default => 'lm_sensors'},
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
   $check_period             = $::nagios::client::service_check_period,

@@ -8,6 +8,7 @@ define nagios::check::service (
   $max_check_attempts       = $::nagios::client::service_max_check_attempts,
   $notification_period      = $::nagios::client::service_notification_period,
   $use                      = $::nagios::client::service_use,
+  $sudo                     = false,
 ) {
 
   ensure_resource('nagios::client::nrpe_plugin', 'check_service', {'ensure' => $ensure})
@@ -16,15 +17,16 @@ define nagios::check::service (
   $nrpe_options   = $::nagios::params::nrpe_options
   $nrpe           = "${nrpe_command} ${nrpe_options}"
 
-  @@nagios_command { "check_nrpe_service_${title}_${::fqdn}":
+  nagios::command { "check_nrpe_service_${title}_${::fqdn}":
+    ensure       => $ensure,
     command_line => "${nrpe} -c check_service_${title}",
-    tag          => 'service',
   }
 
   nagios::client::nrpe_file { "check_service_${title}":
     ensure => $ensure,
     args   => "-s ${title}",
     plugin => 'check_service',
+    sudo   => $sudo,
   }
 
   nagios::service { "check_service_${title}_${::nagios::client::host_name}":
