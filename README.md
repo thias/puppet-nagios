@@ -590,6 +590,38 @@ On the other hand, if you want monitor multiple sentinels on a single host you m
 
 Note: In these kinds of scenarios the plugins will run on the Nagios Server. The nrpe agent won't be used to perform these checks.
 
+## Disk Usage Projection
+
+The Disk Usage Projection check monitors disk usage trends and predicts when a disk will be full based on current usage patterns. This proactive approach helps identify potential capacity issues before they become critical.
+
+By default, it excludes temporary filesystems like `tmpfs` and allows configuring thresholds via Hiera:
+
+```yaml
+# Disk Usage Projection check parameters
+nagios::check::disk_projection::ensure: 'present'
+nagios::check::disk_projection::time_threshold: 12  # Trigger alert if projected full within 12 hours
+nagios::check::disk_projection::exclude_fs: 'tmpfs|devtmpfs|shm|overlay'
+```
+
+You can modify parameters such as time thresholds and excluded filesystems to fit your environment.
+
+## Persistent CPU Usage Monitoring
+
+The Persistent CPU Usage Monitoring check tracks sustained CPU usage over a defined period, triggering alerts only when usage exceeds thresholds for a continuous duration. This prevents transient spikes from causing unnecessary alerts.
+
+By default, it monitors all processes and can be configured via Hiera:
+
+```yaml
+# Persistent CPU Usage check parameters
+nagios::check::cpu_persistent::ensure: 'present'
+nagios::check::cpu_persistent::warn: '75'           # Warning threshold for CPU usage percentage
+nagios::check::cpu_persistent::crit: '90'           # Critical threshold for CPU usage percentage
+nagios::check::cpu_persistent::warn_duration: '5'   # Warning duration in minutes
+nagios::check::cpu_persistent::crit_duration: '10'  # Critical duration in minutes
+```
+
+Adjust thresholds and durations based on your requirements to ensure the check fits your operational needs.
+
 ## RHEL Identity Manager
 
 RHEL IDM manages few services. In this module we only monitor the following:
