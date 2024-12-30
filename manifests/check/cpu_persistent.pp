@@ -72,7 +72,7 @@ class nagios::check::cpu_persistent (
   nagios::service { "check_cpu_persistent_${check_title}":
     ensure                   => $ensure,
     check_command            => 'check_nrpe_cpu_persistent',
-    service_description      => 'Persistent CPU Usage Check',
+    service_description      => 'cpu_persistent_usage',
     servicegroups            => $servicegroups,
     check_period             => $check_period,
     contact_groups           => $contact_groups,
