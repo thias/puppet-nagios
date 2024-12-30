@@ -1,0 +1,253 @@
+#!/bin/bash
+
+# Disk Usage Projection Monitoring Script
+#
+# This script monitors disk usage trends and projects the estimated time until a
+# disk becomes full based on historical usage patterns. It calculates the rate
+# of change for each monitored disk and triggers alerts if a disk is projected
+# to fill within a specified time threshold.
+#
+# Features:
+# - Tracks disk usage over time and stores historical data.
+# - Projects the estimated time until full for each monitored disk.
+# - Configurable time thresholds for triggering alerts.
+# - Excludes specified filesystem types from monitoring.
+# - Filters out minor usage fluctuations below a specified threshold.
+#
+# Default Usage Data Directory:
+# - The script stores usage data in `/var/tmp/disk_usage_data` by default.
+# - The directory can be changed using the `--data-dir` option.
+#
+# Options:
+#   -t, --time HOURS               Set the time threshold in hours for triggering alerts (default: 12).
+#   -x, --exclude FSTYPES          Exclude the specified filesystem types (default: tmpfs|devtmpfs|shm|efivarfs|binfmt_misc|rpc_pipefs|cgroup|tracefs|overlay|nsfs).
+#   --data-dir DIRECTORY           Set the directory for storing usage data (default: /var/tmp/disk_usage_data).
+#   --fluctuation-threshold MB     Ignore fluctuations smaller than the specified threshold (default: 1 MB).
+#   -h, --help                     Display this help message and exit.
+#
+# Exit Codes:
+#   0: OK - All monitored disks have sufficient space based on the time threshold.
+#   2: CRITICAL - At least one monitored disk is projected to fill within the specified time threshold.
+#   3: UNKNOWN - An error occurred or insufficient data is available.
+#
+# Example Usage:
+#   ./disk_usage_projection.sh --time 24 --exclude "tmpfs|devtmpfs" --data-dir /custom/path
+#
+# Notes:
+# - Ensure the `df` command is available on the system.
+# - Historical usage data is retained for up to 7 days and purged automatically.
+
+# Default directory for storing usage data
+usage_data_dir="/var/tmp/disk_usage_data"
+
+# Function to display help
+show_help() {
+    echo "Usage: $0 [-t|--time HOURS] [-x|--exclude FSTYPES] [--data-dir DIRECTORY] [-h|--help]"
+    echo
+    echo "Options:"
+    echo "  -t, --time HOURS       Set the threshold time in hours (default: 12)"
+    echo "  -x, --exclude FSTYPES  Exclude the specified filesystem types (default: tmpfs|devtmpfs|shm|efivarfs|binfmt_misc|rpc_pipefs|cgroup|tracefs|overlay|nsfs)"
+    echo "  --data-dir DIRECTORY   Set the directory to store usage data (default: /var/tmp/disk_usage_data)"
+    echo "  --fluctuation-threshold MB    Ignore fluctuations smaller than this threshold (default: 1 MB)"
+    echo "  -h, --help             Display this help message"
+}
+
+# Function to get current disk usage
+get_disk_usage() {
+    df -k "$1" | awk 'NR==2 {print $3,$2}'  # Used and total in KB
+}
+
+# Function to load usage data
+load_usage_data() {
+    local usage_data_file="$1"
+    if [ -f "$usage_data_file" ]; then
+        cat "$usage_data_file"
+    else
+        echo ""
+    fi
+}
+
+# Function to save usage data
+save_usage_data() {
+    local usage_data_file="$1"
+    echo "$2" > "$usage_data_file"
+}
+
+# Function to calculate projection
+calculate_projection() {
+    local data="$1"
+    local current_time="$2"
+    local fluctuation_threshold_kb=$((fluctuation_threshold_mb * 1024))  # Convert MB to KB
+
+    # Count data points
+    local data_points
+    data_points=$(echo "$data" | wc -l)
+
+    # Ensure at least two data points exist
+    if [ "$data_points" -lt 2 ]; then
+        echo "OK: Insufficient data points: $data_points (minimum 2 needed)"
+        return
+    fi
+
+    local first_entry
+    local last_entry
+
+    first_entry=$(echo "$data" | head -n 1)
+    last_entry=$(echo "$data" | tail -n 1)
+
+    local first_timestamp
+    local first_used
+    local last_timestamp
+    local last_used
+    local total
+
+    first_timestamp=$(echo "$first_entry" | cut -d',' -f1)
+    first_used=$(echo "$first_entry" | cut -d',' -f2)
+    last_timestamp=$(echo "$last_entry" | cut -d',' -f1)
+    last_used=$(echo "$last_entry" | cut -d',' -f2)
+    total=$(echo "$last_entry" | cut -d',' -f3)
+
+    if [ "$first_timestamp" -eq "$last_timestamp" ]; then
+        echo "OK: Insufficient time difference between data points"
+        return
+    fi
+
+    # Calculate rate of change
+    local rate_of_change
+    rate_of_change=$(( (last_used - first_used) / (last_timestamp - first_timestamp) ))
+
+    # Check if rate of change is negligible or negative
+    local usage_diff=$((last_used - first_used))
+    local time_diff=$((last_timestamp - first_timestamp))
+
+    # Ignore fluctuations below the threshold
+    if [ "${usage_diff#-}" -lt "$fluctuation_threshold_kb" ]; then
+        echo "OK: No significant growth: Usage fluctuated by $((usage_diff / 1024)) MB over $((time_diff / 60)) minutes"
+        return
+    fi
+
+    if [ "$rate_of_change" -le 0 ]; then
+        echo "OK: No growth detected or negative growth"
+        return
+    fi
+
+    # Calculate time until full
+    local time_until_full=$(( (total - last_used) / rate_of_change ))
+    echo "$((last_timestamp + time_until_full))"
+}
+
+# Default values
+threshold_hours=12
+exclude_fs="tmpfs|devtmpfs|shm|efivarfs|binfmt_misc|rpc_pipefs|cgroup|tracefs|overlay|nsfs"
+fluctuation_threshold_mb=1  # Default fluctuation threshold: 1 MB
+
+# Parse command line arguments
+PARSED_ARGS=$(getopt -o t:x:h --long time:,exclude:,data-dir:,help -- "$@")
+if [[ $? -ne 0 ]]; then
+    show_help
+    exit 3
+fi
+
+eval set -- "$PARSED_ARGS"
+
+while true; do
+    case "$1" in
+        -t|--time)
+            threshold_hours="$2"
+            shift 2
+            ;;
+        -x|--exclude)
+            exclude_fs="$2"
+            shift 2
+            ;;
+        --data-dir)
+            usage_data_dir="$2"
+            shift 2
+            ;;
+        --fluctuation-threshold)
+            fluctuation_threshold_mb="$2"
+            shift 2
+            ;;
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        *)
+            show_help
+            exit 3
+            ;;
+    esac
+done
+
+# Ensure the usage data directory exists
+mkdir -p "$usage_data_dir"
+
+# Main function
+main() {
+    current_time=$(date +%s)
+    threshold_seconds=$((threshold_hours * 3600))
+    all_disks_ok=true
+    summary=""
+    performance_data=""
+
+    # Build the df command with -x options
+    df_command="df -k -P"
+    for fs in $(echo "$exclude_fs" | tr '|' ' '); do
+        df_command="$df_command -x $fs"
+    done
+
+    # Iterate over all mounted disks
+    while IFS= read -r mount_point; do
+        usage_data_file="$usage_data_dir/disk_$(echo "$mount_point" | sed 's|/|_|g' | sed 's|^_|root_|').txt"
+        disk_usage=$(get_disk_usage "$mount_point")
+        used_bytes=$(echo "$disk_usage" | awk '{print $1}')
+        total_bytes=$(echo "$disk_usage" | awk '{print $2}')
+
+        # Load existing usage data
+        data=$(load_usage_data "$usage_data_file")
+
+        # Append current usage data
+        data=$(echo -e "$data\n$current_time,$used_bytes,$total_bytes")
+
+        # Keep only the last 7 days of data points
+        data=$(echo "$data" | awk -v ct="$current_time" '($1 + 604800) > ct')
+
+        # Save updated usage data
+        save_usage_data "$usage_data_file" "$data"
+
+        # Calculate projection
+        projection_time=$(calculate_projection "$data" "$current_time")
+
+        if [[ "$projection_time" == OK:* ]]; then
+            summary+="$projection_time for disk $mount_point; "
+            performance_data+="$mount_point=NaN; "
+        else
+            time_until_full=$((projection_time - current_time))
+            rounded_hours=$(echo "$time_until_full / 3600" | bc -l | awk '{printf "%.2f", $0}')
+            if [ "$time_until_full" -lt "$threshold_seconds" ]; then
+                summary+="CRITICAL: Disk $mount_point will be full in less than $threshold_hours hours ($rounded_hours hours); "
+                all_disks_ok=false
+            else
+                summary+="OK: Disk $mount_point has more than $threshold_hours hours of space left ($rounded_hours hours); "
+            fi
+            performance_data+="$mount_point=$rounded_hours hours; "
+        fi
+    done < <($df_command | awk 'NR>1 {print $6}')
+
+    if [ "$all_disks_ok" = false ]; then
+        echo -n "CRITICAL: $summary | $performance_data"
+        exit 2
+    elif [[ "$summary" == *"UNKNOWN"* ]]; then
+        echo -n "UNKNOWN: $summary | $performance_data"
+        exit 3
+    else
+        echo -n "OK: $summary | $performance_data"
+        exit 0
+    fi
+}
+
+main

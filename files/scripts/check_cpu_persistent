@@ -1,0 +1,128 @@
+#!/usr/libexec/platform-python
+
+"""
+CPU Usage Persistent Monitoring Script
+
+This script monitors the CPU usage over time and triggers alerts if the usage exceeds
+specific warning or critical thresholds for a sustained duration. It is designed to
+avoid transient spikes from generating unnecessary alerts.
+
+Features:
+- Monitors total CPU usage using the `vmstat` command.
+- Supports configurable thresholds and durations for warning and critical alerts.
+- Tracks state between executions to ensure persistence.
+
+Options:
+    -w, --warning: Warning threshold for CPU usage (percentage). Default: 70.
+    -c, --critical: Critical threshold for CPU usage (percentage). Default: 85.
+    --warn_duration: Duration (in minutes) for CPU usage to exceed warning threshold before triggering an alert. Default: 3.
+    --crit_duration: Duration (in minutes) for CPU usage to exceed critical threshold before triggering an alert. Default: 5.
+    -s, --sample: Sampling interval in seconds. Default: 5.
+    --state_file: Path to the state file used to store persistent data. Default: /var/tmp/cpu_check_state.json.
+
+Exit Codes:
+    0: OK - CPU usage is within normal thresholds.
+    1: WARNING - CPU usage has exceeded the warning threshold for the defined duration.
+    2: CRITICAL - CPU usage has exceeded the critical threshold for the defined duration.
+    3: UNKNOWN/ERROR - An error occurred during execution.
+
+Usage:
+    Run the script manually or configure it as a Nagios NRPE check:
+    ./cpu_usage_monitor.py -w 75 -c 90 --warn_duration 5 --crit_duration 10 -s 5 --state_file /custom/path/state.json
+"""
+
+import os
+import json
+import time
+from optparse import OptionParser
+import sys
+
+# Constants for state file location
+STATE_FILE = "/var/tmp/cpu_check_state.json"
+
+# Parse arguments
+parser = OptionParser()
+parser.add_option("-w", "--warning", action="store", type="int", dest="warn", default=70, help="Warning threshold for CPU usage (percentage). Default: 70")
+parser.add_option("-c", "--critical", action="store", type="int", dest="crit", default=85, help="Critical threshold for CPU usage (percentage). Default: 85")
+parser.add_option("--warn_duration", action="store", type="int", dest="warn_duration", default=3, help="Duration in minutes for which CPU usage must exceed warning threshold. Default: 3")
+parser.add_option("--crit_duration", action="store", type="int", dest="crit_duration", default=5, help="Duration in minutes for which CPU usage must exceed critical threshold. Default: 5")
+parser.add_option("-s", "--sample", action="store", type="int", dest="sample", default=5, help="Sampling interval in seconds. Default: 5")
+parser.add_option("--state_file", action="store", type="str", dest="state_file", default="/var/tmp/cpu_check_state.json", help="Path to the state file. Default: /var/tmp/cpu_check_state.json")
+(options, args) = parser.parse_args()
+
+# Load or initialize state
+if os.path.exists(STATE_FILE):
+    with open(STATE_FILE, "r") as f:
+        state = json.load(f)
+else:
+    state = {"critical_start": None, "warning_start": None}
+
+# Function to get CPU idle time using vmstat
+def get_cpu_usage(sample):
+    vmstat_output = os.popen(f"/usr/bin/vmstat {sample} 2").read().strip().split('\n')
+    
+    # Ensure output has enough lines
+    if len(vmstat_output) < 3:
+        print("Error: Unexpected vmstat output format.")
+        sys.exit(3)
+    
+    # Extract headers and determine the position of 'id'
+    headers = vmstat_output[1].strip().split()
+    if "id" not in headers:
+        print("Error: Could not locate 'id' column in vmstat headers.")
+        sys.exit(3)
+
+    id_index = headers.index("id")  # Find the index of the 'id' column
+    
+    # Parse the last data row
+    last_line = vmstat_output[-1].strip().split()
+    try:
+        idle_cpu = int(last_line[id_index])  # Use the dynamic index for 'id'
+    except (ValueError, IndexError):
+        print("Error: Could not parse idle CPU from vmstat output.")
+        sys.exit(3)
+    
+    busy_cpu = 100 - idle_cpu
+    return busy_cpu
+
+# Check CPU usage
+busy_cpu = get_cpu_usage(options.sample)
+current_time = time.time()
+
+# Update state with timestamps for warning and critical conditions
+if busy_cpu >= options.crit:
+    if state["critical_start"] is None:
+        state["critical_start"] = current_time
+    # Keep tracking warning start time if it was already set
+    if state["warning_start"] is None:
+        state["warning_start"] = current_time
+elif busy_cpu >= options.warn:
+    if state["warning_start"] is None:
+        state["warning_start"] = current_time
+    state["critical_start"] = None  # Reset critical start if below critical
+else:
+    state["warning_start"] = None
+    state["critical_start"] = None
+
+# Calculate elapsed time for warning and critical conditions
+warn_elapsed = current_time - state["warning_start"] if state["warning_start"] else 0
+crit_elapsed = current_time - state["critical_start"] if state["critical_start"] else 0
+
+# Evaluate thresholds
+if crit_elapsed >= options.crit_duration * 60:
+    status = f"CPU CRITICAL: CPU usage has been over {options.crit}% for {options.crit_duration} minutes"
+    exit_code = 2
+elif warn_elapsed >= options.warn_duration * 60:
+    status = f"CPU WARNING: CPU usage has been over {options.warn}% for {options.warn_duration} minutes"
+    exit_code = 1
+else:
+    status = f"CPU OK: CPU usage is {busy_cpu}%"
+    exit_code = 0
+
+# Save state to file
+with open(STATE_FILE, "w") as f:
+    json.dump(state, f)
+
+# Output status and exit
+print(f"{status} | cpu={busy_cpu}%;{options.warn};{options.crit};0;100")
+sys.exit(exit_code)

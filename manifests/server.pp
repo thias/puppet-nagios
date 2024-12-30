@@ -1028,6 +1028,12 @@ class nagios::server (
   nagios_command { 'check_nrpe_fluentbit_health':
     command_line => "${nrpe} -c check_fluentbit_health",
   }
+  nagios_command { 'check_nrpe_cpu_persistent':
+    command_line => "${nrpe} -c check_cpu_persistent",
+  }
+  nagios_command { 'check_nrpe_disk_projection':
+    command_line => "${nrpe} -c check_disk_usage_projection",
+  }
   nagios_command { 'check_nrpe_ssd':
     command_line => "${nrpe} -c check_ssd",
   }
