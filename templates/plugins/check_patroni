@@ -1,0 +1,1080 @@
+#!/usr/bin/env python3
+#
+# This script is a standalone implementation inspired by https://github.com/dalibo/check_patroni.
+# Unlike the original, it is self-contained, using only Python's standard libraries, which eliminates
+# the need for external dependencies or a dedicated Python virtual environment requirement.
+#
+# Additionally, this script introduces a new lag check and simplifies some of the original features.
+# It is optimized to be less intrusive when executing checks intended for replicas, ensuring smoother
+# operation and better compatibility in such scenarios.
+#
+import sys
+import json
+import argparse
+
+from http.client import HTTPConnection, HTTPSConnection
+from urllib.parse import urlparse
+from collections import Counter
+
+# Global var holding the passed command line arguments
+args = None
+
+# Global subparser formatter
+subparser_formatter = lambda prog: argparse.RawTextHelpFormatter(
+    prog, max_help_position=80
+)
+
+
+class APIError(Exception):
+    """
+    This exception is raised when the rest api could
+    be reached but we got a http status code different from 200.
+    """
+
+
+# Fixes the help text indentation
+# From: https://stackoverflow.com/a/32891625
+class CustomHelpFormatter(argparse.HelpFormatter):
+    """
+    Corrected _max_action_length for the indenting of subactions
+    """
+
+    def add_argument(self, action):
+        if action.help is not argparse.SUPPRESS:
+            # find all invocations
+            get_invocation = self._format_action_invocation
+            invocations = [get_invocation(action)]
+            current_indent = self._current_indent
+            for subaction in self._iter_indented_subactions(action):
+                # compensate for the indent that will be added
+                indent_chg = self._current_indent - current_indent
+                added_indent = "x" * indent_chg
+                invocations.append(added_indent + get_invocation(subaction))
+
+            # update the maximum item length
+            invocation_length = max([len(s) for s in invocations])
+            action_length = invocation_length + self._current_indent
+            self._action_max_length = max(self._action_max_length, action_length)
+
+            # add the item to the list
+            self._add_item(self._format_action, [action])
+
+
+# Prints a debug message
+def debug(message: str):
+    if args.verbose:
+        print(f"[DEBUG] {message}", file=sys.stderr)
+
+
+# Replace quotes and spaces into a string
+def replace_chars(text: str):
+    return text.replace("'", "").replace(" ", "_")
+
+
+# Nagios exit code handlers with perf data
+def nagios_exit(prefix: str, message: str, exit_code: int, perf_data=None):
+    _perf = None
+    response = f"{prefix} - {message}"
+
+    # Handle perf_data
+    if type(perf_data) is str:
+        _perf = perf_data
+    elif type(perf_data) is dict and len(perf_data) > 0:
+        items = []
+
+        for k, v in perf_data.items():
+            if v is None:
+                continue
+
+            # Quote the metric if it contains dots
+            if k.count(".") > 0:
+                k = f"'{k}'"
+
+            if type(v) is bool:
+                v = 1 if v else 0
+
+            items.append(f"{k}={v}")
+
+        _perf = ", ".join(items)
+
+    # Append perf data, if any
+    if _perf:
+        response += f" | {_perf}"
+
+    # Return response
+    print(response)
+    exit(exit_code)
+
+
+def nagios_ok(message: str, perf_data=None):
+    return nagios_exit(
+        prefix="OK",
+        message=message,
+        exit_code=0,
+        perf_data=perf_data,
+    )
+
+
+def nagios_warning(message: str, perf_data=None):
+    return nagios_exit(
+        prefix="WARNING",
+        message=message,
+        exit_code=1,
+        perf_data=perf_data,
+    )
+
+
+def nagios_critical(message: str, perf_data=None):
+    return nagios_exit(
+        prefix="CRITICAL",
+        message=message,
+        exit_code=2,
+        perf_data=perf_data,
+    )
+
+
+def nagios_unknown(message: str, perf_data=None):
+    return nagios_exit(
+        prefix="UNKNOWN",
+        message=message,
+        exit_code=3,
+        perf_data=perf_data,
+    )
+
+
+# Performs an HTTP GET request and returns the parsed JSON response
+def rest_api(service: str, return_response: bool = False):
+    url = f"{args.endpoint}/{service}"
+    parsed_url = urlparse(url)
+    conn = HTTPSConnection if parsed_url.scheme == "https" else HTTPConnection
+
+    try:
+        debug(f"Connecting to {parsed_url.netloc}")
+        conn = conn(parsed_url.netloc, timeout=args.timeout)
+        conn.request("GET", parsed_url.path)
+        response = conn.getresponse()
+        debug(f"Response[{response.status}]: {response.reason}")
+
+        if return_response:
+            return response
+
+        if response.status != 200:
+            raise APIError(f"HTTP status code {response.status}: {response.reason}")
+
+        try:
+            return json.loads(response.read().decode("utf-8"))
+        except (json.JSONDecodeError, ValueError):
+            return None
+
+    except Exception as e:
+        nagios_unknown(f"Error contacting Patroni API: {e}")
+    finally:
+        conn.close()
+
+
+# [CHECK] CLUSTER HAS SCHEDULED ACTION
+def check_cluster_has_scheduled_action():
+    perf_data = {
+        "has_scheduled_actions": False,
+        "scheduled_switchover": 0,
+        "scheduled_restart": 0,
+    }
+    try:
+        r = rest_api("cluster")
+        if "scheduled_switchover" in r:
+            perf_data["scheduled_switchover"] = 1
+
+        for member in r.get("members", {}):
+            if "scheduled_restart" in member:
+                perf_data["scheduled_restart"] += 1
+
+        if perf_data["scheduled_restart"] > 0 or perf_data["scheduled_switchover"] > 0:
+            perf_data["has_scheduled_actions"] = True
+            nagios_callback = nagios_critical
+            message = "The cluster has scheduled actions"
+        else:
+            nagios_callback = nagios_ok
+            message = "The cluster has no scheduled actions"
+
+        nagios_callback(message, perf_data)
+
+    except APIError as e:
+        nagios_unknown(f"Unable to retrieve cluster information: {e}")
+
+
+def register_command_cluster_has_scheduled_action(subparsers):
+    p = subparsers.add_parser(
+        "cluster_has_scheduled_action",
+        help="Check if the cluster has a scheduled action (switchover or restart)",
+        description=(
+            "  Check if the cluster has a scheduled action (switchover or restart)\n\n"
+            "  Check:\n"
+            "  * `OK`: If the cluster has no scheduled action\n"
+            "  * `CRITICAL`: otherwise.\n\n"
+            "  Perfdata:\n"
+            "  * `scheduled_actions` is 1 if the cluster has scheduled actions.\n"
+            "  * `scheduled_switchover` is 1 if the cluster has a scheduled switchover.\n"
+            "  * `scheduled_restart` counts the number of scheduled restart in the cluster.\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.set_defaults(func=check_cluster_has_scheduled_action)
+
+
+# [CHECK] CLUSTER HAS LEADER
+def check_cluster_has_leader():
+    is_leader_found = False
+    is_standby_leader_found = False
+    is_standby_leader_in_arc_rec = False
+
+    try:
+        r = rest_api("cluster")
+
+        for member in r.get("members", {}):
+            if member["role"] == "leader" and member["state"] == "running":
+                is_leader_found = True
+                break
+
+            if member["role"] == "standby_leader":
+                if member["state"] not in ["streaming", "in archive recovery"]:
+                    if member["state"] != "running":
+                        continue
+
+                if member["state"] in ["in archive recovery"]:
+                    is_standby_leader_in_arc_rec = True
+
+                is_standby_leader_found = True
+                break
+
+        if is_leader_found or is_standby_leader_found:
+            message = "The cluster has a running leader"
+            nagios_callback = nagios_ok
+        else:
+            message = "The cluster has no running leader or the standby leader is in archive recovery"
+            nagios_callback = nagios_critical
+
+        nagios_callback(
+            message,
+            {
+                "has_leader": is_leader_found or is_standby_leader_found,
+                "is_leader": is_leader_found,
+                "is_standby_leader": is_standby_leader_found,
+                "is_standby_leader_in_arc_rec": is_standby_leader_in_arc_rec,
+            },
+        )
+
+    except APIError as e:
+        nagios_unknown(f"Unable to retrieve cluster information: {e}")
+
+
+def register_command_cluster_has_leader(subparsers):
+    p = subparsers.add_parser(
+        "cluster_has_leader",
+        help="Check if the cluster has a leader",
+        description=(
+            "  Check if the cluster has a leader.\n\n"
+            "  This check applies to any kind of leaders including standby leaders.\n\n"
+            "  A leader is a node with the 'leader' role and a 'running' state.\n\n"
+            "  A standby leader is a node with a 'standby_leader' role and a 'streaming' or\n"
+            "  in 'archive recovery' state. Please note that log shipping could be stuck\n"
+            "  because the WAL are not available or applicable. Patroni doesn't provide\n"
+            "  information about the origin cluster (timeline or lag), so we cannot check\n"
+            "  if there is a problem in that particular case. That's why we issue a warning\n"
+            "  when the node is 'in archive recovery'. We suggest using other supervision\n"
+            "  tools to do this (eg. check_pgactivity).\n\n"
+            "  Check:\n"
+            "  * `OK`: if there is a leader node.\n"
+            "  * 'WARNING': if there is a stanby leader in archive mode.\n"
+            "  * `CRITICAL`: otherwise.\n\n"
+            "  Perfdata:\n"
+            "  * `has_leader` is 1 if there is any kind of leader node, 0 otherwise\n"
+            "  * `is_standby_leader_in_arc_rec` is 1 if the standby leader node is 'in\n"
+            "    archive recovery', 0 otherwise\n"
+            "  * `is_standby_leader` is 1 if there is a standby leader node, 0 otherwise\n"
+            "* `is_leader` is 1 if there is a 'classical' leader node, 0 otherwise\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.set_defaults(func=check_cluster_has_leader)
+
+
+# [CHECK] CLUSTER HAS REPLICA
+def check_cluster_has_replica():
+    replicas = []
+    healthy_replicas = 0
+    unhealthy_replicas = 0
+    sync_replicas = 0
+    leader_tl = None
+
+    try:
+        r = rest_api("cluster")
+
+        for member in r.get("members", {}):
+            if member["role"] in ["replica", "sync_standby"]:
+                if member["lag"] == "unknown":
+                    # This could happen if the node is stopped
+                    debug(f"{member['name']} is unhealthy (stopped)")
+                    unhealthy_replicas += 1
+                    continue
+                else:
+                    replicas.append(
+                        {
+                            "name": member["name"],
+                            "lag": int(member["lag"]),
+                            "timeline": member["timeline"],
+                            "sync": 1 if member["role"] == "sync_standby" else 0,
+                        }
+                    )
+
+                # Get leader timeline
+                if leader_tl is None:
+                    for tmember in r.get("members", {}):
+                        if tmember["role"] in ["leader", "standby_leader"]:
+                            leader_tl = int(tmember["timeline"])
+                            debug(f"Got Leader TL = {leader_tl}")
+                            break
+
+                # Test for unhealthy replicas
+                if not (
+                    member["state"] in ["streaming", "in archive recovery"]
+                    and int(member["timeline"]) == leader_tl
+                ):
+                    unhealthy_replicas += 1
+                    continue
+
+                # Sync standby replicas
+
+                if member["role"] == "sync_standby":
+                    sync_replicas += 1
+
+                if args.max_lag is None or args.max_lag >= int(member["lag"]):
+                    healthy_replicas += 1
+                else:
+                    unhealthy_replicas += 1
+
+        if healthy_replicas <= args.critical:
+            nagios_callback = nagios_critical
+        elif healthy_replicas <= args.warning:
+            nagios_callback = nagios_warning
+        else:
+            nagios_callback = nagios_ok
+
+        perf_data = {
+            "healthy_replicas": healthy_replicas,
+            "sync_replicas": sync_replicas,
+            "unhealthy_replicas": unhealthy_replicas,
+        }
+        for replica in replicas:
+            replica_name = replica["name"]
+            perf_data[f"{replica_name}_lag"] = replica["lag"]
+            perf_data[f"{replica_name}_timeline"] = replica["timeline"]
+            perf_data[f"{replica_name}_sync"] = replica["sync"]
+
+        nagios_callback(
+            f"Cluster healthy replica count is {healthy_replicas}", perf_data
+        )
+
+    except APIError as e:
+        nagios_unknown(f"Unable to retrieve cluster information: {e}")
+
+
+def register_command_cluster_has_replica(subparsers):
+    p = subparsers.add_parser(
+        "cluster_has_replica",
+        help="Check if the cluster has a replica",
+        description=(
+            "  Check if the cluster has healthy replicas and/or if some are sync standbies\n\n"
+            "  For patroni (and this check):\n"
+            "  * a replica is `streaming` if the `pg_stat_wal_receiver` says so.\n"
+            "  * a replica is `in archive recovery`, if it's not `streaming` and has a `restore_command`.\n\n"
+            "  A healthy replica:\n"
+            "  * has a `replica` or `sync_standby` role\n"
+            "  * has the same timeline as the leader and\n"
+            "  * is in `streaming` or `in archive recovery` state\n"
+            "  * has a lag lower or equal to `max_lag`\n\n"
+            "  Please note that replica `in archive recovery` could be stuck because the\n"
+            "  WAL are not available or applicable (the server's timeline has diverged for\n"
+            "  the leader's). We already detect the latter but we will miss the former.\n"
+            "  Therefore, it's preferable to check for the lag in addition to the healthy\n"
+            "  state if you rely on log shipping to help lagging standbies to catch up.\n\n"
+            "  Since we require a healthy replica to have the same timeline as the leader,\n"
+            "  it's possible that we raise alerts when the cluster is performing a\n"
+            "  switchover or failover and the standbies are in the process of catching up\n"
+            "  with the new leader. The alert shouldn't last long.\n\n"
+            "  Check:\n"
+            "  * `OK`: if the healthy_replica count and their lag are compatible with the replica count threshold.\n"
+            "          and if the sync_replica count is compatible with the sync replica count threshold.\n"
+            "  * `WARNING` / `CRITICAL`: otherwise\n\n"
+            "  Perfdata:\n"
+            "  * healthy_replica & unhealthy_replica count\n"
+            "  * the number of sync_replica, they are included in the previous count\n"
+            "  * the lag of each replica labelled with <member name>_lag\n"
+            "  * the timeline of each replica labelled with <member name>_timeline\n"
+            "  * a boolean to tell if the node is a sync stanbdy labelled with <member name>_sync\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.add_argument(
+        "-w",
+        "--warning",
+        metavar="INT",
+        type=int,
+        default=0,
+        help="Warning threshold for the number of healthy replicas",
+    )
+    p.add_argument(
+        "-c",
+        "--critical",
+        metavar="INT",
+        type=int,
+        default=0,
+        help="Critical threshold for the number of healthy replicas",
+    )
+    p.add_argument(
+        "--max-lag",
+        metavar="INT",
+        type=int,
+        help="Maximum allowed lag",
+    )
+    p.set_defaults(func=check_cluster_has_replica)
+
+
+# [CHECK] CLUSTER IS IN MAINTENANCE
+def check_cluster_is_in_maintenance():
+    try:
+        # Just check if the request returns 200
+        r = rest_api("cluster")
+
+        if r.get("pause") == 1:
+            nagios_critical(
+                "Cluster is in maintenance",
+                {
+                    "is_in_maintenance": True,
+                },
+            )
+        else:
+            nagios_ok(
+                "Cluster is running",
+                {
+                    "is_in_maintenance": False,
+                },
+            )
+    except APIError as e:
+        return nagios_unknown(
+            f"Cannot retrieve cluster status information: {e}",
+            {
+                "is_in_maintenance": False,
+            },
+        )
+
+
+def register_command_cluster_is_in_maintenance(subparsers):
+    p = subparsers.add_parser(
+        "cluster_is_in_maintenance",
+        help="Check if the cluster is in maintenance mode or paused",
+        description=(
+            "  Check if the cluster is in maintenance mode or paused.\n\n"
+            "  Check:\n"
+            "  * `OK`: If the cluster is in maintenance mode.\n"
+            "  * `CRITICAL`: otherwise.\n\n"
+            "  Perfdata:\n"
+            "  * `is_in_maintenance` is 1 the cluster is in maintenance mode, 0 otherwise\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.set_defaults(func=check_cluster_is_in_maintenance)
+
+
+# [CHECK] CLUSTER NODE COUNT
+def check_cluster_node_count():
+    roles = []
+    statuses = []
+    healthy_members = 0
+    role_counters: Counter[str] = Counter()
+    status_counters: Counter[str] = Counter()
+
+    try:
+        # Just check if the request returns 200
+        r = rest_api("cluster")
+
+        for member in r.get("members", {}):
+            state, role = member["state"], member["role"]
+            roles.append(replace_chars(role))
+            statuses.append(replace_chars(state))
+
+            if role == "leader" and state == "running":
+                healthy_members += 1
+                continue
+
+            if (
+                role in ["standby_leader", "replica", "sync_standby"]
+                and state == "streaming"
+            ):
+                healthy_members += 1
+                continue
+
+            # Nodes reaching this point are claimed as unhealthy
+
+        role_counters.update(roles)
+        status_counters.update(statuses)
+
+        if healthy_members <= args.critical:
+            nagios_callback = nagios_critical
+        elif healthy_members <= args.warning:
+            nagios_callback = nagios_warning
+        else:
+            nagios_callback = nagios_ok
+
+        perf_data = {
+            "healthy_members": healthy_members,
+            "members": len(r.get("members", {})),
+        }
+
+        for role in role_counters:
+            perf_data[f"role_{role}"] = role_counters[role]
+
+        for state in status_counters:
+            perf_data[f"state_{state}"] = status_counters[state]
+
+        nagios_callback(f"Number of cluster nodes {healthy_members}", perf_data)
+
+    except APIError as e:
+        return nagios_unknown(
+            f"Cannot retrieve cluster status information: {e}",
+            {
+                "is_in_maintenance": False,
+            },
+        )
+
+
+def register_command_cluster_node_count(subparsers):
+    p = subparsers.add_parser(
+        "cluster_node_count",
+        help="Count the number of nodes in the cluster",
+        description=(
+            "  Count the number of nodes in the cluster.\n\n"
+            "  The role refers to the role of the server in the cluster. Possible values\n"
+            "  are:\n"
+            "  * leader (master was removed in patroni 4.0.0)\n"
+            "  * replica\n"
+            "  * standby_leader\n"
+            "  * sync_standby\n"
+            "  * demoted\n"
+            "  * promoted\n"
+            "  * uninitialized\n\n"
+            "  The state refers to the state of PostgreSQL. Possible values are:\n"
+            "  * initializing new cluster, initdb failed\n"
+            "  * running custom bootstrap script, custom bootstrap failed\n"
+            "  * starting, start failed\n"
+            "  * restarting, restart failed\n"
+            "  * running, streaming, in archive recovery\n"
+            "  * stopping, stopped, stop failed\n"
+            "  * creating replica\n"
+            "  * crashed\n\n"
+            "  The 'healthy' checks only ensures that:\n"
+            "  * a leader has the running state\n"
+            "  * a standby_leader has the running or streaming (V3.0.4) state\n"
+            "  * a replica or sync-standby has the running or streaming (V3.0.4) state\n\n"
+            "  Since we dont check the lag or timeline, 'in archive recovery' is not\n"
+            "  considered a valid state for this service. See cluster_has_leader and\n"
+            "  cluster_has_replica for specialized checks.\n\n"
+            "  Check:\n"
+            "  * Compares the number of nodes against the normal and healthy nodes warning and critical thresholds.\n"
+            "  * `OK`:  If they are not provided.\n\n"
+            "  Perfdata:\n"
+            "  * `members`: the member count.\n"
+            "  * `healthy_members`: the running and streaming member count.\n"
+            "  * all the roles of the nodes in the cluster with their count (start with 'role_').\n"
+            "  * all the statuses of the nodes in the cluster with their count (start with 'state_').\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.add_argument(
+        "-w",
+        "--warning",
+        metavar="INT",
+        type=int,
+        default=1,
+        help="Warning threshold for the healthy number of nodes",
+    )
+    p.add_argument(
+        "-c",
+        "--critical",
+        metavar="INT",
+        type=int,
+        default=0,
+        help="Critical threshold for the healthy number of nodes",
+    )
+    p.set_defaults(func=check_cluster_node_count)
+
+
+# [CHECK] NODE IS ALIVE
+def check_node_is_alive():
+    try:
+        # Just check if the request returns 200
+        rest_api("liveness")
+        return nagios_ok(
+            "Node is alive",
+            {
+                "is_alive": True,
+            },
+        )
+    except APIError as e:
+        return nagios_critical(
+            f"Node is dead: {e}",
+            {
+                "is_alive": False,
+            },
+        )
+
+
+def register_command_node_is_alive(subparsers):
+    p = subparsers.add_parser(
+        "node_is_alive",
+        help="Check if the node is alive and Patroni is running",
+        description=(
+            "  Check if the node is alive ie patroni is running. This is a liveness check\n"
+            "  as defined in Patroni's documentation. If patroni is not running, we have no\n"
+            "  way to know if the provided endpoint is valid, therefore the check returns\n"
+            "  UNKNOWN.\n\n"
+            "  Check:\n"
+            "  * `OK`: If patroni the liveness check returns with HTTP status 200.\n"
+            "  * `CRITICAL`: if partoni's liveness check returns with an HTTP status\n"
+            "  other than 200.\n\n"
+            "  Perfdata:\n"
+            "  * `is_running` is 1 if patroni is running, 0 otherwise\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.set_defaults(func=check_node_is_alive)
+
+
+# [CHECK] NODE IS LEADER
+def check_node_is_leader():
+    # Use specific API depending on leader type
+    api_name = "leader"
+    if args.is_standby_leader:
+        api_name = "standby-leader"
+
+    # Cosmetic only
+    leader_kind = api_name.replace("-", " ")
+
+    try:
+        rest_api(api_name)
+        # If the request return HTTP 200, it's a leader / standby-leader
+        return nagios_ok(
+            f"This node is a {leader_kind}",
+            {
+                "is_leader": True,
+            },
+        )
+    except APIError as e:
+        return nagios_critical(
+            f"This node is not a {leader_kind}: {e}",
+            {
+                "is_leader": False,
+            },
+        )
+
+
+def register_command_node_is_leader(subparsers):
+    p = subparsers.add_parser(
+        "node_is_leader",
+        help="Check if the node is a leader node",
+        description=(
+            "  Check if the node is a leader node.\n\n"
+            "  This check applies to any kind of leaders including standby leaders. To\n"
+            "  check explicitly for a standby leader use the `--is-standby-leader` option.\n\n"
+            "  Check:\n"
+            "  * `OK`: if the node is a leader.\n"
+            "  * `CRITICAL:` otherwise\n\n"
+            "  Perfdata: `is_leader` is 1 if the node is a leader node, 0 otherwise.\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.add_argument(
+        "--is-standby-leader", action="store_true", help="check for a standby leader"
+    )
+    p.set_defaults(func=check_node_is_leader)
+
+
+# [CHECK] NODE IS PENDING RESTART
+def check_node_is_pending_restart():
+    try:
+        r = rest_api("patroni")
+        is_pending_restart = r.get("pending_restart", False)
+        if is_pending_restart:
+            nagios_critical(
+                "This node has the pending restart flag set", "pending_restart=1"
+            )
+        else:
+            nagios_ok(
+                "This node doesn't have the pending restart flag set",
+                "pending_restart=0",
+            )
+    except APIError as e:
+        nagios_unknown(f"Cannot check pending restart flag: {e}")
+
+
+def register_command_node_is_pending_restart(subparsers):
+    p = subparsers.add_parser(
+        "node_is_pending_restart",
+        help="Check if the node is in pending restart",
+        description=(
+            "  Check if the node is in pending restart state.\n\n"
+            "  This situation can arise if the configuration has been modified but requires\n"
+            "  a restart of PostgreSQL to take effect.\n\n"
+            "  Check:\n"
+            "  * `OK`: if the node has no pending restart tag.\n"
+            "  * `CRITICAL`: otherwise\n\n"
+            "  Perfdata: `is_pending_restart` is 1 if the node has pending restart tag, 0\n"
+            "  otherwise.\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.set_defaults(func=check_node_is_pending_restart)
+
+
+# [CHECK] NODE IS PRIMARY
+def check_node_is_primary():
+    try:
+        rest_api("primary")
+        return nagios_ok(
+            "This node is the primary with leader lock",
+            {
+                "is_primary": True,
+            },
+        )
+    except APIError as e:
+        return nagios_critical(
+            f"This node is not the primary with leader lock: {e}",
+            {
+                "is_leader": False,
+            },
+        )
+
+
+def register_command_node_is_primary(subparsers):
+    p = subparsers.add_parser(
+        "node_is_primary",
+        help="Check if the node is the primary with leader lock",
+        description=(
+            "  Check if the node is the primary with the leader lock.\n\n"
+            "  This service is not valid for a standby leader, because this kind of node is\n"
+            "  not a primary.\n\n"
+            "  Check:\n"
+            "  * `OK`: if the node is a primary with the leader lock.\n"
+            "  * `CRITICAL:` otherwise\n\n"
+            "  Perfdata: `is_primary` is 1 if the node is a primary with the leader lock, 0\n"
+            "  otherwise."
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.set_defaults(func=check_node_is_primary)
+
+
+# [CHECK] NODE IS REPLICA
+def check_node_is_replica():
+    if args.is_sync:
+        api_name = "synchronous"
+        replica_kind = "synchronous replica"
+    elif args.is_async:
+        api_name = "asynchronous"
+        replica_kind = "asynchronous replica"
+    else:
+        api_name = "replica"
+        replica_kind = "replica"
+
+    service = api_name
+    if not args.max_lag is None:
+        service += f"?lag={args.max_lag}"
+
+    try:
+        r = rest_api(service, return_response=True)
+        data = json.loads(r.read().decode("utf-8"))
+
+        if data.get("role") == "primary":
+            return nagios_ok(
+                f"This is the primary node, not a {replica_kind}. Ignored.",
+                {
+                    "is_replica": False,
+                },
+            )
+        elif r.status != 200:
+            return nagios_critical(
+                f"This node is not a {replica_kind}",
+                {
+                    "is_replica": False,
+                },
+            )
+
+        if args.max_lag is None:
+            return nagios_ok(
+                f"This node is a {replica_kind} with noloadbalance tag",
+                {
+                    "is_replica": True,
+                },
+            )
+        else:
+            return nagios_ok(
+                f"This node is a {replica_kind} with noloadbalance tag and lag is under {args.max_lag}",
+                {
+                    "is_replica": True,
+                },
+            )
+
+    except (json.JSONDecodeError, ValueError, APIError) as e:
+        nagios_unknown(f"Cannot check if node is replica: {e}")
+
+
+def register_command_node_is_replica(subparsers):
+    p = subparsers.add_parser(
+        "node_is_replica",
+        help="Check if the node is a replica with no noloadbalance tag",
+        description=(
+            "  Check if the node is a replica with no noloadbalance tag.\n\n"
+            "  It is possible to check if the node is synchronous or asynchronous. If\n"
+            "  nothing is specified any kind of replica is accepted.  When checking for a\n"
+            "  synchronous replica, it's not possible to specify a lag.\n\n"
+            "  This service is using the following Patroni endpoints: replica, asynchronous\n"
+            "  and synchronous. The first two implement the `lag` tag. For these endpoints\n"
+            "  the state of a replica node doesn't reflect the replication state\n"
+            "  (`streaming` or `in archive recovery`), we only know if it's `running`. The\n"
+            "  timeline is also not checked.\n\n"
+            "  Therefore, if a cluster is using asynchronous replication, it is recommended\n"
+            "  to check for the lag to detect a divegence as soon as possible.\n\n"
+            "  Check:\n"
+            "  * `OK`: if the node is a running replica with noloadbalance tag and the lag is under the maximum threshold.\n"
+            "  * `CRITICAL`:  otherwise\n\n"
+            "  Perfdata: `is_replica` is 1 if the node is a running replica with\n"
+            "  noloadbalance tag and the lag is under the maximum threshold, 0 otherwise.\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.add_argument(
+        "--max-lag",
+        metavar="INT",
+        type=int,
+        help="maximum allowed lag",
+    )
+    p.add_argument(
+        "--is-sync",
+        action="store_true",
+        help="check if the replica is synchronous",
+    )
+    p.add_argument(
+        "--is-async", action="store_true", help="check if the replica is asynchronous"
+    )
+    p.set_defaults(func=check_node_is_replica)
+
+
+# [CHECK] NODE PATRONI VERSION
+def check_node_has_version():
+    try:
+        r = rest_api("patroni")
+        version = r.get("patroni", {}).get("version")
+        if version == args.version:
+            return nagios_ok(
+                f"patroni version is {version}",
+                {
+                    "is_version_ok": True,
+                },
+            )
+
+        nagios_critical(
+            f"patroni version is {version}, expected {args.version}",
+            {
+                "is_version_ok": False,
+            },
+        )
+    except APIError as e:
+        nagios_unknown(f"Cannot check patroni version: {e}")
+
+
+def register_command_node_has_version(subparsers):
+    p = subparsers.add_parser(
+        "node_has_version",
+        help="Check if the version is equal to the input",
+        description=(
+            "  Check if the version is equal to the input\n\n"
+            "  Check:\n"
+            "  * `OK`: The version is the same as the input `--patroni-version`\n"
+            "  * `CRITICAL`: otherwise.\n\n"
+            "  Perfdata:\n"
+            "  * `is_version_ok` is 1 if version is ok, 0 otherwise\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.add_argument(
+        "--version",
+        metavar="TEXT",
+        help="Patroni version to compare to [required]",
+        required=True,
+    )
+    p.set_defaults(func=check_node_has_version)
+
+
+# [CHECK] NODE REPLICATION LAG
+def check_node_replica_lag():
+    name = args.name
+    if not name:
+        # Attempt to retrieve replica name from endpoint URL
+        name = urlparse(args.endpoint).netloc.split(":")[0]
+        debug(f"Looking for {name}")
+    try:
+        r = rest_api("cluster")
+
+        for member in r.get("members", {}):
+            # Filter on node name
+            if member.get("name") != name:
+                if member.get("host") != name:
+                    continue
+
+            # Detect primary node
+            if member.get("role") == "leader":
+                return nagios_ok(
+                    "Node is leader, no lag",
+                    {
+                        "lag": 0,
+                    },
+                )
+
+            # Retrieve lag value
+            try:
+                lag = int(member.get("lag"))
+            except TypeError:
+                # Edge case: lag not reported in the API response
+                return nagios_unknown("Cannot retrieve lag for replica")
+
+            if lag >= int(args.critical):
+                callback = nagios_critical
+            elif lag >= int(args.warning):
+                callback = nagios_warning
+            else:
+                callback = nagios_ok
+
+            # Return nagios response with perf data
+            callback(
+                f"Replica lag is {lag} MB",
+                {
+                    "lag": lag,
+                },
+            )
+
+        # Couldn't match name in the members list
+        nagios_unknown(f"Could not find replica '{name}' in cluster members list")
+
+    except APIError as e:
+        nagios_unknown(f"Cannot check replication lag: {e}")
+
+
+def register_command_node_replica_lag(subparsers):
+    p = subparsers.add_parser(
+        "node_replica_lag",
+        help="Check if the node lag is within certain limits",
+        description=(
+            "  Check if the node lag is within certain limits\n\n"
+            "  Check:\n"
+            "  * `OK`: Lag is within normal limits\n"
+            "  * `WARNING`: Lag is above the warning range, but below critical\n"
+            "  * `CRITICAL`: Lag is above the critical range\n\n"
+            "  Perfdata:\n"
+            "  * `lag` contains the lag value over time in MB\n"
+        ),
+        formatter_class=subparser_formatter,
+    )
+    p.add_argument(
+        "-w",
+        "--warning",
+        metavar="INT",
+        type=int,
+        default=20,
+        help="Lag threshold for warning in MB",
+    )
+    p.add_argument(
+        "-c",
+        "--critical",
+        metavar="INT",
+        type=int,
+        default=50,
+        help="Lag threshold for critical in MB",
+    )
+    p.add_argument(
+        "--name",
+        metavar="NAME",
+        help="Name of the replica",
+    )
+    p.set_defaults(func=check_node_replica_lag)
+
+
+def create_parser():
+    """Create the main parser and subparsers."""
+    formatter = lambda prog: CustomHelpFormatter(prog, max_help_position=80)
+    parser = argparse.ArgumentParser(
+        description="Nagios plugin that uses Patroni's REST API to monitor a Patroni cluster.",
+        formatter_class=formatter,
+    )
+
+    # Common options
+    parser.add_argument(
+        "-e",
+        "--endpoint",
+        metavar="URL",
+        default="http://127.0.0.1:8008",
+        help="Patroni API endpoint URL",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",
+        help="Verbose logging",
+    )
+    parser.add_argument(
+        "-t",
+        "--timeout",
+        metavar="INT",
+        type=int,
+        default=2,
+        help="Timeout in seconds for the API queries",
+    )
+
+    # Subparsers for nagios checks
+    subparsers = parser.add_subparsers(
+        title="commands",
+        dest="command",
+        metavar="<COMMAND>",
+        required=True,
+    )
+
+    # Register command subparsers
+    for command in [
+        "cluster_has_leader",
+        "cluster_has_replica",
+        "cluster_has_scheduled_action",
+        "cluster_is_in_maintenance",
+        "cluster_node_count",
+        "node_has_version",
+        "node_is_alive",
+        "node_is_leader",
+        "node_is_pending_restart",
+        "node_is_primary",
+        "node_is_replica",
+        "node_replica_lag",
+    ]:
+        globals()[f"register_command_{command}"](subparsers)
+
+    return parser
+
+
+def main():
+    global args
+
+    parser = create_parser()
+    args = parser.parse_args()
+
+    # Call the relevant handler
+    args.func()
+
+
+if __name__ == "__main__":
+    main()
