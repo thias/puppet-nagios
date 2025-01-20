@@ -68,7 +68,7 @@ class nagios::server (
   $date_format = 'iso8601',
   $admin_email = 'root@localhost',
   $admin_pager = 'pagenagios@localhost',
-  $cfg_append  = undef,
+  Optional[Hash] $cfg_append = undef,
   $service_check_timeout = '60',
   $host_check_timeout    = '30',
   $event_handler_timeout = '30',
@@ -302,9 +302,6 @@ class nagios::server (
   }
 
   # Configuration files
-  if ($cfg_append != undef) {
-    validate_hash($cfg_append)
-  }
   file { '/etc/nagios/cgi.cfg':
     owner   => 'root',
     group   => 'root',
