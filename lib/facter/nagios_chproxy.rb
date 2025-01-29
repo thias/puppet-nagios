@@ -5,7 +5,7 @@ binaries_chproxy = [
 ]
 
 binaries_chproxy.each do |filename|
-  if FileTest.exists?(filename)
+  if File.exists?(filename)
     Facter.add('nagios_chproxy') { setcode { true } }
   end
 end

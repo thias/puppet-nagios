@@ -5,7 +5,7 @@ binaries_aerospike = [
 ]
 
 binaries_aerospike.each do |filename|
-  if FileTest.exists?(filename)
+  if File.exists?(filename)
     Facter.add('nagios_aerospike') { setcode { true } }
   end
 end

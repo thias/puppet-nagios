@@ -11,13 +11,13 @@ binaries_pgbouncer = [
 ]
 
 binaries_postgres.each do |filename|
-  if FileTest.exists?(filename)
+  if File.exists?(filename)
     Facter.add('nagios_postgres') { setcode { true } }
   end
 end
 
 binaries_pgbouncer.each do |filename|
-  if FileTest.exists?(filename)
+  if File.exists?(filename)
     Facter.add('nagios_postgres_pgbouncer') { setcode { true } }
   end
 end
