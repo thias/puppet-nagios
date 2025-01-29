@@ -5,7 +5,7 @@ binaries_consul = [
 ]
 
 binaries_consul.each do |filename|
-  if FileTest.exists?(filename)
+  if File.exists?(filename)
     Facter.add('nagios_consul') { setcode { true } }
   end
 end
