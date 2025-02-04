@@ -201,6 +201,12 @@ class nagios::client (
     if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temp': } }
     if getvar('::nagios_elasticsearch') {  class { '::nagios::check::elasticsearch': } }
     if getvar('::nagios_fluentbit') {  class { '::nagios::check::fluentbit': } }
+    if lookup('nagios::check::cpu_persistent::ensure', String, 'first', 'absent') == 'present' {
+      class { '::nagios::check::cpu_persistent': }
+    }
+    if lookup('nagios::check::disk_projection::ensure', String, 'first', 'absent') == 'present' {
+      class { '::nagios::check::disk_projection': }
+    }
     if getvar('::nagios_kafka') {
       class { '::nagios::check::kafka': }
       class { '::nagios::check::kafka_isr': }
