@@ -221,6 +221,7 @@ nagios::check::cpu_persistent::ensure: 'present'
 ```
 ** Customization via Hiera **
 ```yaml
+nagios::check::cpu_persistent::ensure: 'present'
 nagios::check::cpu_persistent::args: '-w 90 -c 95 --warn_duration 3 --crit_duration 5'
 ```
 
@@ -242,6 +243,7 @@ nagios::check::disk_projection::ensure: 'present'
 ```
 
 ** Customization via Hiera **
+- nagios::check::disk_projection::ensure: 'present' to enable the check (default: 'absent')
 - nagios::check::disk_projection::threshold_hours: Time threshold for alerts (default: 12).
 - nagios::check::disk_projection::exclude_fs: Filesystem types to ignore (default: tmpfs, devtmpfs, etc.).
 - nagios::check::disk_projection::data_dir: Storage location for historical data (default: /var/tmp/disk_usage_data).

@@ -152,6 +152,9 @@ class nagios::client (
     class { '::nagios::check::ping6': }
     class { '::nagios::check::ram': }
     class { '::nagios::check::swap': }
+    # Unconditional ones but disabled (override $ensure to 'present' to enable)
+    class { '::nagios::check::cpu_persistent': }
+    class { '::nagios::check::disk_projection': }
     # Conditional ones, once presence is detected using our custom facts
     if getvar('::nagios_couchbase') {
       class { '::nagios::check::couchbase': }
@@ -200,13 +203,8 @@ class nagios::client (
     }
     if getvar('::virtual') == 'physical' {  class { '::nagios::check::cpu_temp': } }
     if getvar('::nagios_elasticsearch') {  class { '::nagios::check::elasticsearch': } }
+    if getvar('::nagios_opensearch') {  class { '::nagios::check::opensearch': } }
     if getvar('::nagios_fluentbit') {  class { '::nagios::check::fluentbit': } }
-    if lookup('nagios::check::cpu_persistent::ensure', String, 'first', 'absent') == 'present' {
-      class { '::nagios::check::cpu_persistent': }
-    }
-    if lookup('nagios::check::disk_projection::ensure', String, 'first', 'absent') == 'present' {
-      class { '::nagios::check::disk_projection': }
-    }
     if getvar('::nagios_kafka') {
       class { '::nagios::check::kafka': }
       class { '::nagios::check::kafka_isr': }
