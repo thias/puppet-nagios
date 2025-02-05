@@ -1,5 +1,6 @@
 class nagios::check::ram (
   $ensure                   = undef,
+  $plugin_command           = '/usr/lib64/nagios/plugins/check_ram',
   $args                     = '',
   $check_title              = $::nagios::client::host_name,
   $servicegroups            = undef,
@@ -22,6 +23,7 @@ class nagios::check::ram (
 
   nagios::client::nrpe_file { 'check_ram':
     ensure => $ensure,
+    plugin => $plugin_command,
     args   => $fullargs,
   }
 
