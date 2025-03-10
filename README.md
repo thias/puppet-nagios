@@ -185,6 +185,69 @@ another for the client configuration to take the new fact into account, then
 the server run to update the nagios configuration. This might take a little
 while depending on how often puppet is run on the nodes.
 
+## Nagios CPU Persistent Check
+
+This check monitors CPU usage over time, triggering warnings or critical alerts
+only if thresholds are consistently exceeded for a specified duration. The check
+is implemented using the `check_cpu_persistent` script.
+
+### Key Features
+- Supports both `WARNING` and `CRITICAL` thresholds for CPU usage.
+- Alerts are only triggered if the CPU usage exceeds thresholds for a continuous duration.
+- Configurable thresholds and durations.
+- Designed to be used with NRPE, with a default sampling interval of 5 seconds.
+
+---
+
+### NRPE Configuration
+The NRPE configuration is managed by Puppet and will register the check as `check_cpu_persistent`.
+
+### Parameters
+
+| Argument         | Description                                                                                 | Default |
+|------------------|---------------------------------------------------------------------------------------------|---------|
+| `-w` or `-W`     | Warning threshold for CPU usage (percentage). Alerts if usage exceeds this value.           | `90`    |
+| `-c` or `-C`     | Critical threshold for CPU usage (percentage). Alerts if usage exceeds this value.          | `95`    |
+| `--warn_duration`| Duration (in minutes) for which CPU usage must exceed the warning threshold to trigger.     | `3`    |
+| `--crit_duration`| Duration (in minutes) for which CPU usage must exceed the critical threshold to trigger.    | `5`    |
+
+> **Note**: The `-s` (sample interval) argument is hardcoded to `5 seconds` when
+run via NRPE but can be customized if the script is run independently.
+
+### Puppet Configuration
+This check is managed with Puppet Hiera using:
+```yaml
+nagios::check::cpu_persistent::ensure: 'present'
+```
+** Customization via Hiera **
+```yaml
+nagios::check::cpu_persistent::ensure: 'present'
+nagios::check::cpu_persistent::args: '-w 90 -c 95 --warn_duration 3 --crit_duration 5'
+```
+
+## Disk Usage Projection NRPE Check
+### Overview
+This script monitors disk usage trends and projects when a disk will be full based on historical usage patterns. It is deployed and managed using Puppet via nagios::check::disk_projection.
+
+### How It Works
+- Collects disk usage over time.
+- Calculates the rate of data growth in MB/s.
+- Estimates time until full for each disk.
+- Triggers CRITICAL alerts if a disk is projected to be full within a set threshold (default: 12 hours).
+- Outputs performance data (MB/s) for graphing in Nagios.
+
+### Puppet Configuration
+This check is managed with Puppet Hiera using:
+```yaml
+nagios::check::disk_projection::ensure: 'present'
+```
+
+** Customization via Hiera **
+- nagios::check::disk_projection::ensure: 'present' to enable the check (default: 'absent')
+- nagios::check::disk_projection::threshold_hours: Time threshold for alerts (default: 12).
+- nagios::check::disk_projection::exclude_fs: Filesystem types to ignore (default: tmpfs, devtmpfs, etc.).
+- nagios::check::disk_projection::data_dir: Storage location for historical data (default: /var/tmp/disk_usage_data).
+
 ## MySQL
 
 For the `mysql_health` based checks to work, you will need to create the MySQL
