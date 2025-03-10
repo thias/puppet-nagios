@@ -124,9 +124,6 @@ class nagios::server (
   $serviceescalation = {},
 ) inherits ::nagios::params {
 
-  # Full nrpe command to run, with default options
-  $nrpe = "${nrpe_command} ${nrpe_options}"
-
   # Plugin packages required on the server side
   package { [
     'nagios',
@@ -553,41 +550,41 @@ class nagios::server (
 
   # Custom NRPE-based commands
   nagios_command { 'check_nrpe_users':
-    command_line => "${nrpe} -c check_users",
+    command_line => "${nrpe_command} -c check_users ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_load':
-    command_line => "${nrpe} -c check_load",
+    command_line => "${nrpe_command} -c check_load ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_zombie_procs':
-    command_line => "${nrpe} -c check_zombie_procs",
+    command_line => "${nrpe_command} -c check_zombie_procs ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_total_procs':
-    command_line => "${nrpe} -c check_total_procs",
+    command_line => "${nrpe_command} -c check_total_procs ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_swap':
-    command_line => "${nrpe} -c check_swap",
+    command_line => "${nrpe_command} -c check_swap ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_disk':
-    command_line => "${nrpe} -c check_disk",
+    command_line => "${nrpe_command} -c check_disk ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_procs':
-    command_line => "${nrpe} -c check_procs",
+    command_line => "${nrpe_command} -c check_procs ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_ntp_time':
-    command_line => "${nrpe} -u -c check_ntp_time",
+    command_line => "${nrpe_command} -u -c check_ntp_time ${nrpe_options}",
   }
   # Custom NRPE-based commands using custom plugins
   nagios_command { 'check_nrpe_ram':
-    command_line => "${nrpe} -c check_ram",
+    command_line => "${nrpe_command} -c check_ram ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_cpu':
-    command_line => "${nrpe} -c check_cpu",
+    command_line => "${nrpe_command} -c check_cpu ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_couchbase':
-    command_line => "${nrpe} -c check_couchbase",
+    command_line => "${nrpe_command} -c check_couchbase ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_couchbase_bucket':
-    command_line => "${nrpe} -c check_couchbase_bucket",
+    command_line => "${nrpe_command} -c check_couchbase_bucket ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_aerospike_cluster_size':
     command_line => "${nrpe} -c check_aerospike_cluster_size",
@@ -602,470 +599,473 @@ class nagios::server (
     command_line => "${nrpe} -c check_aerospike_objects",
   }
   nagios_command { 'check_nrpe_moxi':
-    command_line => "${nrpe} -c check_moxi",
+    command_line => "${nrpe_command} -c check_moxi ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_memcached':
-    command_line => "${nrpe} -c check_memcached",
+    command_line => "${nrpe_command} -c check_memcached ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_conntrack':
-    command_line => "${nrpe} -c check_conntrack",
+    command_line => "${nrpe_command} -c check_conntrack ${nrpe_options}",
   }
   # Custom NRPE-based commands using custom plugins, conditionally enabled
   nagios_command { 'check_nrpe_megaraid_sas':
-    command_line => "${nrpe} -c check_megaraid_sas",
+    command_line => "${nrpe_command} -c check_megaraid_sas ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mptsas':
-    command_line => "${nrpe} -c check_mptsas",
+    command_line => "${nrpe_command} -c check_mptsas ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_connection_time':
-    command_line => "${nrpe} -c check_mysql_health_connection_time",
+    command_line => "${nrpe_command} -c check_mysql_health_connection_time ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_uptime':
-    command_line => "${nrpe} -c check_mysql_health_uptime",
+    command_line => "${nrpe_command} -c check_mysql_health_uptime ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_threads_connected':
-    command_line => "${nrpe} -c check_mysql_health_threads_connected",
+    command_line => "${nrpe_command} -c check_mysql_health_threads_connected ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_threadcache_hitrate':
-    command_line => "${nrpe} -c check_mysql_health_threadcache_hitrate",
+    command_line => "${nrpe_command} -c check_mysql_health_threadcache_hitrate ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_querycache_hitrate':
-    command_line => "${nrpe} -c check_mysql_health_querycache_hitrate",
+    command_line => "${nrpe_command} -c check_mysql_health_querycache_hitrate ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_querycache_lowmem_prunes':
-    command_line => "${nrpe} -c check_mysql_health_querycache_lowmem_prunes",
+    command_line => "${nrpe_command} -c check_mysql_health_querycache_lowmem_prunes ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_keycache_hitrate':
-    command_line => "${nrpe} -c check_mysql_health_keycache_hitrate",
+    command_line => "${nrpe_command} -c check_mysql_health_keycache_hitrate ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_bufferpool_hitrate':
-    command_line => "${nrpe} -c check_mysql_health_bufferpool_hitrate",
+    command_line => "${nrpe_command} -c check_mysql_health_bufferpool_hitrate ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_bufferpool_wait_free':
-    command_line => "${nrpe} -c check_mysql_health_bufferpool_wait_free",
+    command_line => "${nrpe_command} -c check_mysql_health_bufferpool_wait_free ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_log_waits':
-    command_line => "${nrpe} -c check_mysql_health_log_waits",
+    command_line => "${nrpe_command} -c check_mysql_health_log_waits ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_tablecache_hitrate':
-    command_line => "${nrpe} -c check_mysql_health_tablecache_hitrate",
+    command_line => "${nrpe_command} -c check_mysql_health_tablecache_hitrate ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_table_lock_contention':
-    command_line => "${nrpe} -c check_mysql_health_table_lock_contention",
+    command_line => "${nrpe_command} -c check_mysql_health_table_lock_contention ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_index_usage':
-    command_line => "${nrpe} -c check_mysql_health_index_usage",
+    command_line => "${nrpe_command} -c check_mysql_health_index_usage ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_tmp_disk_tables':
-    command_line => "${nrpe} -c check_mysql_health_tmp_disk_tables",
+    command_line => "${nrpe_command} -c check_mysql_health_tmp_disk_tables ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_slow_queries':
-    command_line => "${nrpe} -c check_mysql_health_slow_queries",
+    command_line => "${nrpe_command} -c check_mysql_health_slow_queries ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_slave_lag':
-    command_line => "${nrpe} -c check_mysql_health_slave_lag",
+    command_line => "${nrpe_command} -c check_mysql_health_slave_lag ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_slave_io_running':
-    command_line => "${nrpe} -c check_mysql_health_slave_io_running",
+    command_line => "${nrpe_command} -c check_mysql_health_slave_io_running ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_slave_sql_running':
-    command_line => "${nrpe} -c check_mysql_health_slave_sql_running",
+    command_line => "${nrpe_command} -c check_mysql_health_slave_sql_running ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mysql_health_open_files':
-    command_line => "${nrpe} -c check_mysql_health_open_files",
+    command_line => "${nrpe_command} -c check_mysql_health_open_files ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_archive_ready':
-    command_line => "${nrpe} -c check_postgres_archive_ready",
+    command_line => "${nrpe_command} -c check_postgres_archive_ready ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_autovac_freeze':
-    command_line => "${nrpe} -c check_postgres_autovac_freeze",
+    command_line => "${nrpe_command} -c check_postgres_autovac_freeze ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_backends':
-    command_line => "${nrpe} -c check_postgres_backends",
+    command_line => "${nrpe_command} -c check_postgres_backends ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_bloat':
-    command_line => "${nrpe} -c check_postgres_bloat",
+    command_line => "${nrpe_command} -c check_postgres_bloat ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_checkpoint':
-    command_line => "${nrpe} -c check_postgres_checkpoint",
+    command_line => "${nrpe_command} -c check_postgres_checkpoint ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_cluster_id':
-    command_line => "${nrpe} -c check_postgres_cluster_id",
+    command_line => "${nrpe_command} -c check_postgres_cluster_id ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_commitratio':
-    command_line => "${nrpe} -c check_postgres_commitratio",
+    command_line => "${nrpe_command} -c check_postgres_commitratio ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_connection':
-    command_line => "${nrpe} -c check_postgres_connection",
+    command_line => "${nrpe_command} -c check_postgres_connection ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_database_size':
-    command_line => "${nrpe} -c check_postgres_database_size",
+    command_line => "${nrpe_command} -c check_postgres_database_size ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_disabled_triggers':
-    command_line => "${nrpe} -c check_postgres_disabled_triggers",
+    command_line => "${nrpe_command} -c check_postgres_disabled_triggers ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_disk_space':
-    command_line => "${nrpe} -c check_postgres_disk_space",
+    command_line => "${nrpe_command} -c check_postgres_disk_space ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_fsm_pages':
-    command_line => "${nrpe} -c check_postgres_fsm_pages",
+    command_line => "${nrpe_command} -c check_postgres_fsm_pages ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_fsm_relations':
-    command_line => "${nrpe} -c check_postgres_fsm_relations",
+    command_line => "${nrpe_command} -c check_postgres_fsm_relations ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_hitratio':
-    command_line => "${nrpe} -c check_postgres_hitratio",
+    command_line => "${nrpe_command} -c check_postgres_hitratio ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_hot_standby_delay':
-    command_line => "${nrpe} -c check_postgres_hot_standby_delay",
+    command_line => "${nrpe_command} -c check_postgres_hot_standby_delay ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_last_analyze':
-    command_line => "${nrpe} -c check_postgres_last_analyze",
+    command_line => "${nrpe_command} -c check_postgres_last_analyze ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_last_vacuum':
-    command_line => "${nrpe} -c check_postgres_last_vacuum",
+    command_line => "${nrpe_command} -c check_postgres_last_vacuum ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_last_autoanalyze':
-    command_line => "${nrpe} -c check_postgres_last_autoanalyze",
+    command_line => "${nrpe_command} -c check_postgres_last_autoanalyze ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_last_autovacuum':
-    command_line => "${nrpe} -c check_postgres_last_autovacuum",
+    command_line => "${nrpe_command} -c check_postgres_last_autovacuum ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_listener':
-    command_line => "${nrpe} -c check_postgres_listener",
+    command_line => "${nrpe_command} -c check_postgres_listener ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_locks':
-    command_line => "${nrpe} -c check_postgres_locks",
+    command_line => "${nrpe_command} -c check_postgres_locks ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_logfile':
-    command_line => "${nrpe} -c check_postgres_logfile",
+    command_line => "${nrpe_command} -c check_postgres_logfile ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_new_version_bc':
-    command_line => "${nrpe} -c check_postgres_new_version_bc",
+    command_line => "${nrpe_command} -c check_postgres_new_version_bc ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_new_version_box':
-    command_line => "${nrpe} -c check_postgres_new_version_box",
+    command_line => "${nrpe_command} -c check_postgres_new_version_box ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_new_version_cp':
-    command_line => "${nrpe} -c check_postgres_new_version_cp",
+    command_line => "${nrpe_command} -c check_postgres_new_version_cp ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_new_version_pg':
-    command_line => "${nrpe} -c check_postgres_new_version_pg",
+    command_line => "${nrpe_command} -c check_postgres_new_version_pg ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_new_version_tnm':
-    command_line => "${nrpe} -c check_postgres_new_version_tnm",
+    command_line => "${nrpe_command} -c check_postgres_new_version_tnm ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgb_pool_cl_active':
-    command_line => "${nrpe} -c check_postgres_pgb_pool_cl_active",
+    command_line => "${nrpe_command} -c check_postgres_pgb_pool_cl_active ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgb_pool_cl_waiting':
-    command_line => "${nrpe} -c check_postgres_pgb_pool_cl_waiting",
+    command_line => "${nrpe_command} -c check_postgres_pgb_pool_cl_waiting ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgb_pool_sv_active':
-    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_active",
+    command_line => "${nrpe_command} -c check_postgres_pgb_pool_sv_active ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgb_pool_sv_idle':
-    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_idle",
+    command_line => "${nrpe_command} -c check_postgres_pgb_pool_sv_idle ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgb_pool_sv_used':
-    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_used",
+    command_line => "${nrpe_command} -c check_postgres_pgb_pool_sv_used ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgb_pool_sv_tested':
-    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_tested",
+    command_line => "${nrpe_command} -c check_postgres_pgb_pool_sv_tested ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgb_pool_sv_login':
-    command_line => "${nrpe} -c check_postgres_pgb_pool_sv_login",
+    command_line => "${nrpe_command} -c check_postgres_pgb_pool_sv_login ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgb_pool_maxwait':
-    command_line => "${nrpe} -c check_postgres_pgb_pool_maxwait",
+    command_line => "${nrpe_command} -c check_postgres_pgb_pool_maxwait ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgbouncer_backends':
-    command_line => "${nrpe} -c check_postgres_pgbouncer_backends",
+    command_line => "${nrpe_command} -c check_postgres_pgbouncer_backends ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgbouncer_checksum':
-    command_line => "${nrpe} -c check_postgres_pgbouncer_checksum",
+    command_line => "${nrpe_command} -c check_postgres_pgbouncer_checksum ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_pgagent_jobs':
-    command_line => "${nrpe} -c check_postgres_pgagent_jobs",
+    command_line => "${nrpe_command} -c check_postgres_pgagent_jobs ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_prepared_txns':
-    command_line => "${nrpe} -c check_postgres_prepared_txns",
+    command_line => "${nrpe_command} -c check_postgres_prepared_txns ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_query_time':
-    command_line => "${nrpe} -c check_postgres_query_time",
+    command_line => "${nrpe_command} -c check_postgres_query_time ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_same_schema':
-    command_line => "${nrpe} -c check_postgres_same_schema",
+    command_line => "${nrpe_command} -c check_postgres_same_schema ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_sequence':
-    command_line => "${nrpe} -c check_postgres_sequence",
+    command_line => "${nrpe_command} -c check_postgres_sequence ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_settings_checksum':
-    command_line => "${nrpe} -c check_postgres_settings_checksum",
+    command_line => "${nrpe_command} -c check_postgres_settings_checksum ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_slony_status':
-    command_line => "${nrpe} -c check_postgres_slony_status",
+    command_line => "${nrpe_command} -c check_postgres_slony_status ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_txn_idle':
-    command_line => "${nrpe} -c check_postgres_txn_idle",
+    command_line => "${nrpe_command} -c check_postgres_txn_idle ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_txn_time':
-    command_line => "${nrpe} -c check_postgres_txn_time",
+    command_line => "${nrpe_command} -c check_postgres_txn_time ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_txn_wraparound':
-    command_line => "${nrpe} -c check_postgres_txn_wraparound",
+    command_line => "${nrpe_command} -c check_postgres_txn_wraparound ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_version':
-    command_line => "${nrpe} -c check_postgres_version",
+    command_line => "${nrpe_command} -c check_postgres_version ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_postgres_wal_files':
-    command_line => "${nrpe} -c check_postgres_wal_files",
+    command_line => "${nrpe_command} -c check_postgres_wal_files ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_zk_avg_latency':
-    command_line => "${nrpe} -c check_zk_avg_latency",
+    command_line => "${nrpe_command} -c check_zk_avg_latency ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_zk_max_latency':
-    command_line => "${nrpe} -c check_zk_max_latency",
+    command_line => "${nrpe_command} -c check_zk_max_latency ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_zk_outstanding_requests':
-    command_line => "${nrpe} -c check_zk_outstanding_requests",
+    command_line => "${nrpe_command} -c check_zk_outstanding_requests ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_zk_open_file_descriptor_count':
-    command_line => "${nrpe} -c check_zk_open_file_descriptor_count",
+    command_line => "${nrpe_command} -c check_zk_open_file_descriptor_count ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_zk_pending_syncs':
-    command_line => "${nrpe} -c check_zk_pending_syncs",
+    command_line => "${nrpe_command} -c check_zk_pending_syncs ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_zk_synced_followers':
-    command_line => "${nrpe} -c check_zk_synced_followers",
+    command_line => "${nrpe_command} -c check_zk_synced_followers ${nrpe_options}",
+  }
+  nagios_command { 'check_nrpe_zk_followers':
+    command_line => "${nrpe_command} -c check_zk_followers ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_asserts':
-    command_line => "${nrpe} -c check_mongodb_asserts",
+    command_line => "${nrpe_command} -c check_mongodb_asserts ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_chunks_balance':
-    command_line => "${nrpe} -c check_mongodb_chunks_balance",
+    command_line => "${nrpe_command} -c check_mongodb_chunks_balance ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_collection_indexes':
-    command_line => "${nrpe} -c check_mongodb_collection_indexes",
+    command_line => "${nrpe_command} -c check_mongodb_collection_indexes ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_collections':
-    command_line => "${nrpe} -c check_mongodb_collections",
+    command_line => "${nrpe_command} -c check_mongodb_collections ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_collection_size':
-    command_line => "${nrpe} -c check_mongodb_collection_size",
+    command_line => "${nrpe_command} -c check_mongodb_collection_size ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_collection_state':
-    command_line => "${nrpe} -c check_mongodb_collection_state",
+    command_line => "${nrpe_command} -c check_mongodb_collection_state ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_collection_storageSize':
-    command_line => "${nrpe} -c check_mongodb_collection_storageSize",
+    command_line => "${nrpe_command} -c check_mongodb_collection_storageSize ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_connect':
-    command_line => "${nrpe} -c check_mongodb_connect",
+    command_line => "${nrpe_command} -c check_mongodb_connect ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_connections':
-    command_line => "${nrpe} -c check_mongodb_connections",
+    command_line => "${nrpe_command} -c check_mongodb_connections ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_connect_primary':
-    command_line => "${nrpe} -c check_mongodb_connect_primary",
+    command_line => "${nrpe_command} -c check_mongodb_connect_primary ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_current_lock':
-    command_line => "${nrpe} -c check_mongodb_current_lock",
+    command_line => "${nrpe_command} -c check_mongodb_current_lock ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_database_indexes':
-    command_line => "${nrpe} -c check_mongodb_database_indexes",
+    command_line => "${nrpe_command} -c check_mongodb_database_indexes ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_databases':
-    command_line => "${nrpe} -c check_mongodb_databases",
+    command_line => "${nrpe_command} -c check_mongodb_databases ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_database_size':
-    command_line => "${nrpe} -c check_mongodb_database_size",
+    command_line => "${nrpe_command} -c check_mongodb_database_size ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_flushing':
-    command_line => "${nrpe} -c check_mongodb_flushing",
+    command_line => "${nrpe_command} -c check_mongodb_flushing ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_index_miss_ratio':
-    command_line => "${nrpe} -c check_mongodb_index_miss_ratio",
+    command_line => "${nrpe_command} -c check_mongodb_index_miss_ratio ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_journal_commits_in_wl':
-    command_line => "${nrpe} -c check_mongodb_journal_commits_in_wl",
+    command_line => "${nrpe_command} -c check_mongodb_journal_commits_in_wl ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_journaled':
-    command_line => "${nrpe} -c check_mongodb_journaled",
+    command_line => "${nrpe_command} -c check_mongodb_journaled ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_last_flush_time':
-    command_line => "${nrpe} -c check_mongodb_last_flush_time",
+    command_line => "${nrpe_command} -c check_mongodb_last_flush_time ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_lock':
-    command_line => "${nrpe} -c check_mongodb_lock",
+    command_line => "${nrpe_command} -c check_mongodb_lock ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_memory':
-    command_line => "${nrpe} -c check_mongodb_memory",
+    command_line => "${nrpe_command} -c check_mongodb_memory ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_memory_mapped':
-    command_line => "${nrpe} -c check_mongodb_memory_mapped",
+    command_line => "${nrpe_command} -c check_mongodb_memory_mapped ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_opcounters':
-    command_line => "${nrpe} -c check_mongodb_opcounters",
+    command_line => "${nrpe_command} -c check_mongodb_opcounters ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_oplog':
-    command_line => "${nrpe} -c check_mongodb_oplog",
+    command_line => "${nrpe_command} -c check_mongodb_oplog ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_page_faults':
-    command_line => "${nrpe} -c check_mongodb_page_faults",
+    command_line => "${nrpe_command} -c check_mongodb_page_faults ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_queries_per_second':
-    command_line => "${nrpe} -c check_mongodb_queries_per_second",
+    command_line => "${nrpe_command} -c check_mongodb_queries_per_second ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_queues':
-    command_line => "${nrpe} -c check_mongodb_queues",
+    command_line => "${nrpe_command} -c check_mongodb_queues ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_replica_primary':
-    command_line => "${nrpe} -c check_mongodb_replica_primary",
+    command_line => "${nrpe_command} -c check_mongodb_replica_primary ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_replication_lag':
-    command_line => "${nrpe} -c check_mongodb_replication_lag",
+    command_line => "${nrpe_command} -c check_mongodb_replication_lag ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_replication_lag_percent':
-    command_line => "${nrpe} -c check_mongodb_replication_lag_percent",
+    command_line => "${nrpe_command} -c check_mongodb_replication_lag_percent ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_replset_quorum':
-    command_line => "${nrpe} -c check_mongodb_replset_quorum",
+    command_line => "${nrpe_command} -c check_mongodb_replset_quorum ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_replset_state':
-    command_line => "${nrpe} -c check_mongodb_replset_state",
+    command_line => "${nrpe_command} -c check_mongodb_replset_state ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_row_count':
-    command_line => "${nrpe} -c check_mongodb_row_count",
+    command_line => "${nrpe_command} -c check_mongodb_row_count ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mongodb_write_data_files':
-    command_line => "${nrpe} -c check_mongodb_write_data_files",
+    command_line => "${nrpe_command} -c check_mongodb_write_data_files ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_rabbitmq_connection_count':
-    command_line => "${nrpe} -c check_rabbitmq_connection_count",
+    command_line => "${nrpe_command} -c check_rabbitmq_connection_count ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_rabbitmq_queues_count':
-    command_line => "${nrpe} -c check_rabbitmq_queues_count",
+    command_line => "${nrpe_command} -c check_rabbitmq_queues_count ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_rabbitmq_mem_usage':
-    command_line => "${nrpe} -c check_rabbitmq_mem_usage",
+    command_line => "${nrpe_command} -c check_rabbitmq_mem_usage ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_rabbitmq_aliveness':
-    command_line => "${nrpe} -c check_rabbitmq_aliveness",
+    command_line => "${nrpe_command} -c check_rabbitmq_aliveness ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_rabbitmq_cluster_status':
-    command_line => "${nrpe} -c check_rabbitmq_cluster_status",
+    command_line => "${nrpe_command} -c check_rabbitmq_cluster_status ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_redis_blocked_clients':
-    command_line => "${nrpe} -c check_redis_blocked_clients",
+    command_line => "${nrpe_command} -c check_redis_blocked_clients ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_redis_connected_slaves':
-    command_line => "${nrpe} -c check_redis_connected_slaves",
+    command_line => "${nrpe_command} -c check_redis_connected_slaves ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_redis_connected_clients':
-    command_line => "${nrpe} -c check_redis_connected_clients",
+    command_line => "${nrpe_command} -c check_redis_connected_clients ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_redis_evicted_keys':
-    command_line => "${nrpe} -c check_redis_evicted_keys",
+    command_line => "${nrpe_command} -c check_redis_evicted_keys ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_redis_hitrate':
-    command_line => "${nrpe} -c check_redis_hitrate",
+    command_line => "${nrpe_command} -c check_redis_hitrate ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_redis_response_time':
-    command_line => "${nrpe} -c check_redis_response_time",
+    command_line => "${nrpe_command} -c check_redis_response_time ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_redis_rejected_connections':
-    command_line => "${nrpe} -c check_redis_rejected_connections",
+    command_line => "${nrpe_command} -c check_redis_rejected_connections ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_redis_uptime_in_seconds':
-    command_line => "${nrpe} -c check_redis_uptime_in_seconds",
+    command_line => "${nrpe_command} -c check_redis_uptime_in_seconds ${nrpe_options}",
   }
   nagios_command { 'check_sentinel_master_health':
-    command_line => "${nrpe} -c check_sentinel_master_health",
+    command_line => "${nrpe_command} -c check_sentinel_master_health ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_hpsa':
-    command_line => "${nrpe} -c check_hpsa",
+    command_line => "${nrpe_command} -c check_hpsa ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mountpoints':
-    command_line => "${nrpe} -c check_mountpoints",
+    command_line => "${nrpe_command} -c check_mountpoints ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mdraid':
-    command_line => "${nrpe} -c check_mdraid",
+    command_line => "${nrpe_command} -c check_mdraid ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_mailq':
-    command_line => "${nrpe} -c check_mailq",
+    command_line => "${nrpe_command} -c check_mailq ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_cpu_temp':
-    command_line => "${nrpe} -c check_cpu_temp",
+    command_line => "${nrpe_command} -c check_cpu_temp ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_ipa':
-    command_line => "${nrpe} -c check_ipa",
+    command_line => "${nrpe_command} -c check_ipa ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_ipa_replication':
-    command_line => "${nrpe} -c check_ipa_replication",
+    command_line => "${nrpe_command} -c check_ipa_replication ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_krb5':
-    command_line => "${nrpe} -c check_krb5",
+    command_line => "${nrpe_command} -c check_krb5 ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_elasticsearch_cluster_status':
-    command_line => "${nrpe} -c check_elasticsearch_cluster_status",
+    command_line => "${nrpe_command} -c check_elasticsearch_cluster_status ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_elasticsearch_jvm_usage':
-    command_line => "${nrpe} -c check_elasticsearch_jvm_usage",
+    command_line => "${nrpe_command} -c check_elasticsearch_jvm_usage ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_elasticsearch_nodes':
-    command_line => "${nrpe} -c check_elasticsearch_nodes",
+    command_line => "${nrpe_command} -c check_elasticsearch_nodes ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_elasticsearch_split_brain':
-    command_line => "${nrpe} -c check_elasticsearch_split_brain",
+    command_line => "${nrpe_command} -c check_elasticsearch_split_brain ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_elasticsearch_unassigned_shards':
-    command_line => "${nrpe} -c check_elasticsearch_unassigned_shards",
+    command_line => "${nrpe_command} -c check_elasticsearch_unassigned_shards ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_fluentbit_health':
     command_line => "${nrpe} -c check_fluentbit_health",
   }
   nagios_command { 'check_nrpe_ssd':
-    command_line => "${nrpe} -c check_ssd",
+    command_line => "${nrpe_command} -c check_ssd ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_tls_files':
-    command_line => "${nrpe} -c check_tls_files",
+    command_line => "${nrpe_command} -c check_tls_files ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_kafka':
-    command_line => "${nrpe} -c check_kafka",
+    command_line => "${nrpe_command} -c check_kafka ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_kafka_isr':
-    command_line => "${nrpe} -c check_kafka_isr",
+    command_line => "${nrpe_command} -c check_kafka_isr ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_future_parts':
-    command_line => "${nrpe} -c check_clickhouse_replication_future_parts",
+    command_line => "${nrpe_command} -c check_clickhouse_replication_future_parts ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_inserts_in_queue':
-    command_line => "${nrpe} -c check_clickhouse_replication_inserts_in_queue",
+    command_line => "${nrpe_command} -c check_clickhouse_replication_inserts_in_queue ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_is_readonly':
-    command_line => "${nrpe} -c check_clickhouse_replication_is_readonly",
+    command_line => "${nrpe_command} -c check_clickhouse_replication_is_readonly ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_is_session_expired':
-    command_line => "${nrpe} -c check_clickhouse_replication_is_session_expired",
+    command_line => "${nrpe_command} -c check_clickhouse_replication_is_session_expired ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_log_delay':
-    command_line => "${nrpe} -c check_clickhouse_replication_log_delay",
+    command_line => "${nrpe_command} -c check_clickhouse_replication_log_delay ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_parts_to_check':
-    command_line => "${nrpe} -c check_clickhouse_replication_parts_to_check",
+    command_line => "${nrpe_command} -c check_clickhouse_replication_parts_to_check ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_queue_size':
-    command_line => "${nrpe} -c check_clickhouse_replication_queue_size",
+    command_line => "${nrpe_command} -c check_clickhouse_replication_queue_size ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_total_replicas':
-    command_line => "${nrpe} -c check_clickhouse_replication_total_replicas",
+    command_line => "${nrpe_command} -c check_clickhouse_replication_total_replicas ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_clickhouse_replication_active_replicas':
-    command_line => "${nrpe} -c check_clickhouse_replication_active_replicas",
+    command_line => "${nrpe_command} -c check_clickhouse_replication_active_replicas ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_http_chproxy':
-    command_line => "${nrpe} -c check_http_chproxy",
+    command_line => "${nrpe_command} -c check_http_chproxy ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_syncthing_alive':
     command_line => "${nrpe} -c check_syncthing_alive",
@@ -1085,10 +1085,10 @@ class nagios::server (
     }
   }
   nagios_command { 'check_nrpe_haproxy_stats':
-    command_line => "${nrpe} -c check_haproxy_stats",
+    command_line => "${nrpe_command} -c check_haproxy_stats ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_consul':
-    command_line => "${nrpe} -c check_consul",
+    command_line => "${nrpe_command} -c check_consul ${nrpe_options}",
   }
   nagios_command { 'check_nrpe_ups':
     command_line => "${nrpe} -c check_ups",
