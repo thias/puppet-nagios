@@ -4,7 +4,7 @@
 #
 class nagios::params {
 
-  $libdir = $::architecture ? {
+  $libdir = $facts['os']['architecture'] ? {
     'x86_64' => 'lib64',
     'amd64'  => 'lib64',
     'ppc64'  => 'lib64',
@@ -43,14 +43,20 @@ class nagios::params {
     'nagios-plugins-users',
   ]
 
-  case $::operatingsystem {
+  case $facts['os']['name'] {
     'RedHat', 'Fedora', 'CentOS', 'Scientific', 'Amazon', 'Rocky': {
-      $nrpe_package       = [ 'nrpe', 'nagios-plugins' ]
+      if $facts['os']['name'] == 'Fedora' or versioncmp($facts['os']['release']['major'], '10') >= 0 {
+        $nrpe_package = [ 'nrpe', 'nrpe-selinux', 'nagios-plugins', 'nagios-selinux' ]
+        # Services install files that require the SELinux context
+        Package['nrpe-selinux'] -> Nagios::Nrpe_service <| |>
+      } else {
+        $nrpe_package = [ 'nrpe', 'nagios-plugins' ]
+      }
       $nrpe_package_alias = undef
       $nrpe_service       = 'nrpe'
       $nrpe_user          = 'nrpe'
       $nrpe_group         = 'nrpe'
-      if ( $::operatingsystem != 'Fedora' and versioncmp($::operatingsystemrelease, '7') >= 0 ) {
+      if ( $facts['os']['name'] != 'Fedora' and versioncmp($facts['os']['release']['major'], '7') >= 0 ) {
         $nrpe_pid_file    = lookup('nagios::params::nrpe_pid_file',undef,undef,'/run/nrpe/nrpe.pid')
         $cfg_template     = 'nagios/nagios-4.cfg.erb'
       } else {
@@ -61,12 +67,12 @@ class nagios::params {
       $plugin_dir         = lookup('nagios::params::plugin_dir',undef,undef,"/usr/${libdir}/nagios/plugins")
       $pid_file           = lookup('nagios::params::pid_file',undef,undef,'/var/run/nagios/nagios.pid')
       $megaclibin         = '/usr/sbin/MegaCli'
-      if $::operatingsystem == 'Fedora' or versioncmp($::operatingsystemmajrelease, '9') >= 0 {
+      if $facts['os']['name'] == 'Fedora' or versioncmp($facts['os']['release']['major'], '9') >= 0 {
         $perl_memcached   = [ 'perl-Cache-Memcached', 'perl-lib' ]
       } else {
         $perl_memcached     = 'perl-Cache-Memcached'
       }
-      if versioncmp($::operatingsystemmajrelease, '8') >= 0 {
+      if versioncmp($facts['os']['release']['major'], '8') >= 0 {
         $python_openssl            = 'python3-pyOpenSSL'
         $python_mongo              = 'python3-pymongo'
         $python_2_vs_3_interpreter = '/usr/libexec/platform-python'
@@ -78,7 +84,7 @@ class nagios::params {
         $python_request            = 'python2-requests'
       }
       # On RHEL9 the 's-nail' package is used as 'mailx' replacement
-      $mailx_package = (versioncmp($::operatingsystemmajrelease, '9') >= 0) ? {
+      $mailx_package = (versioncmp($facts['os']['release']['major'], '9') >= 0) ? {
         true  => 's-nail',
         false => 'mailx',
       }

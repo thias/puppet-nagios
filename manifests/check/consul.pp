@@ -1,7 +1,7 @@
 class nagios::check::consul (
   $ensure                   = undef,
   $args                     = '',
-  $node                     = $::fqdn,
+  $node                     = $facts['networking']['fqdn'],
   $datacenter               = '',
   $token                    = undef,
   $package                  = undef,
@@ -17,7 +17,7 @@ class nagios::check::consul (
   if $package {
     $package_final = $package
   } else {
-    if versioncmp($::operatingsystemmajrelease,'8') >= 0 {
+    if versioncmp($facts['os']['release']['major'],'8') >= 0 {
       $package_final = [ 'python3-docopt', 'python3-requests' ]
     } else {
       $package_final = [ 'python-docopt', 'python-requests' ]

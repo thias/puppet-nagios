@@ -16,7 +16,7 @@ class nagios::check::kafka (
   if $package {
     $package_final = $package
   } else {
-    if versioncmp($::operatingsystemmajrelease,'8') >= 0 {
+    if versioncmp($facts['os']['release']['major'],'8') >= 0 {
       $package_final = [ 'python3-harisekhon-utils', 'python3-kafka' ]
     } else {
       $package_final = [ 'python-harisekhon-utils', 'python-kafka' ]

@@ -17,7 +17,7 @@ class nagios::check::ssd (
   if $ensure != 'absent' {
     if $vendor_package {
       ensure_packages($vendor_package)
-    } elsif $::bios_vendor == 'Dell Inc.' {
+    } elsif $facts['dmi']['bios']['vendor'] == 'Dell Inc.' {
       # Assuming DELL server only have PERC cards >.<
       ensure_packages('perccli')
     } else {

@@ -12,7 +12,7 @@ class nagios::check::patroni (
   $args_node_is_leader                = '',
   $args_node_is_replica               = '',
   $args_node_has_version              = '--version 4.0.4',
-  $args_node_replica_lag              = "-w 50 -c 100 --name ${::fqdn}",
+  $args_node_replica_lag              = "-w 50 -c 100 --name ${facts['networking']['fqdn']}",
 ) {
 
   include 'nagios::plugin::patroni'

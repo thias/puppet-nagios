@@ -59,8 +59,8 @@ class nagios::client (
   # Set the variables to be used, including scoped from elsewhere, based on
   # the optional fact or parameter from here
   $host_name = $nagios_host_name ? {
-    ''      => $::fqdn,
-    undef   => $::fqdn,
+    ''      => $facts['networking']['fqdn'],
+    undef   => $facts['networking']['fqdn'],
     default => $nagios_host_name,
   }
   $server = $nagios_server ? {
@@ -99,6 +99,8 @@ class nagios::client (
     purge   => true,
     recurse => true,
     require => Package['nrpe'],
+    # Reload service when files get purged
+    notify  => Service[$nrpe_service],
   }
   # Create resource for the check_* parent resource
   file { $plugin_dir:
@@ -164,7 +166,7 @@ class nagios::client (
       class { '::nagios::check::megaraid_sas': }
       include ::nagios::check::ssd
     }
-    if /^nvme/ in $::disks {                 include ::nagios::check::ssd }
+    if /^nvme/ in keys($facts['disks']) {    include ::nagios::check::ssd }
     if getvar('::nagios_memcached') {        class { '::nagios::check::memcached': } }
     if getvar('::nagios_mongod') {           class { '::nagios::check::mongodb': } }
     if getvar('::nagios_mountpoints') {      class { '::nagios::check::mountpoints': } }
@@ -172,7 +174,7 @@ class nagios::client (
     if getvar('::nagios_httpd_nginx') {      class { '::nagios::check::nginx': } }
     if getvar('::nagios_pci_mptsas') {       class { '::nagios::check::mptsas': } }
     if getvar('::nagios_mysqld') {
-      case $::operatingsystem {
+      case $facts['os']['name'] {
         'RedHat', 'Fedora', 'CentOS', 'Scientific', 'Amazon': {
           class { '::nagios::check::mysql_health': }
         }
@@ -215,7 +217,7 @@ class nagios::client (
   }
 
   # With selinux, some nrpe plugins require additional rules to work
-  if $selinux and 'selinux' in $facts['os'] and  $facts['os']['selinux']['enabled'] == true {
+  if $selinux and $facts.get('os.selinux.enabled') {
     selinux::audit2allow { 'nrpe':
       source => "puppet:///modules/${module_name}/messages.nrpe",
     }

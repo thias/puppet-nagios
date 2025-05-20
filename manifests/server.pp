@@ -98,7 +98,7 @@ class nagios::server (
   $plugin_slack_token    = undef,
   $plugin_redis          = false,
   $plugin_redis_sentinel = false,
-  $selinux               = $::selinux,
+  $selinux               = true,
   $check_for_updates     = true,
   # Original template entries
   $template_generic_contact = {},
@@ -239,6 +239,8 @@ class nagios::server (
     mode    => '0755',
     content => template('nagios/plugins/check_ssl_cert'),
   }
+  # Required by recent versions of the check_ssl_cert script
+  ensure_packages('bc')
 
   # Other packages
   # For the default email notifications to work
@@ -1332,13 +1334,10 @@ class nagios::server (
 
 
   # With selinux, adjustements are needed for nagiosgraph
-  # lint:ignore:quoted_booleans
-  if ( ( $selinux == true and $::selinux_enforced == true ) or
-  ( $selinux == 'true' and $::selinux_enforced == 'true' ) ) {
+  if $selinux and $facts.get('os.selinux.enabled') {
     selinux::audit2allow { 'nagios':
       source => "puppet:///modules/${module_name}/messages.nagios",
     }
   }
-  # lint:endignore
 
 }

@@ -75,7 +75,7 @@ class nagios::nagiosgraph (
   }
 
   # With selinux, adjustements are needed for nagiosgraph
-  if $selinux and $::selinux_enforced {
+  if $selinux and $facts.get('os.selinux.enabled') {
     selinux::audit2allow { 'nagiosgraph':
       source => "puppet:///modules/${module_name}/messages.nagiosgraph",
     }

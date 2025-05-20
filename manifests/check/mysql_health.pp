@@ -42,7 +42,7 @@ class nagios::check::mysql_health (
 
   # Optional package containing the script
   if $pkg {
-    $pkgname = $::operatingsystem ? {
+    $pkgname = $facts['os']['name'] ? {
       'Gentoo' => 'net-analyzer/nagios-check_mysql_health',
       default  => 'nagios-plugins-mysql_health',
     }

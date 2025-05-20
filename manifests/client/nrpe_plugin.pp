@@ -23,6 +23,10 @@ define nagios::client::nrpe_plugin (
   # Nagios perl library required by checks written in perl
   if $perl == true and $ensure != 'absent' {
     Package <| tag == 'nagios-plugins-perl' |>
+    # Seems always required with perl checks on EL9+
+    if $facts['os']['name'] == 'Fedora' or versioncmp($facts['os']['release']['major'], '9') >= 0 {
+      ensure_packages('perl-lib')
+    }
   }
 
   # System package(s) required by checks relying on 3rd party tools

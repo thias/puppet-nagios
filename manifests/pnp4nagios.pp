@@ -60,7 +60,7 @@ class nagios::pnp4nagios (
   }
 
   # With selinux, adjustements are needed for pnp4nagios
-  if $selinux and $::selinux_enforced {
+  if $selinux and $facts.get('os.selinux.enabled') {
     selinux::audit2allow { 'pnp4nagios':
       source => "puppet:///modules/${module_name}/messages.pnp4nagios",
     }

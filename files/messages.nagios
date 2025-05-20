@@ -6,3 +6,7 @@ avc:  denied  { create read write setopt getopt } for  pid=16771 comm="ping" sco
 avc:  denied  { net_raw } for  pid=17066 comm="ping" capability=13  scontext=unconfined_u:system_r:nagios_t:s0 tcontext=unconfined_u:system_r:nagios_t:s0 tclass=capability
 # check_ping6
 type=AVC msg=audit(1490283723.157:1981): avc:  denied  { module_request } for  pid=26120 comm="ping6" kmod="net-pf-10-proto-58-type-2" scontext=system_u:system_r:ping_t:s0 tcontext=system_u:system_r:kernel_t:s0 tclass=system
+# php-fpm
+type=AVC msg=audit(1666884724.987:28278): avc:  denied  { net_admin } for  pid=660149 comm="php-fpm" capability=12  scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:system_r:httpd_t:s0 tclass=capability permissive=0
+# nginx
+type=AVC msg=audit(1666884860.520:40140): avc:  denied  { connectto } for  pid=521033 comm="nginx" path="/run/fcgiwrap/fcgiwrap-nginx.sock" scontext=system_u:system_r:httpd_t:s0 tcontext=system_u:system_r:unconfined_service_t:s0 tclass=unix_stream_socket permissive=0
