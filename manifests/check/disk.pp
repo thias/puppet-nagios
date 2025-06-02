@@ -27,7 +27,14 @@ class nagios::check::disk (
   # Include defaults if no overrides in $args
   if $args !~ /-w/ { $arg_w = '-w 5% ' } else { $arg_w = '' }
   if $args !~ /-c/ { $arg_c = '-c 2% ' } else { $arg_c = '' }
-  $fullargs = strip("${original_args} ${arg_w}${arg_c}${args}")
+  # -A and -i must be after -w and -c
+  # RHEL 10 /run/credentials/<foo>.service fail when they contain the "@" sign
+  if ($facts['os']['family'] == 'RedHat' and versioncmp($facts['os']['release']['major'], '10') >= 0) {
+    $arg_end = ' -A -i @'
+  } else {
+    $arg_end = ''
+  }
+  $fullargs = join([strip("${original_args} ${arg_w}${arg_c}${args}"),$arg_end])
 
   nagios::client::nrpe_file { 'check_disk':
     ensure => $ensure,
