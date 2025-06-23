@@ -16,7 +16,7 @@ define nagios::check::service (
   $nrpe_options   = $::nagios::params::nrpe_options
   $nrpe           = "${nrpe_command} ${nrpe_options}"
 
-  @@nagios_command { "check_nrpe_service_${title}_${::fqdn}":
+  @@nagios_command { "check_nrpe_service_${title}_${facts['networking']['fqdn']}":
     command_line => "${nrpe} -c check_service_${title}",
     tag          => 'service',
   }
@@ -29,7 +29,7 @@ define nagios::check::service (
 
   nagios::service { "check_service_${title}_${::nagios::client::host_name}":
     ensure                   => $ensure,
-    check_command            => "check_nrpe_service_${title}_${::fqdn}",
+    check_command            => "check_nrpe_service_${title}_${facts['networking']['fqdn']}",
     service_description      => "service_${title}",
     servicegroups            => $servicegroups,
     check_period             => $check_period,

@@ -87,7 +87,7 @@ Nagios client specific overrides. See `client.pp` and `check/*.pp` for all of
 the variables which can be manipulated this way. The following :
 
 ```puppet
-nagios::client::config { 'host_address': value => $::ipaddress_eth2 }
+nagios::client::config { 'host_address': value => $facts['networking']['interfaces']['eth2']['ip'] }
 ```
 
 Will result in having `$::nagios_host_name` get `$ipaddress_eth2` as its value
@@ -789,10 +789,10 @@ nagios::server::commands:
     command_line: "$USER1$/check_dns -H $ARG1$ $ARG2$"
 
 nagios::client::services:
-  "check_command_tcp_port_8888_%{::fqdn}":
+  "check_command_tcp_port_8888_%{facts.networking.fqdn}":
     check_command: 'check_tcp!8888'
     service_description: 'TCP port 8888'
-  "check_dns_hostname_%{::fqdn}":
+  "check_dns_hostname_%{facts.networking.fqdn}":
     check_command: 'check_dns_addr!$HOSTNAME$!-a $HOSTADDRESS$'
     service_description: 'DNS Hostname'
 ```
@@ -821,7 +821,7 @@ nagios::client::nrpe_files:
 
 # finally, define a service that uses our new custom NRPE plugin
 nagios::client::services:
-  "service_name_%{::fqdn}":
+  "service_name_%{facts.networking.fqdn}":
     check_command: 'check_nrpe_command'
     service_description: 'service description'
     contact_groups: 'all'
