@@ -40,6 +40,7 @@ class nagios::params {
     'nagios-plugins-procs',
     'nagios-plugins-sensors',
     'nagios-plugins-swap',
+    'nagios-plugins-uptime',
     'nagios-plugins-users',
   ]
 
