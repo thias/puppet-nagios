@@ -15,7 +15,7 @@ class nagios::check::syncthing (
 
 ) {
 
-  #if versioncmp($::operatingsystemmajrelease, '8') >= 0 {
+  #if versioncmp($facts['os']['release']['major'], '8') >= 0 {
   #  $package = 'python3-requests'
   #} else {
   #  $package = 'python2-requests'

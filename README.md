@@ -105,7 +105,7 @@ can inherit it)  :
 
 ```puppet
 Nagios::Check::Swap { ensure => 'absent' }
-if $::domain == 'example.com' {
+if $facts['networking']['domain'] == 'example.com' {
   Nagios::Check::Cpu { notification_period => 'workhours' }
 }
 ```
@@ -159,13 +159,13 @@ hiera's automatic class parameter lookup) :
 
 ```puppet
 class { '::nagios::client':
-  host_notification_period => $::domain ? {
+  host_notification_period => $facts['networking']['domain'] ? {
     /\.dev$/ => 'workhours',
     default  => '24x7',
   }
   # You will need to use the type "nagios_hostgroup" on the server for
   # all of the possible domain values to create the hostgroups.
-  host_hostgroups => $::domain,
+  host_hostgroups => $facts['networking']['domain'],
 }
 ```
 
