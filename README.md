@@ -90,8 +90,9 @@ the variables which can be manipulated this way. The following :
 nagios::client::config { 'host_address': value => $facts['networking']['interfaces']['eth2']['ip'] }
 ```
 
-Will result in having `$::nagios_host_name` get `$ipaddress_eth2` as its value
-for the entire configuration of the client where it is applied.
+Will result in having `$::nagios_host_name` get
+`$facts['networking']['interfaces']['eth2']['ip']` as its value for the entire
+configuration of the client where it is applied.
 
 Nagios client check override configuration examples :
 
