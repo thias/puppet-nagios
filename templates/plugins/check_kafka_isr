@@ -34,6 +34,7 @@ usage() {
   echo "Usage: $(basename $0) -b <address> [-k <path>] [-h]"
   echo
   echo -e "\t-b <address>\tBootstrap server, must be in host:port format (mandatory)"
+  echo -e "\t-z <address>\tZookeeper server, must be in host:port[,host:port]/cluster_name format (Legacy, overrides -b)"
   echo -e "\t-k <path>\tPath to kafka-topics binary (default: /bin/kafka-topics)"
   echo -e "\t-h\t\tDisplay this help message"
   exit ${STATE_UNKNOWN}
@@ -42,13 +43,16 @@ usage() {
 # Parses and validates passed arguemnts
 check_arguments() {
   kafkacmd=${KAFKACMD}
-  while getopts ":hb:k:" opt; do
+  while getopts ":hb:z:k:" opt; do
       case $opt in
           h )
              usage
              ;;
           b )
              bootstrap="${OPTARG}"
+             ;;
+          z )
+             zookeeper="${OPTARG}"
              ;;
           k )
              kafkacmd=${OPTARG}
@@ -64,7 +68,7 @@ check_arguments() {
              ;;
       esac
   done
-  if [ -z "${bootstrap}" ]
+  if [ -z "${bootstrap}" -a -z "${zookeeper}" ]
   then
     usage
   fi
@@ -79,10 +83,16 @@ join_by() {
 
 # Main function
 main() {
+  # Set connection parameter
+  if [ ! -z "${zookeeper}" ]; then
+    connect_param="--zookeeper ${zookeeper}"
+  else
+    connect_param="--bootstrap-server ${bootstrap}"
+  fi
   # Dump data of consumer group to a file
   rc=0
   timeout 10 ${kafkacmd} \
-    --bootstrap-server "${bootstrap}" \
+    ${connect_param} \
     --describe \
     --under-replicated-partitions > ${TEMPFILE} 2> /dev/null || rc=$?
 
