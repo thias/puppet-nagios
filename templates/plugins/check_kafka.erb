@@ -46,7 +46,8 @@ import sys
 import traceback
 try:
     from kafka import KafkaConsumer, KafkaProducer
-    from kafka.common import KafkaError, TopicPartition
+    from kafka.structs import TopicPartition
+    from kafka.errors import KafkaError
 except ImportError:
     print(traceback.format_exc(), end='')
     sys.exit(4)

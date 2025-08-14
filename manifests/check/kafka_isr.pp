@@ -1,9 +1,7 @@
 class nagios::check::kafka_isr (
   $ensure                   = undef,
   $args                     = '',
-  $zookeeper_ipaddr         = [],
-  $zookeeper_port           = 2181,
-  $zookeeper_chroot         = undef,
+  $bootstrap_server         = '127.0.0.1:9092',
   $package                  = [],
   $check_title              = $::nagios::client::host_name,
   $check_period             = $::nagios::client::service_check_period,
@@ -14,16 +12,13 @@ class nagios::check::kafka_isr (
   $use                      = $::nagios::client::service_use,
 ) {
 
-  $zookeeper_hosts = join(map($zookeeper_ipaddr) |$ipaddr| { "${ipaddr}:${zookeeper_port}" }, ',')
-  $zookeeper_final = "${zookeeper_hosts}/${zookeeper_chroot}"
-
   # Set options from parameters unless already set inside args
-  if $args !~ /-z/ and $zookeeper_final != undef {
-    $arg_z = "-z ${zookeeper_final} "
+  if $args !~ /-b/ {
+    $arg_b = "-b ${bootstrap_server} "
   } else {
-    $arg_z = ''
+    $arg_b = ''
   }
-  $globalargs = strip("${arg_z}${args}")
+  $globalargs = strip("${arg_b}${args}")
 
   nagios::client::nrpe_plugin { 'check_kafka_isr':
     ensure  => $ensure,

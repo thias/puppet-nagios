@@ -31,9 +31,9 @@ trap "rm -rf ${TEMPFILE}" EXIT
 # Functions
 # Prints usage
 usage() {
-  echo "Usage: $(basename $0) -z <address> [-k <path>] [-h]"
+  echo "Usage: $(basename $0) -b <address> [-k <path>] [-h]"
   echo
-  echo -e "\t-z <address>\tAddress or host of zookeeper server, must be in host:port[,host:port]/cluster_name format (mandatory)"
+  echo -e "\t-b <address>\tBootstrap server, must be in host:port format (mandatory)"
   echo -e "\t-k <path>\tPath to kafka-topics binary (default: /bin/kafka-topics)"
   echo -e "\t-h\t\tDisplay this help message"
   exit ${STATE_UNKNOWN}
@@ -42,13 +42,13 @@ usage() {
 # Parses and validates passed arguemnts
 check_arguments() {
   kafkacmd=${KAFKACMD}
-  while getopts ":hz:k:" opt; do
+  while getopts ":hb:k:" opt; do
       case $opt in
           h )
              usage
              ;;
-          z )
-             zookeeper="${OPTARG}"
+          b )
+             bootstrap="${OPTARG}"
              ;;
           k )
              kafkacmd=${OPTARG}
@@ -64,7 +64,7 @@ check_arguments() {
              ;;
       esac
   done
-  if [ -z "${zookeeper}" ]
+  if [ -z "${bootstrap}" ]
   then
     usage
   fi
@@ -82,7 +82,7 @@ main() {
   # Dump data of consumer group to a file
   rc=0
   timeout 10 ${kafkacmd} \
-    --zookeeper "${zookeeper}" \
+    --bootstrap-server "${bootstrap}" \
     --describe \
     --under-replicated-partitions > ${TEMPFILE} 2> /dev/null || rc=$?
 
