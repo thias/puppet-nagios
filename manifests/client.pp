@@ -153,7 +153,10 @@ class nagios::client (
     class { '::nagios::check::ping': }
     class { '::nagios::check::ping6': }
     class { '::nagios::check::ram': }
-    class { '::nagios::check::swap': }
+    # Enable check_swap only if swap is enabled
+    if $::swapsize_mb != '0.00' {
+      class { '::nagios::check::swap': }
+    }
     # Conditional ones, once presence is detected using our custom facts
     if getvar('::nagios_couchbase') {
       class { '::nagios::check::couchbase': }
