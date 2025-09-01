@@ -31,10 +31,11 @@
 # 1.5           Bugfix: Actually run checkTooling before using the tools that needs checking
 # 1.6:          Add performance data, fix issues with non standar lsi cards, several fixes and extra options. Check changelog
 # 1.7:          Fix all shellcheck warning and recommandations. Use wear level value from smart-log if smart-log-add command does not exists
+# 1.8:          Exclude optical devices from autodiscovery
 
 set -o errexit -o pipefail
 
-VERSION="1.7"
+VERSION="1.8"
 
 STORCLIBIN="/usr/sbin/storcli"
 TWAREBIN="/usr/sbin/tw_cli"
@@ -228,8 +229,8 @@ function getDIDlist {
       DRIVER="auto"
 
       CONTROLLERS[0]=0
-      BLOCKDEVICE[0]=$($LSBLK -n -d -o name,rota | grep "$DEVICE" | awk '$2 == 0 { print "/dev/"$1 }')
-      DIDLIST[0]=$($LSBLK -n -d -o name,rota | grep "$DEVICE" | awk '$2 == 0 { print "/dev/"$1 }')
+      BLOCKDEVICE[0]="" # not used in auto mode
+      DIDLIST[0]=$($LSBLK -dn -o NAME --filter 'ROTA == 0 && TYPE == "disk"' | sed 's|^|/dev/|')
     ;;
     *)
       echo "UNKNOWN: Unknown controller or no controller found"
