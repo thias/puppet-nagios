@@ -644,6 +644,136 @@ nagios::check::elasticsearch::args_jvm_usage: '-N 10.0.0.1 -C 90 -W 80'
 nagios::check::elasticsearch::args_nodes: '-E 5' # Expected nodes in cluester
 ```
 
+
+## OpenSearch
+
+The `opensearch` checks monitor OpenSearch clusters, nodes, and indices using a single
+`opensearch_check_nrpe.sh` script with multiple **modes** (or “actions”).
+
+Each mode performs a distinct health or capacity check and can be enabled or disabled individually, or in logical groups (for example, enabling only cluster-level checks).
+
+You must provide valid credentials for an account with permission to call the standard cluster APIs (`_cluster/health`, `_nodes/stats`, `_cat/*`, etc.).
+
+```yaml
+nagios::check::opensearch::user: 'nagios'
+nagios::check::opensearch::pass: 'mysupersecretpassword'
+```
+
+### Example user creation (OpenSearch Security plugin)
+
+Example user definition (`/usr/share/opensearch/plugins/opensearch-security/tools/securityadmin.sh`):
+
+```json
+{
+  "nagios_monitor": {
+    "hash": "$2y$12$...",
+    "roles": [ "monitoring_user" ],
+    "description": "Nagios monitoring account"
+  }
+}
+```
+
+Minimal role definition for `monitoring_user`:
+
+```json
+{
+  "monitoring_user": {
+    "cluster": [
+      "cluster:monitor/main",
+      "cluster:monitor/health",
+      "cluster:monitor/state",
+      "cluster:monitor/stats",
+      "cluster:monitor/nodes/stats",
+      "cluster:monitor/nodes/info",
+      "cluster:monitor/allocation/explain",
+      "cluster:monitor/settings/get"
+    ],
+    "indices": [
+      {
+        "names": [ "*" ],
+        "privileges": [ "read", "view_index_metadata" ]
+      }
+    ]
+  }
+}
+```
+
+### Enabling and disabling checks
+
+Completely disable OpenSearch monitoring on a host:
+
+```yaml
+nagios::check::opensearch::ensure: 'absent'
+```
+
+Selectively disable specific modes:
+
+```yaml
+nagios::check::opensearch::modes_disabled:
+  - 'thread_pool_queues'
+  - 'no_replica_indices'
+```
+
+Or enable only certain checks:
+
+```yaml
+nagios::check::opensearch::modes_enabled:
+  - 'cluster_status'
+  - 'jvm_usage'
+  - 'disk_usage'
+```
+
+Each mode can also receive its own threshold arguments through `mode_args`:
+
+```yaml
+nagios::check::opensearch::mode_args:
+  jvm_usage: '-w 75 -c 90'
+  disk_usage: '-w 80 -c 95'
+  shard_capacity: '-w 70 -c 90'
+```
+
+### Available modes
+
+|Mode|Description|
+|---|---|
+|**cluster_status**|Checks the overall cluster health (`green`, `yellow`, or `red`). Warns if `yellow`, critical if `red`.|
+|**nodes**|Checks the number of active nodes in the cluster and compares against `-E <expected_node_count>`.|
+|**unassigned_shards**|Reports unassigned primary or replica shards in the cluster.|
+|**jvm_usage**|Checks JVM heap memory usage on the current node.|
+|**disk_usage**|Checks disk utilization percentage for the node running the check.|
+|**thread_pool_queues**|Monitors the `search` thread pool queue size for the node.|
+|**no_replica_indices**|Reports user indices configured without replicas (excluding system indices).|
+|**node_uptime**|Warns if the node has been up for less than 10 minutes (useful after restarts).|
+|**check_disk_space_for_resharding**|Estimates whether remaining disk space is sufficient to reshuffle shards after a node loss.|
+|**shard_capacity**|Checks total cluster shard utilization vs. the `cluster.max_shards_per_node` limit. Warns/criticals based on % usage.|
+
+
+### Example configuration
+
+Enable OpenSearch monitoring with all default checks:
+
+```yaml
+class { 'nagios::check::opensearch':
+  ensure        => present,
+  host          => 'opensearch.internal',
+  port          => '9200',
+  user          => 'nagios',
+  pass          => 'mysupersecretpassword',
+  modes_enabled => [
+    'cluster_status',
+    'nodes',
+    'unassigned_shards',
+    'jvm_usage',
+    'disk_usage',
+    'thread_pool_queues',
+    'no_replica_indices',
+    'node_uptime',
+    'check_disk_space_for_resharding',
+    'shard_capacity',
+  ],
+}
+```
+
 ## Fluent Bit
 
 The Fluent Bit monitoring uses the `/api/v1/health` endpoint to determine the health status of Fluent Bit.
