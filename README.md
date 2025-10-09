@@ -90,8 +90,9 @@ the variables which can be manipulated this way. The following :
 nagios::client::config { 'host_address': value => $facts['networking']['interfaces']['eth2']['ip'] }
 ```
 
-Will result in having `$::nagios_host_name` get `$ipaddress_eth2` as its value
-for the entire configuration of the client where it is applied.
+Will result in having `$::nagios_host_name` get
+`$facts['networking']['interfaces']['eth2']['ip']` as its value for the entire
+configuration of the client where it is applied.
 
 Nagios client check override configuration examples :
 
@@ -105,7 +106,7 @@ can inherit it)  :
 
 ```puppet
 Nagios::Check::Swap { ensure => 'absent' }
-if $::domain == 'example.com' {
+if $facts['networking']['domain'] == 'example.com' {
   Nagios::Check::Cpu { notification_period => 'workhours' }
 }
 ```
@@ -159,13 +160,13 @@ hiera's automatic class parameter lookup) :
 
 ```puppet
 class { '::nagios::client':
-  host_notification_period => $::domain ? {
+  host_notification_period => $facts['networking']['domain'] ? {
     /\.dev$/ => 'workhours',
     default  => '24x7',
   }
   # You will need to use the type "nagios_hostgroup" on the server for
   # all of the possible domain values to create the hostgroups.
-  host_hostgroups => $::domain,
+  host_hostgroups => $facts['networking']['domain'],
 }
 ```
 
