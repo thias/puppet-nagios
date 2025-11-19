@@ -28,9 +28,9 @@ class nagios::check::disk (
   if $args !~ /-w/ { $arg_w = '-w 5% ' } else { $arg_w = '' }
   if $args !~ /-c/ { $arg_c = '-c 2% ' } else { $arg_c = '' }
   # -A and -i must be after -w and -c
-  # RHEL 10 /run/credentials/<foo>.service fail when they contain the "@" sign
+  # RHEL 10 /run/credentials/<foo>.service fail when service gets restarted
   if ($facts['os']['family'] == 'RedHat' and versioncmp($facts['os']['release']['major'], '10') >= 0) {
-    $arg_end = ' -A -i @'
+    $arg_end = ' -A -i ^/run/credentials'
   } else {
     $arg_end = ''
   }
