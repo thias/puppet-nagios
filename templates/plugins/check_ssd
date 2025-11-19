@@ -230,7 +230,12 @@ function getDIDlist {
 
       CONTROLLERS[0]=0
       BLOCKDEVICE[0]="" # not used in auto mode
-      DIDLIST[0]=$($LSBLK -dn -o NAME --filter 'ROTA == 0 && TYPE == "disk"' | sed 's|^|/dev/|')
+      # Try to use modern lsblk with --filter; fallback to awk for older versions
+      if $LSBLK -dn -o NAME --filter 'ROTA == 0 && TYPE == "disk"' &>/dev/null; then
+        DIDLIST[0]=$($LSBLK -dn -o NAME --filter 'ROTA == 0 && TYPE == "disk"' | sed 's|^|/dev/|')
+      else
+        DIDLIST[0]=$($LSBLK -dn -o NAME,ROTA,TYPE | awk '$2 == 0 && $3 == "disk" {print $1}' | sed 's|^|/dev/|')
+      fi;
     ;;
     *)
       echo "UNKNOWN: Unknown controller or no controller found"
@@ -347,4 +352,3 @@ else
   echo -e "$MESSAGE"
   exit $EXITCODE
 fi
-
