@@ -1024,6 +1024,36 @@ class nagios::server (
   nagios_command { 'check_nrpe_elasticsearch_unassigned_shards':
     command_line => "${nrpe} -c check_elasticsearch_unassigned_shards",
   }
+  nagios_command { 'check_nrpe_opensearch_cluster_status':
+    command_line => "${nrpe} -c check_opensearch_cluster_status",
+  }
+  nagios_command { 'check_nrpe_opensearch_disk_usage':
+    command_line => "${nrpe} -c check_opensearch_disk_usage",
+  }
+  nagios_command { 'check_nrpe_opensearch_nodes':
+    command_line => "${nrpe} -c check_opensearch_nodes",
+  }
+  nagios_command { 'check_nrpe_opensearch_unassigned_shards':
+    command_line => "${nrpe} -c check_opensearch_unassigned_shards",
+  }
+  nagios_command { 'check_nrpe_opensearch_jvm_usage':
+    command_line => "${nrpe} -c check_opensearch_jvm_usage",
+  }
+  nagios_command { 'check_nrpe_opensearch_thread_pool_queues':
+    command_line => "${nrpe} -c check_opensearch_thread_pool_queues",
+  }
+  nagios_command { 'check_nrpe_opensearch_no_replica_indices':
+    command_line => "${nrpe} -c check_opensearch_no_replica_indices",
+  }
+  nagios_command { 'check_nrpe_opensearch_node_uptime':
+    command_line => "${nrpe} -c check_opensearch_node_uptime",
+  }
+  nagios_command { 'check_nrpe_opensearch_check_disk_space_for_resharding':
+    command_line => "${nrpe} -c check_opensearch_check_disk_space_for_resharding",
+  }
+  nagios_command { 'check_nrpe_opensearch_shard_capacity':
+    command_line => "${nrpe} -c check_opensearch_shard_capacity",
+  }
   nagios_command { 'check_nrpe_fluentbit_health':
     command_line => "${nrpe} -c check_fluentbit_health",
   }
