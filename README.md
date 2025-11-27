@@ -146,6 +146,34 @@ To override the parameters of a default template using hiera :
 nagios::server::template_generic_service:
   notification_options: 'u,c,r'
 ```
+### Log archive retention
+
+By default, Nagios log archives under `/var/log/nagios/archives` are kept
+forever. You can optionally enable automatic cleanup by setting the
+`log_archives_mtime` parameter on `nagios::server`.
+
+This value is passed directly to `find -mtime`, so it supports the same formats
+as `find` (for example: `+365`, `+30`, `7`, `-1`, etc.). When set, a daily cron
+job is created (running as the `nagios` user) to delete old files from
+`/var/log/nagios/archives`.
+
+Example, keep only the last year of archives:
+
+```puppet
+class { '::nagios::server':
+  log_archives_mtime => '+365',
+  # ...other parameters...
+}
+````
+
+or from hieradata:
+
+```yaml
+nagios::server::log_archives_mtime: '+365'
+```
+
+If `log_archives_mtime` is left unset (the default), no cron job is created and
+archives are never deleted.
 
 ## Hints
 
