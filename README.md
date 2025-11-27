@@ -148,32 +148,23 @@ nagios::server::template_generic_service:
 ```
 ### Log archive retention
 
-By default, Nagios log archives under `/var/log/nagios/archives` are kept
-forever. You can optionally enable automatic cleanup by setting the
-`log_archives_mtime` parameter on `nagios::server`.
+Set `log_archives_retention_days` to automatically delete archives in
+`/var/log/nagios/archives` older than the specified number of days
+(default: keep everything).
 
-This value is passed directly to `find -mtime`, so it supports the same formats
-as `find` (for example: `+365`, `+30`, `7`, `-1`, etc.). When set, a daily cron
-job is created (running as the `nagios` user) to delete old files from
-`/var/log/nagios/archives`.
-
-Example, keep only the last year of archives:
+Example:
 
 ```puppet
 class { '::nagios::server':
-  log_archives_mtime => '+365',
-  # ...other parameters...
+  log_archives_retention_days => 365,
 }
-````
-
-or from hieradata:
-
-```yaml
-nagios::server::log_archives_mtime: '+365'
 ```
 
-If `log_archives_mtime` is left unset (the default), no cron job is created and
-archives are never deleted.
+Hiera:
+
+```yaml
+nagios::server::log_archives_retention_days: 365
+```
 
 ## Hints
 
