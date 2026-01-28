@@ -154,6 +154,8 @@ class nagios::client (
     class { '::nagios::check::ping6': }
     class { '::nagios::check::ram': }
     class { '::nagios::check::swap': }
+    # Unconditional ones but disabled (override $ensure to 'present' to enable)
+    class { '::nagios::check::disk_projection': }
     # Conditional ones, once presence is detected using our custom facts
     if getvar('::nagios_couchbase') {
       class { '::nagios::check::couchbase': }

@@ -1,0 +1,206 @@
+#!/bin/bash
+# ==============================================================================
+# SCRIPT: check_disk_usage_projection
+# DESCRIPTION:
+#   Nagios/NRPE plugin that monitors disk usage growth over time and projects
+#   "hours remaining" until full. Stores historical (timestamp, used_kb) points
+#   per mountpoint in a local state directory and prunes data older than 7 days.
+#
+# DEPENDENCIES:
+#   bash, df, awk, bc, getopt, date
+# ==============================================================================
+
+set -Eeuo pipefail
+
+export LC_ALL=C
+export LANG=C
+
+readonly STATE_OK=0
+readonly STATE_WARNING=1
+readonly STATE_CRITICAL=2
+readonly STATE_UNKNOWN=3
+
+# Default values
+THRESHOLD_WARN=24
+THRESHOLD_CRIT=12
+DATA_DIR="/var/tmp/disk_usage_data"
+EXCLUDE_FS="tmpfs|devtmpfs|shm|efivarfs|binfmt_misc|rpc_pipefs|cgroup|tracefs|overlay|nsfs"
+FLUCTUATION_MB=1
+
+critical() { echo -n "CRITICAL: $*"; exit $STATE_CRITICAL; }
+trap 'critical "script failure at line ${LINENO}"' ERR
+
+show_help() {
+  cat <<EOF
+Usage: $0 [-w|-W HOURS] [-c|-C HOURS] [-x|-X FSTYPES] [--data-dir DIR] [-h|-H|--help]
+
+Options:
+  -w, -W, --warning HOURS     Hours until full for WARNING (default: 24)
+  -c, -C, --critical HOURS    Hours until full for CRITICAL (default: 12)
+  -x, -X, --exclude FSTYPES   Pipe-separated filesystem types to ignore
+  --data-dir DIR              Location to store historical CSV files
+  -h, --help                  Show this help
+EOF
+}
+
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || critical "required command not found: $1"
+}
+
+require_cmd df
+require_cmd awk
+require_cmd bc
+require_cmd getopt
+require_cmd date
+
+# Perform linear projection based on first and last data points
+# Input:
+#   data: lines of "timestamp,used_kb"
+#   total_kb: total capacity (KB) for this mount
+# Output:
+#   "<rate_mb_s> <hours_left>"
+get_projection() {
+  local data="$1"
+  local total_kb="$2"
+  local fluctuation_kb=$((FLUCTUATION_MB * 1024))
+
+  local stats t1 u1 t2 u2 count
+  stats=$(printf "%s\n" "$data" | awk -F',' '
+    NF>=2 && NR==1 {t1=$1; u1=$2}
+    NF>=2 {t2=$1; u2=$2; n=NR}
+    END { if (n=="") n=0; print t1, u1, t2, u2, n }
+  ')
+
+  read -r t1 u1 t2 u2 count <<< "$stats"
+
+  # Need at least 2 points and non-zero time delta
+  if [[ "$count" -lt 2 ]] || [[ "$t1" -eq "$t2" ]]; then
+    echo "0.00 9999"
+    return 0
+  fi
+
+  # Basic sanity (avoid weird state corruption)
+  [[ "$t1" =~ ^[0-9]+$ && "$t2" =~ ^[0-9]+$ && "$u1" =~ ^[0-9]+$ && "$u2" =~ ^[0-9]+$ ]] \
+    || critical "corrupt state data detected"
+
+  local delta_u=$((u2 - u1))
+  local delta_t=$((t2 - t1))
+
+  [[ "$delta_t" -gt 0 ]] || critical "invalid time delta in state data"
+
+  # Shrinking usage or tiny fluctuations => treat as stable
+  if [[ "$delta_u" -le "$fluctuation_kb" ]]; then
+    echo "0.00 9999"
+    return 0
+  fi
+
+  # rate_kb_s (float)
+  local rate_kb_s
+  rate_kb_s=$(bc -l <<< "$delta_u / $delta_t")
+
+  # rate_mb_s (2 decimals)
+  local rate_mb_s
+  rate_mb_s=$(printf "%.2f" "$(bc -l <<< "$rate_kb_s / 1024")")
+
+  # hours_left = remaining_kb / rate_kb_s / 3600
+  local time_left_h
+  time_left_h=$(printf "%.0f" "$(bc -l <<< "($total_kb - $u2) / $rate_kb_s / 3600")")
+
+  # clamp negatives
+  if [[ "$time_left_h" -lt 0 ]]; then
+    time_left_h=0
+  fi
+
+  echo "$rate_mb_s $time_left_h"
+}
+
+# --- Arg parsing ---
+PARSED_ARGS=$(
+  getopt -o w:W:c:C:x:X:hH --long warning:,critical:,exclude:,data-dir:,help -- "$@"
+) || critical "invalid arguments (use --help)"
+eval set -- "$PARSED_ARGS"
+
+while true; do
+  case "$1" in
+    -w|-W|--warning)  THRESHOLD_WARN="$2"; shift 2 ;;
+    -c|-C|--critical) THRESHOLD_CRIT="$2"; shift 2 ;;
+    -x|-X|--exclude)  EXCLUDE_FS="$2"; shift 2 ;;
+    --data-dir)       DATA_DIR="$2"; shift 2 ;;
+    -h|-H|--help)        show_help; exit $STATE_OK ;;
+    --) shift; break ;;
+    *) critical "argument parsing failure" ;;
+  esac
+done
+
+# Validate numeric thresholds and relationship
+[[ "$THRESHOLD_WARN" =~ ^[0-9]+$ ]] || critical "--warning must be integer hours"
+[[ "$THRESHOLD_CRIT" =~ ^[0-9]+$ ]] || critical "--critical must be integer hours"
+[[ "$THRESHOLD_WARN" -ge "$THRESHOLD_CRIT" ]] || critical "warning must be >= critical"
+
+main() {
+  mkdir -p "$DATA_DIR" || critical "cannot create data dir: $DATA_DIR"
+
+  local current_time
+  current_time=$(date +%s)
+
+  local final_status=$STATE_OK
+  local summary=""
+  local perfdata=""
+
+  local df_args="-k -P"
+  for fs in ${EXCLUDE_FS//|/ }; do
+    df_args="$df_args -x $fs"
+  done
+
+  # Parse df ONCE: output "mount\tused_kb\ttotal_kb"
+  while IFS=$'\t' read -r mnt used_kb total_kb; do
+    [[ -n "$mnt" ]] || continue
+    [[ "$used_kb" =~ ^[0-9]+$ ]] || critical "bad used KB from df for $mnt"
+    [[ "$total_kb" =~ ^[0-9]+$ ]] || critical "bad total KB from df for $mnt"
+
+    local state_file="$DATA_DIR/disk_${mnt//\//_}.txt"
+    [[ "$mnt" == "/" ]] && state_file="$DATA_DIR/disk_root.txt"
+
+    local history=""
+    if [[ -f "$state_file" ]]; then
+      # Prune points older than 7 days (604800 seconds)
+      history=$(awk -F',' -v now="$current_time" '$1 > (now - 604800)' "$state_file" || true)
+    fi
+
+    # Append latest datapoint: timestamp,used_kb
+    history="${history:+$history$'\n'}$current_time,$used_kb"
+
+    # Atomic state write
+    local tmp="${state_file}.$$"
+    printf "%s\n" "$history" > "$tmp" || critical "cannot write temp state file: $tmp"
+    mv -f "$tmp" "$state_file" || critical "cannot move state file into place: $state_file"
+
+    local rate time_h
+    read -r rate time_h < <(get_projection "$history" "$total_kb")
+
+    perfdata+="'$mnt'=${rate}MB/s; "
+
+    if [[ "$time_h" -le "$THRESHOLD_CRIT" ]]; then
+      summary+="$mnt CRIT: ${time_h}h left; "
+      final_status=$STATE_CRITICAL
+    elif [[ "$time_h" -le "$THRESHOLD_WARN" ]]; then
+      summary+="$mnt WARN: ${time_h}h left; "
+      [[ $final_status -eq $STATE_OK ]] && final_status=$STATE_WARNING
+    else
+      summary+="$mnt OK: more than ${THRESHOLD_CRIT}h remaining (${time_h}h); "
+    fi
+  done < <(
+    df $df_args | awk 'NR>1 {print $NF "\t" $3 "\t" $2}'
+  )
+
+  case $final_status in
+    $STATE_OK)       echo -n "OK: $summary | $perfdata" ;;
+    $STATE_WARNING)  echo -n "WARNING: $summary | $perfdata" ;;
+    $STATE_CRITICAL) echo -n "CRITICAL: $summary | $perfdata" ;;
+    *)               echo -n "UNKNOWN: unexpected status | $perfdata"; exit $STATE_UNKNOWN ;;
+  esac
+
+  exit $final_status
+}
+
+main
