@@ -186,40 +186,38 @@ another for the client configuration to take the new fact into account, then
 the server run to update the nagios configuration. This might take a little
 while depending on how often puppet is run on the nodes.
 
-## Disk Usage Projection Check (`check_disk_usage_projection`)
+## Disk Usage Projection
 
-This check **predicts when a filesystem will run out of space** based on observed
-growth, alerting on **hours remaining** instead of percentage used.
+Predicts when a filesystem will run out of space based on observed growth.
+It alerts on **hours remaining** rather than a static percentage, providing a
+clear window for intervention.
 
-How it works:
+### Configuration
 
-- Collects disk usage via `df`
-- Stores historical usage per mountpoint
-- Projects time to full using growth rate
-- Alerts when remaining hours cross WARNING / CRITICAL thresholds
-
-Usage:
+The check calculates the growth rate using a dual-window average (defaulting to
+the last 12 hours of data) to smooth out temporary spikes.
 
 ```yaml
-nagios::check::disk_projection::ensure: 'present'
-nagios::check::disk_projection::warning_hours: 24
-nagios::check::disk_projection::critical_hours: 12
-````
-
-Output examples:
+nagios::check::disk_usage_projection::warning_hours: 24
+nagios::check::disk_usage_projection::critical_hours: 12
 
 ```
-OK: / OK: more than 12h remaining (136h)
-WARNING: /var WARN: 18h left
-CRITICAL: /var CRIT: 6h left
+
+By default, the script excludes virtual filesystems (`tmpfs`, `devtmpfs`, etc.).
+You can customize the exclusion list or the data storage path via hiera:
+
+```yaml
+nagios::check::disk_usage_projection::args: '--exclude "nfs|fuse" --data-dir "/opt/nagios/state"'
+
 ```
 
-Notes:
+### Notes
 
-* Uses historical data stored in `/var/tmp/disk_usage_data`
-* Old data (>7 days) is pruned automatically
-* Missing dependencies or internal errors return **CRITICAL**
-* Dependencies (`bc`, `gawk`) are managed by Puppet
+* **Warm-up:** Requires roughly 12 hours of historical data before it can
+calculate a trend. Until then, it returns a **WARM** status.
+* **State:** Historical data is stored in `/var/tmp/disk_usage_data` and pruned
+automatically after 7 days.
+* **Dependencies:** Requires `bc` and `awk`, which are managed by Puppet.
 
 ## MySQL
 

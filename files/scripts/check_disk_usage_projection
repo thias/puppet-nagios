@@ -6,6 +6,9 @@
 #   "hours remaining" until full. Stores historical (timestamp, used_kb) points
 #   per mountpoint in a local state directory and prunes data older than 7 days.
 #
+#   trend: uses two rolling windows and compares averages to compute a stable
+#   growth rate (reduces false alerts from short daily spikes).
+#
 # DEPENDENCIES:
 #   bash, df, awk, bc, getopt, date
 # ==============================================================================
@@ -25,21 +28,27 @@ THRESHOLD_WARN=24
 THRESHOLD_CRIT=12
 DATA_DIR="/var/tmp/disk_usage_data"
 EXCLUDE_FS="tmpfs|devtmpfs|shm|efivarfs|binfmt_misc|rpc_pipefs|cgroup|tracefs|overlay|nsfs"
-FLUCTUATION_MB=1
+
+# Trend settings
+WINDOW_HOURS=6            # compare avg used across 2 windows of this size
+MIN_POINTS_PER_WINDOW=3   # require at least N samples in each window to evaluate
+
+RESET_STATE=false
 
 critical() { echo -n "CRITICAL: $*"; exit $STATE_CRITICAL; }
 trap 'critical "script failure at line ${LINENO}"' ERR
 
 show_help() {
   cat <<EOF
-Usage: $0 [-w|-W HOURS] [-c|-C HOURS] [-x|-X FSTYPES] [--data-dir DIR] [-h|-H|--help]
+Usage: $0 [-w|-W HOURS] [-c|-C HOURS] [-x|-X FSTYPES] [--data-dir DIR] [-r|--reset] [-h|-H|--help]
 
 Options:
   -w, -W, --warning HOURS     Hours until full for WARNING (default: 24)
   -c, -C, --critical HOURS    Hours until full for CRITICAL (default: 12)
   -x, -X, --exclude FSTYPES   Pipe-separated filesystem types to ignore
   --data-dir DIR              Location to store historical CSV files
-  -h, --help                  Show this help
+  -r, --reset                 Remove saved state files in DATA_DIR and exit OK
+  -h, -H, --help              Show this help
 EOF
 }
 
@@ -52,61 +61,84 @@ require_cmd awk
 require_cmd bc
 require_cmd getopt
 require_cmd date
+require_cmd rm
 
-# Perform linear projection based on first and last data points
-# Input:
-#   data: lines of "timestamp,used_kb"
-#   total_kb: total capacity (KB) for this mount
+reset_state() {
+  mkdir -p "$DATA_DIR" || critical "cannot create data dir: $DATA_DIR"
+  # Safety: only delete our own files
+  rm -f "${DATA_DIR}/disk_"*.txt 2>/dev/null || true
+  echo -n "OK: state reset in ${DATA_DIR}"
+  exit $STATE_OK
+}
+
+# Projection based on two rolling windows:
+# - last window:   (now - WINDOW) .. now
+# - prev window:   (now - 2W) .. (now - W)
+# Uses avg(used_kb) in each window to compute delta_used over WINDOW seconds.
+#
 # Output:
 #   "<rate_mb_s> <hours_left>"
+#   If warming up (insufficient history): "<rate_mb_s> -1"
 get_projection() {
   local data="$1"
   local total_kb="$2"
-  local fluctuation_kb=$((FLUCTUATION_MB * 1024))
+  local now="$3"
 
-  local stats t1 u1 t2 u2 count
-  stats=$(printf "%s\n" "$data" | awk -F',' '
-    NF>=2 && NR==1 {t1=$1; u1=$2}
-    NF>=2 {t2=$1; u2=$2; n=NR}
-    END { if (n=="") n=0; print t1, u1, t2, u2, n }
-  ')
+  local w_sec=$((WINDOW_HOURS * 3600))
+  local start_prev=$((now - 2*w_sec))
+  local start_last=$((now - w_sec))
 
-  read -r t1 u1 t2 u2 count <<< "$stats"
+  local stats
+  stats=$(
+    printf "%s\n" "$data" | awk -F',' -v sp="$start_prev" -v sl="$start_last" -v now="$now" '
+      $1 ~ /^[0-9]+$/ && $2 ~ /^[0-9]+$/ {
+        ts=$1; u=$2
+        if (ts >= sp && ts < sl) { sumP += u; cntP++ }
+        else if (ts >= sl && ts <= now) { sumL += u; cntL++ }
+        if (ts > maxTs) { maxTs=ts; lastU=u }
+      }
+      END {
+        if (cntP>0) avgP = sumP/cntP; else avgP = -1
+        if (cntL>0) avgL = sumL/cntL; else avgL = -1
+        if (maxTs=="") { lastU=-1 }
+        printf "%.6f %d %.6f %d %d\n", avgP, cntP, avgL, cntL, lastU
+      }
+    '
+  )
 
-  # Need at least 2 points and non-zero time delta
-  if [[ "$count" -lt 2 ]] || [[ "$t1" -eq "$t2" ]]; then
+  local avgP cntP avgL cntL lastU
+  read -r avgP cntP avgL cntL lastU <<< "$stats"
+
+  # Warm-up: need enough points in both windows
+  if [[ "$cntP" -lt "$MIN_POINTS_PER_WINDOW" || "$cntL" -lt "$MIN_POINTS_PER_WINDOW" ]]; then
+    echo "0.00 -1"
+    return 0
+  fi
+
+  local delta_used_kb
+  delta_used_kb=$(bc -l <<< "$avgL - $avgP")
+
+  # If shrinking or flat -> stable
+  if [[ "$(bc -l <<< "$delta_used_kb <= 0")" -eq 1 ]]; then
     echo "0.00 9999"
     return 0
   fi
 
-  # Basic sanity (avoid weird state corruption)
-  [[ "$t1" =~ ^[0-9]+$ && "$t2" =~ ^[0-9]+$ && "$u1" =~ ^[0-9]+$ && "$u2" =~ ^[0-9]+$ ]] \
-    || critical "corrupt state data detected"
-
-  local delta_u=$((u2 - u1))
-  local delta_t=$((t2 - t1))
-
-  [[ "$delta_t" -gt 0 ]] || critical "invalid time delta in state data"
-
-  # Shrinking usage or tiny fluctuations => treat as stable
-  if [[ "$delta_u" -le "$fluctuation_kb" ]]; then
-    echo "0.00 9999"
-    return 0
-  fi
-
-  # rate_kb_s (float)
   local rate_kb_s
-  rate_kb_s=$(bc -l <<< "$delta_u / $delta_t")
+  rate_kb_s=$(bc -l <<< "$delta_used_kb / $w_sec")
 
-  # rate_mb_s (2 decimals)
   local rate_mb_s
   rate_mb_s=$(printf "%.2f" "$(bc -l <<< "$rate_kb_s / 1024")")
 
-  # hours_left = remaining_kb / rate_kb_s / 3600
-  local time_left_h
-  time_left_h=$(printf "%.0f" "$(bc -l <<< "($total_kb - $u2) / $rate_kb_s / 3600")")
+  [[ "$lastU" =~ ^-?[0-9]+$ ]] || critical "corrupt state data detected"
+  if [[ "$lastU" -lt 0 ]]; then
+    echo "$rate_mb_s -1"
+    return 0
+  fi
 
-  # clamp negatives
+  local time_left_h
+  time_left_h=$(printf "%.0f" "$(bc -l <<< "($total_kb - $lastU) / $rate_kb_s / 3600")")
+
   if [[ "$time_left_h" -lt 0 ]]; then
     time_left_h=0
   fi
@@ -116,7 +148,7 @@ get_projection() {
 
 # --- Arg parsing ---
 PARSED_ARGS=$(
-  getopt -o w:W:c:C:x:X:hH --long warning:,critical:,exclude:,data-dir:,help -- "$@"
+  getopt -o w:W:c:C:x:X:rhH --long warning:,critical:,exclude:,data-dir:,reset,help -- "$@"
 ) || critical "invalid arguments (use --help)"
 eval set -- "$PARSED_ARGS"
 
@@ -126,11 +158,17 @@ while true; do
     -c|-C|--critical) THRESHOLD_CRIT="$2"; shift 2 ;;
     -x|-X|--exclude)  EXCLUDE_FS="$2"; shift 2 ;;
     --data-dir)       DATA_DIR="$2"; shift 2 ;;
-    -h|-H|--help)        show_help; exit $STATE_OK ;;
+    -r|--reset)       RESET_STATE=true; shift ;;
+    -h|-H|--help)     show_help; exit $STATE_OK ;;
     --) shift; break ;;
     *) critical "argument parsing failure" ;;
   esac
 done
+
+# Reset state and exit OK (operational action)
+if [[ "$RESET_STATE" == "true" ]]; then
+  reset_state
+fi
 
 # Validate numeric thresholds and relationship
 [[ "$THRESHOLD_WARN" =~ ^[0-9]+$ ]] || critical "--warning must be integer hours"
@@ -144,7 +182,8 @@ main() {
   current_time=$(date +%s)
 
   local final_status=$STATE_OK
-  local summary=""
+
+  local crit_msg="" warn_msg="" ok_msg="" warm_msg=""
   local perfdata=""
 
   local df_args="-k -P"
@@ -152,7 +191,6 @@ main() {
     df_args="$df_args -x $fs"
   done
 
-  # Parse df ONCE: output "mount\tused_kb\ttotal_kb"
   while IFS=$'\t' read -r mnt used_kb total_kb; do
     [[ -n "$mnt" ]] || continue
     [[ "$used_kb" =~ ^[0-9]+$ ]] || critical "bad used KB from df for $mnt"
@@ -163,35 +201,52 @@ main() {
 
     local history=""
     if [[ -f "$state_file" ]]; then
-      # Prune points older than 7 days (604800 seconds)
       history=$(awk -F',' -v now="$current_time" '$1 > (now - 604800)' "$state_file" || true)
     fi
 
-    # Append latest datapoint: timestamp,used_kb
     history="${history:+$history$'\n'}$current_time,$used_kb"
 
-    # Atomic state write
     local tmp="${state_file}.$$"
     printf "%s\n" "$history" > "$tmp" || critical "cannot write temp state file: $tmp"
     mv -f "$tmp" "$state_file" || critical "cannot move state file into place: $state_file"
 
     local rate time_h
-    read -r rate time_h < <(get_projection "$history" "$total_kb")
+    read -r rate time_h < <(get_projection "$history" "$total_kb" "$current_time")
 
     perfdata+="'$mnt'=${rate}MB/s; "
 
+    if [[ "$time_h" -eq -1 ]]; then
+      warm_msg+="$mnt; "
+      continue
+    fi
+
     if [[ "$time_h" -le "$THRESHOLD_CRIT" ]]; then
-      summary+="$mnt CRIT: ${time_h}h left; "
+      crit_msg+="$mnt ${time_h}h; "
       final_status=$STATE_CRITICAL
     elif [[ "$time_h" -le "$THRESHOLD_WARN" ]]; then
-      summary+="$mnt WARN: ${time_h}h left; "
+      warn_msg+="$mnt ${time_h}h; "
       [[ $final_status -eq $STATE_OK ]] && final_status=$STATE_WARNING
     else
-      summary+="$mnt OK: more than ${THRESHOLD_CRIT}h remaining (${time_h}h); "
+      ok_msg+="$mnt ${time_h}h; "
     fi
   done < <(
     df $df_args | awk 'NR>1 {print $NF "\t" $3 "\t" $2}'
   )
+
+  # Trim trailing "; "
+  crit_msg="${crit_msg%; }"
+  warn_msg="${warn_msg%; }"
+  ok_msg="${ok_msg%; }"
+  warm_msg="${warm_msg%; }"
+  perfdata="${perfdata%; }"
+
+  # Build summary by severity
+  local summary=""
+  [[ -n "$crit_msg" ]] && summary+="CRIT[$crit_msg] "
+  [[ -n "$warn_msg" ]] && summary+="WARN[$warn_msg] "
+  [[ -n "$ok_msg"   ]] && summary+="OK[$ok_msg] "
+  [[ -n "$warm_msg" ]] && summary+="WARM[$warm_msg (need ~ $((2*WINDOW_HOURS))h history)] "
+  summary="${summary% }"
 
   case $final_status in
     $STATE_OK)       echo -n "OK: $summary | $perfdata" ;;
