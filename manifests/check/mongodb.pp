@@ -52,6 +52,8 @@ class nagios::check::mongodb (
   $args_replset_quorum          = '',
   $args_replset_state           = '',
   $args_row_count               = '',
+  $args_tickets                 = '',
+  $args_wt_cache                = '',
   $args_write_data_files        = '',
   # service
   $check_title              = $::nagios::client::host_name,
@@ -92,30 +94,75 @@ class nagios::check::mongodb (
   }
   $globalargs = strip("-D ${arg_u}${arg_p}${arg_d}${arg_c}${args}")
 
-  $modes_base = [
-    'asserts',
-    'connect',
-    'connections',
-    'connect_primary',
-    'current_lock',
-    'memory',
-    'memory_mapped',
-    'opcounters',
-    'page_faults',
-    'queries_per_second',
-    'queues',
-  ]
-  $modes_v2 = [
-    'lock',
-  ]
-  $modes_mmapv1 = [
-    'flushing',              # mmapv1 only
-    'index_miss_ratio',      # mmapv1 only
-    'journal_commits_in_wl', # mmapv1 only
-    'journaled',             # mmapv1 only
-    'last_flush_time',       # mmapv1 only
-    'write_data_files',      # mmapv1 only
-  ]
+  # -----------------------------------------------------------
+  # ENGINE DETECTION LOGIC
+  # -----------------------------------------------------------
+  # WiredTiger became the default in 3.2. MMAPv1 was removed in 4.2.
+  # We use 3.2 as the cutoff to switch to "Modern" checks.
+  if $::mongod_version and versioncmp($::mongod_version, '3.2') >= 0 {
+    $use_modern_checks = true
+  } else {
+    # Fallback to legacy if version is undef or < 3.2
+    $use_modern_checks = false
+  }
+
+  if $use_modern_checks {
+    # --- MODERN MODE (WiredTiger) ---
+    # We swap 'current_lock' and 'memory_mapped' for 'tickets' and 'wt_cache'
+    $modes_base = [
+      'asserts',
+      'connect',
+      'connections',
+      'connect_primary',
+      'memory',
+      'opcounters',
+      'page_faults',
+      'queries_per_second',
+      'queues',
+      'tickets',   # Replaces current_lock/lock
+      'wt_cache',  # Replaces memory_mapped
+    ]
+    # We forcefully disable legacy option groups even if they are set to true in params
+    $modes_enabled_v2     = []
+    $modes_enabled_mmapv1 = []
+
+  } else {
+    # --- LEGACY MODE (MMAPv1) ---
+    $modes_base = [
+      'asserts',
+      'connect',
+      'connections',
+      'connect_primary',
+      'current_lock',
+      'memory',
+      'memory_mapped',
+      'opcounters',
+      'page_faults',
+      'queries_per_second',
+      'queues',
+    ]
+    # Respect parameters for legacy groupings
+    if $v2 != false {
+      $modes_enabled_v2 = [ 'lock' ]
+    } else {
+      $modes_enabled_v2 = []
+    }
+
+    if $mmapv1 != false {
+      $modes_enabled_mmapv1 = [
+        'flushing',
+        'index_miss_ratio',
+        'journal_commits_in_wl',
+        'journaled',
+        'last_flush_time',
+        'write_data_files',
+      ]
+    } else {
+      $modes_enabled_mmapv1 = []
+    }
+  }
+  # -----------------------------------------------------------
+
   $modes_replication = [
     'oplog',
     'replica_primary',
@@ -144,16 +191,6 @@ class nagios::check::mongodb (
     'row_count',
   ]
 
-  if $v2 != false {
-    $modes_enabled_v2 = $modes_v2
-  } else {
-    $modes_enabled_v2 = []
-  }
-  if $mmapv1 != false {
-    $modes_enabled_mmapv1 = $modes_mmapv1
-  } else {
-    $modes_enabled_mmapv1 = []
-  }
   if $replication != false {
     $modes_enabled_replication = $modes_replication
   } else {
@@ -177,12 +214,12 @@ class nagios::check::mongodb (
 
   # Modes-specific definition
   $modes = $modes_base
-         + $modes_enabled_v2
-         + $modes_enabled_mmapv1
-         + $modes_enabled_replication
-         + $modes_enabled_sharding
-         + $modes_enabled_database
-         + $modes_enabled_collection
+  + $modes_enabled_v2
+  + $modes_enabled_mmapv1
+  + $modes_enabled_replication
+  + $modes_enabled_sharding
+  + $modes_enabled_database
+  + $modes_enabled_collection
 
   # An arbiter has no data, so remove all checks which are *never* relevant
   $modes_arbiter = [
@@ -198,7 +235,10 @@ class nagios::check::mongodb (
     'queues',
     'replset_quorum',
     'replset_state',
+    'tickets',
+    'wt_cache',
   ]
+
   if $arbiter == true {
     $modes_final = intersection($modes,$modes_arbiter)
   } else {
