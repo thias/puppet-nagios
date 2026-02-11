@@ -186,6 +186,39 @@ another for the client configuration to take the new fact into account, then
 the server run to update the nagios configuration. This might take a little
 while depending on how often puppet is run on the nodes.
 
+## Disk Usage Projection
+
+Predicts when a filesystem will run out of space based on observed growth.
+It alerts on **hours remaining** rather than a static percentage, providing a
+clear window for intervention.
+
+### Configuration
+
+The check calculates the growth rate using a dual-window average (defaulting to
+the last 12 hours of data) to smooth out temporary spikes.
+
+```yaml
+nagios::check::disk_usage_projection::warning_hours: 24
+nagios::check::disk_usage_projection::critical_hours: 12
+
+```
+
+By default, the script excludes virtual filesystems (`tmpfs`, `devtmpfs`, etc.).
+You can customize the exclusion list or the data storage path via hiera:
+
+```yaml
+nagios::check::disk_usage_projection::args: '--exclude "nfs|fuse" --data-dir "/opt/nagios/state"'
+
+```
+
+### Notes
+
+* **Warm-up:** Requires roughly 12 hours of historical data before it can
+calculate a trend. Until then, it returns a **WARM** status.
+* **State:** Historical data is stored in `/var/tmp/disk_usage_data` and pruned
+automatically after 7 days.
+* **Dependencies:** Requires `bc` and `awk`, which are managed by Puppet.
+
 ## MySQL
 
 For the `mysql_health` based checks to work, you will need to create the MySQL
