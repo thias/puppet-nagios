@@ -453,8 +453,13 @@ def mongo_connect(host=None, port=None, ssl=False, user=None, passwd=None, repli
             if ssl_cert:
                 con_args["ssl_certfile"] = ssl_cert
 
-    # 'retryWrites' was added in PyMongo 3.6. Passing it to older versions causes crashes.
-    if retry_writes_disabled and pymongo_ver >= (3, 6):
+    # RETRYWRITES HANDLING:
+    # PyMongo 4.x defaults retryWrites=True.
+    # This causes "Code 20" errors when writing to the 'local' database (which is unreplicated).
+    # We MUST disable it globally for this script to work on PyMongo 4.x.
+    if pymongo_ver >= (4, 0):
+        con_args["retryWrites"] = False
+    elif retry_writes_disabled and pymongo_ver >= (3, 6):
         con_args["retryWrites"] = False
 
     # AUTHENTICATION STRATEGY:
