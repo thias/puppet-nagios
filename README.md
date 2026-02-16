@@ -137,14 +137,33 @@ To enable nagiosgraph for the client's services in the server web interface :
 class { '::nagios::client':
   service_use => 'generic-service,nagiosgraph-service',
 }
+```
 
 To override the parameters of a default template using hiera :
 
 ```yaml
----
 # Remove default warning notifications for services
 nagios::server::template_generic_service:
   notification_options: 'u,c,r'
+```
+### Log archive retention
+
+Set `log_archives_retention_days` to automatically delete archives in
+`/var/log/nagios/archives` older than the specified number of days
+(default: keep everything).
+
+Example:
+
+```puppet
+class { '::nagios::server':
+  log_archives_retention_days => 365,
+}
+```
+
+Hiera:
+
+```yaml
+nagios::server::log_archives_retention_days: 365
 ```
 
 ## Hints

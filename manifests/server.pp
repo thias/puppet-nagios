@@ -100,6 +100,7 @@ class nagios::server (
   $plugin_redis_sentinel = false,
   $selinux               = true,
   $check_for_updates     = true,
+  Optional[Integer] $log_archives_mtime    = undef,
   # Original template entries
   $template_generic_contact = {},
   $template_generic_host    = {},
@@ -1349,4 +1350,14 @@ class nagios::server (
     }
   }
 
+  # When $log_archives_mtime we configure the prune job
+  if $log_archives_mtime {
+    cron { 'nagios-archives-prune':
+      ensure  => present,
+      user    => 'nagios',
+      minute  => '15',
+      hour    => '3',
+      command => "/usr/bin/find /var/log/nagios/archives -type f -name 'nagios-*.log*' -mtime +${log_archives_mtime} -delete",
+    }
+  }
 }
