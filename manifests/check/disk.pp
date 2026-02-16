@@ -1,5 +1,6 @@
 class nagios::check::disk (
   $ensure                   = undef,
+  $plugin_command           = '/usr/lib64/nagios/plugins/check_disk',
   $args                     = '',
   # -l : Do not check network mounts, local (and checked) elsewhere
   # Denied by default and not useful to monitor:
@@ -38,6 +39,7 @@ class nagios::check::disk (
 
   nagios::client::nrpe_file { 'check_disk':
     ensure => $ensure,
+    plugin => $plugin_command,
     args   => $fullargs,
   }
 
