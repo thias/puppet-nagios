@@ -312,6 +312,12 @@ def main(argv):
     # NOTE: allow -r/--replicaset for any check (some setups pass it always)
     # and auto-detect for replica_primary when omitted.
 
+    # For checks that are strictly local to the node (like replication lag),
+    # we must force a DIRECT connection. If we use a ReplicaSet connection,
+    # the driver might auto-route us to the Primary, causing us to measure
+    # the Primary's status instead of the target node's status.
+    if action in ['replication_lag', 'replication_lag_percent']:
+        replicaset = None
 
     #
     # moving the login up here and passing in the connection
@@ -459,6 +465,12 @@ def mongo_connect(host=None, port=None, ssl=False, user=None, passwd=None, repli
     # We MUST disable it globally for this script to work on PyMongo 4.x.
     if pymongo_ver >= (4, 0):
         con_args["retryWrites"] = False
+        # FIX: Ensure DIRECT connection when no replica set is specified.
+        # Otherwise, PyMongo 4 may discover the Primary and route commands there,
+        # breaking local node checks like replication_lag.
+        if replica is None:
+            con_args["directConnection"] = True
+
     elif retry_writes_disabled and pymongo_ver >= (3, 6):
         con_args["retryWrites"] = False
 
@@ -531,6 +543,7 @@ def mongo_connect(host=None, port=None, ssl=False, user=None, passwd=None, repli
         return exit_with_general_critical(e), None
 
     return 0, con
+
 
 def exit_with_general_warning(e):
     if isinstance(e, SystemExit):
@@ -1462,11 +1475,19 @@ def check_wiredtiger_tickets(con, warning, critical, perf_data):
 
     try:
         data = get_server_status(con)
-        if 'wiredTiger' not in data:
-            print("UNKNOWN - WiredTiger storage engine not found")
+
+        # MONGODB 8.0 COMPATIBILITY FIX
+        # In MongoDB 8.0, 'wiredTiger.concurrentTransactions' was renamed to 'queues.execution'.
+        # We check both locations to support all versions.
+        wt = None
+        if 'wiredTiger' in data and 'concurrentTransactions' in data['wiredTiger']:
+            wt = data['wiredTiger']['concurrentTransactions']
+        elif 'queues' in data and 'execution' in data['queues']:
+            wt = data['queues']['execution']
+        else:
+            print("UNKNOWN - concurrentTransactions metrics not found (checked wiredTiger.concurrentTransactions and queues.execution)")
             return 3
 
-        wt = data['wiredTiger']['concurrentTransactions']
         read_avail = wt['read']['available']
         write_avail = wt['write']['available']
         read_total = wt['read']['totalTickets']
