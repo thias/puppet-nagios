@@ -25,7 +25,7 @@ define nagios::client::nrpe_plugin (
     Package <| tag == 'nagios-plugins-perl' |>
     # Seems always required with perl checks on EL9+
     if $facts['os']['name'] == 'Fedora' or versioncmp($facts['os']['release']['major'], '9') >= 0 {
-      ensure_packages('perl-lib')
+      ensure_packages(['perl-lib','perl-fields'])
     }
   }
 

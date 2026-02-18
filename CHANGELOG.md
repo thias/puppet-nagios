@@ -7,6 +7,7 @@
 * Switch slack integration to official nagios plugin (#155, @lisuml).
 * Exclude docker overlay and nsfs from check_disk by default.
 * Fix check_disk permission denied on RHEL10 by excluding /run/credentials.
+* Add Valkey and Sentinel authentication support for Redis checks.
 
 #### 2018-10-31 - 2.0.0
 * Restart service after resources are purged (#79, @vchepkov).

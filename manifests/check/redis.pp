@@ -31,6 +31,7 @@ class nagios::check::redis (
   nagios::client::nrpe_plugin { 'check_redis':
     ensure  => $ensure,
     package => $package,
+    perl    => true,
   }
 
   # Set options from parameters unless already set inside args

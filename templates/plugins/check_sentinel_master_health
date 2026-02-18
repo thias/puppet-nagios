@@ -59,10 +59,11 @@ STATES = {
 }
 
 options = {
-  :host    => '127.0.0.1',
-  :port    => 26379,
-  :master  => nil,
-  :timeout => 2,
+  :host     => '127.0.0.1',
+  :port     => 26379,
+  :master   => nil,
+  :timeout  => 2,
+  :password => nil,
 }
 
 $results     = []
@@ -95,6 +96,9 @@ optparse = OptionParser.new do |opts|
   opts.on('-m', '--master MASTER', 'Perform Sentinel health checks against this master') do |m|
     options[:master] = m
   end
+  opts.on('-a', '--auth PASSWORD', 'Use password when running checks against discovered master server') do |p|
+    options[:password] = p
+  end
   opts.on('-w', '--warning THRESHOLDS', 'Comma separated string of warning thresholds for min slaves and min masters') do |t|
     options[:min_slaves_warn], options[:min_sentinels_warn] = t.split(',').map{|i| i == '' ? nil : i.to_i }
   end
@@ -110,7 +114,7 @@ unless options[:master]
 end
 
 begin
-  redis = Redis.new(:host => options[:host], :port => options[:port], :timeout => options[:timeout])
+  redis = Redis.new(:host => options[:host], :port => options[:port], :timeout => options[:timeout], :password => options[:password])
 rescue Redis::BaseConnectionError => e
   add_state(:critical, e, true)
 end
