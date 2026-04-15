@@ -1,0 +1,246 @@
+#!/usr/bin/env bash
+set -u
+
+WARN=70
+CRIT=90
+MODE="aggregate"
+GPU_INDEX=""
+NVIDIA_SMI="${NVIDIA_SMI:-/bin/nvidia-smi}"
+
+usage() {
+  printf '%s\n' \
+    'Usage:' \
+    '  check_nvidia_gpu -w <warn> -c <crit> [-m aggregate|single] [-i gpu_index]' \
+    '' \
+    'Modes:' \
+    '  aggregate   Check all GPUs and return the worst state found (default)' \
+    '  single      Check only the GPU specified with -i' \
+    '' \
+    'Examples:' \
+    '  check_nvidia_gpu -w 70 -c 90' \
+    '  check_nvidia_gpu -w 70 -c 90 -m aggregate' \
+    '  check_nvidia_gpu -w 70 -c 90 -m single -i 0'
+  exit 3
+}
+
+trim() {
+  local s="$*"
+  s="${s#"${s%%[![:space:]]*}"}"
+  s="${s%"${s##*[![:space:]]}"}"
+  printf '%s' "$s"
+}
+
+is_int() {
+  [[ "$1" =~ ^[0-9]+$ ]]
+}
+
+join_by() {
+  local IFS="$1"
+  shift
+  printf '%s' "$*"
+}
+
+while getopts ':w:c:m:i:h' opt; do
+  case "$opt" in
+    w) WARN="$OPTARG" ;;
+    c) CRIT="$OPTARG" ;;
+    m) MODE="$OPTARG" ;;
+    i) GPU_INDEX="$OPTARG" ;;
+    h) usage ;;
+    :) printf 'UNKNOWN - option -%s requires an argument\n' "$OPTARG"; exit 3 ;;
+    \?) printf 'UNKNOWN - invalid option: -%s\n' "$OPTARG"; exit 3 ;;
+  esac
+done
+
+if ! is_int "$WARN" || ! is_int "$CRIT"; then
+  printf '%s\n' 'UNKNOWN - warning and critical must be integers'
+  exit 3
+fi
+
+if (( WARN < 0 || CRIT < 0 || WARN >= CRIT || CRIT > 100 )); then
+  printf '%s\n' 'UNKNOWN - thresholds must satisfy 0 <= warning < critical <= 100'
+  exit 3
+fi
+
+case "$MODE" in
+  aggregate|single) ;;
+  *)
+    printf '%s\n' 'UNKNOWN - mode must be aggregate or single'
+    exit 3
+    ;;
+esac
+
+if [[ "$MODE" == "single" ]]; then
+  if [[ -z "$GPU_INDEX" ]] || ! is_int "$GPU_INDEX"; then
+    printf '%s\n' 'UNKNOWN - single mode requires -i <gpu_index>'
+    exit 3
+  fi
+fi
+
+if [[ ! -x "$NVIDIA_SMI" ]]; then
+  if command -v nvidia-smi >/dev/null 2>&1; then
+    NVIDIA_SMI="$(command -v nvidia-smi)"
+  else
+    printf '%s\n' 'UNKNOWN - nvidia-smi not found'
+    exit 3
+  fi
+fi
+
+OUTPUT="$("$NVIDIA_SMI" \
+  --query-gpu=index,name,utilization.gpu,utilization.memory,memory.used,memory.total,temperature.gpu \
+  --format=csv,noheader,nounits 2>&1)"
+RC=$?
+
+if (( RC != 0 )); then
+  printf 'UNKNOWN - nvidia-smi failed: %s\n' "$OUTPUT"
+  exit 3
+fi
+
+if [[ -z "${OUTPUT//[[:space:]]/}" ]]; then
+  printf '%s\n' 'UNKNOWN - no NVIDIA GPUs returned by nvidia-smi'
+  exit 3
+fi
+
+overall_state=0
+matched_count=0
+max_util=-1
+
+declare -a summaries alerts perfdata long_output
+
+while IFS= read -r line; do
+  [[ -z "${line//[[:space:]]/}" ]] && continue
+
+  IFS=',' read -r idx name gpu_util mem_util mem_used mem_total temp <<< "$line"
+
+  idx="$(trim "$idx")"
+  name="$(trim "$name")"
+  gpu_util="$(trim "$gpu_util")"
+  mem_util="$(trim "$mem_util")"
+  mem_used="$(trim "$mem_used")"
+  mem_total="$(trim "$mem_total")"
+  temp="$(trim "$temp")"
+
+  if ! is_int "$idx" || ! is_int "$gpu_util"; then
+    printf 'UNKNOWN - failed to parse line: %s\n' "$line"
+    exit 3
+  fi
+
+  if [[ "$MODE" == "single" && "$idx" != "$GPU_INDEX" ]]; then
+    continue
+  fi
+
+  (( matched_count += 1 ))
+
+  if (( gpu_util > max_util )); then
+    max_util=$gpu_util
+  fi
+
+  state=0
+  if (( gpu_util >= CRIT )); then
+    state=2
+    alerts+=("gpu${idx}(${name})=${gpu_util}%")
+  elif (( gpu_util >= WARN )); then
+    state=1
+    alerts+=("gpu${idx}(${name})=${gpu_util}%")
+  fi
+
+  if (( state > overall_state )); then
+    overall_state=$state
+  fi
+
+  summary="gpu${idx}(${name}) util=${gpu_util}%"
+
+  if is_int "${mem_util:-}"; then
+    summary+=" memutil=${mem_util}%"
+  else
+    summary+=" memutil=?"
+  fi
+
+  if is_int "${mem_used:-}" && is_int "${mem_total:-}"; then
+    summary+=" vram=${mem_used}/${mem_total}MB"
+  elif [[ -n "${mem_used:-}" || -n "${mem_total:-}" ]]; then
+    summary+=" vram=${mem_used:-?}/${mem_total:-?}MB"
+  fi
+
+  if is_int "${temp:-}"; then
+    summary+=" temp=${temp}C"
+  else
+    summary+=" temp=?C"
+  fi
+
+  summaries+=("$summary")
+  long_output+=("$summary")
+
+  perfdata+=("gpu${idx}_util=${gpu_util}%;${WARN};${CRIT};0;100")
+
+  if is_int "${mem_util:-}"; then
+    perfdata+=("gpu${idx}_memutil=${mem_util}%;;;0;100")
+  fi
+  if is_int "${mem_used:-}" && is_int "${mem_total:-}"; then
+    perfdata+=("gpu${idx}_mem_used=${mem_used}MB;;;0;${mem_total}")
+  fi
+  if is_int "${temp:-}"; then
+    perfdata+=("gpu${idx}_temp=${temp};;;;")
+  fi
+done <<< "$OUTPUT"
+
+if (( matched_count == 0 )); then
+  if [[ "$MODE" == "single" ]]; then
+    printf 'UNKNOWN - GPU index %s not found\n' "$GPU_INDEX"
+  else
+    printf '%s\n' 'UNKNOWN - no matching GPUs found'
+  fi
+  exit 3
+fi
+
+FULL_SUMMARY="$(join_by '; ' "${summaries[@]}")"
+ALERT_SUMMARY="$(join_by ', ' "${alerts[@]}")"
+PERFDATA="$(join_by ' ' "${perfdata[@]}")"
+
+case "$overall_state" in
+  0)
+    if [[ "$MODE" == "single" ]]; then
+      TEXT="OK - GPU${GPU_INDEX} utilization OK (${max_util}%)"
+      long_output=("Mode: single (GPU${GPU_INDEX})" "${long_output[@]}")
+    else
+      TEXT="OK - GPU utilization OK (max=${max_util}%)"
+      long_output=("Mode: aggregate" "${long_output[@]}")
+    fi
+    ;;
+  1)
+    if [[ "$MODE" == "single" ]]; then
+      TEXT="WARNING - GPU${GPU_INDEX} utilization above warning threshold: ${ALERT_SUMMARY}"
+      long_output=("Mode: single (GPU${GPU_INDEX})" "Offenders: ${ALERT_SUMMARY}" "${long_output[@]}")
+    else
+      TEXT="WARNING - GPU utilization above warning threshold: ${ALERT_SUMMARY}"
+      long_output=("Mode: aggregate" "Offenders: ${ALERT_SUMMARY}" "${long_output[@]}")
+    fi
+    ;;
+  2)
+    if [[ "$MODE" == "single" ]]; then
+      TEXT="CRITICAL - GPU${GPU_INDEX} utilization above critical threshold: ${ALERT_SUMMARY}"
+      long_output=("Mode: single (GPU${GPU_INDEX})" "Offenders: ${ALERT_SUMMARY}" "${long_output[@]}")
+    else
+      TEXT="CRITICAL - GPU utilization above critical threshold: ${ALERT_SUMMARY}"
+      long_output=("Mode: aggregate" "Offenders: ${ALERT_SUMMARY}" "${long_output[@]}")
+    fi
+    ;;
+  *)
+    TEXT='UNKNOWN - unexpected state'
+    overall_state=3
+    ;;
+esac
+
+if [[ -n "$PERFDATA" ]]; then
+  FIRST_LINE="${TEXT} | ${PERFDATA}"
+else
+  FIRST_LINE="${TEXT}"
+fi
+
+printf '%s\n' "$FIRST_LINE"
+
+if ((${#long_output[@]} > 0)); then
+  printf '%s\n' "${long_output[@]}"
+fi
+
+exit "$overall_state"
