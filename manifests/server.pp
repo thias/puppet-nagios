@@ -1036,6 +1036,9 @@ class nagios::server (
   nagios_command { 'check_nrpe_fluentbit_health':
     command_line => "${nrpe} -c check_fluentbit_health",
   }
+  nagios_command { 'check_nrpe_nvidia_gpu':
+    command_line => "${nrpe} -c check_nvidia_gpu",
+  }
   nagios_command { 'check_nrpe_ssd':
     command_line => "${nrpe} -c check_ssd",
   }
