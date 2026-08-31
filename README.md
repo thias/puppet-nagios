@@ -732,6 +732,51 @@ By default, localhost and port 2020 are used for the check but you can customize
 nagios::check::fluentbit::args: '-H your-fluentbit-host -p your-port-number'
 ```
 
+## NVIDIA GPU
+
+Monitors GPU utilization using `nvidia-smi` via the custom `check_nvidia_gpu`
+plugin (default path: `/usr/lib64/nagios/plugins/`).
+
+By default, the check alerts on **GPU utilization** at **70% (WARNING)** and
+**90% (CRITICAL)**.
+
+### Requirements
+Requires `nvidia-smi` on the target host. The custom fact `nagios_nvidia_gpu`
+automatically enables this check when the binary is detected.
+
+### Configuration & Modes
+The check operates in two modes:
+* **`aggregate`**: Checks all GPUs and returns the worst state found (Default).
+* **`single`**: Checks only the specific GPU index provided.
+
+Configure the check via Hiera using either dedicated parameters or a raw arguments string:
+
+```yaml
+# Option 1: Dedicated parameters (Recommended)
+nagios::check::nvidia_gpu::warning: 80
+nagios::check::nvidia_gpu::critical: 95
+nagios::check::nvidia_gpu::mode: 'single'
+nagios::check::nvidia_gpu::gpu_index: 0
+
+# Option 2: Raw arguments string
+nagios::check::nvidia_gpu::args: '-w 80 -c 95 -m single -i 0'
+```
+
+### Output & Metrics
+
+The script outputs standard Nagios status strings and performance data on the
+first line. On NRPE v3+, it appends multi-line "long output" detailing context
+like VRAM usage, temperature, and hardware models.
+
+**Performance Data Tracked:** `gpuX_util`, `gpuX_memutil`, `gpuX_mem_used`, `gpuX_temp`
+
+**Example Output:**
+```text
+OK - GPU utilization OK (max=0%) | gpu0_util=0%;70;90;0;100 gpu0_memutil=0%;;;0;100 gpu0_mem_used=14042MB;;;0;15360 gpu0_temp=28;;;;
+Mode: aggregate
+gpu0(Quadro RTX 5000) util=0% memutil=0% vram=14042/15360MB temp=28C
+```
+
 ## Kafka
 
 Kafka monitoring checks producing to and consuming from specific Kafka topic,
