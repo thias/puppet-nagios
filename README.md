@@ -821,6 +821,46 @@ nagios::check::service { 'foo_service':
 This checks the service in the specified user's systemd user manager and is
 useful for rootless services such as Podman Quadlets.
 
+For a service that can stay "active" while doing no useful work (e.g. a
+queue consumer whose backend broke), add an independent check against its
+recent journal with `journal_pattern` - works for a plain system-wide
+service, or combined with `systemd_user` for a systemd --user unit:
+
+```puppet
+# Plain system-wide service
+nagios::check::service { 'some-daemon':
+  journal_pattern  => 'OutOfMemory|panic',
+  journal_lookback => '10min',
+}
+
+# systemd --user unit
+nagios::check::service { 'foo_service':
+  systemd_user     => 'foo',
+  journal_pattern  => 'OutOfMemory|panic|no kernel image is available',
+  journal_lookback => '10min',
+}
+```
+
+Either form creates a second, separately-alertable Nagios service
+(`service_<title>_journal`) that greps the unit's recent `journalctl`
+output for the given extended regex and reports CRITICAL on any match,
+alongside the classic active-state check above. `journal_lookback`
+defaults to `10min`.
+
+For a plain system-wide service, this runs `journalctl -u <unit>` directly
+as whichever account NRPE itself runs as - no sudo is needed, but that
+account **must have system-journal read access** (root, or membership in
+the `systemd-journal`/`adm` group, depending on your distro). This module
+does not grant that group membership for you.
+
+For a `systemd_user` unit, this runs via a narrow, per-service sudoers
+grant (same mechanism as the plain active-state check above). Note: in the
+sudoers grant this generates, spaces in the pattern are backslash-escaped
+rather than quoted (a sudoers `Cmnd_Spec` quirk, not a shell) - this is
+handled automatically by the module and only matters if you ever need to
+hand-inspect or hand-edit the generated
+`/etc/sudoers.d/nagios_systemd_journal_*` file.
+
 ## Syncthing
 
 Check the Syncthing status via de API

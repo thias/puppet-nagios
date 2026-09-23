@@ -6,6 +6,7 @@
 # 2017-08-30 [Roberto Leibman] - Reordered checks to make sure dead and inactive get checked first
 # 2018-04-25 [Robin Gierse] - Update check via systemctl for Linux with grep to produce better output for systemctl
 # 2026-08-10 [Juan Pablo Firrincieli] - Add systemd --user service checks via -U
+# 2026-09-22 [Juan Pablo Firrincieli] - Add -J/-L: check a unit's journal for a failure pattern instead of its active state
 
 ########
 # Examples:
@@ -21,6 +22,12 @@
 
 # 4.) Check a systemd user service on a linux machine
 # $ ./check_service.sh -o linux -s service-api -U user1
+#
+# 5.) Check a systemd user service's journal for a failure pattern
+# $ ./check_service.sh -o linux -s service-api -U user1 -J "OutOfMemory|panic" -L 15min
+#
+# 6.) Check a plain system-wide service's journal for a failure pattern
+# $ ./check_service.sh -o linux -s some-daemon -J "OutOfMemory|panic" -L 15min
 
 # Nagios Exit Codes
 OK=0
@@ -47,6 +54,10 @@ Check status of system services for Linux, FreeBSD, OSX, and AIX.
         -o <os>         OS type, "linux/osx/freebsd/aix"
         -u <user>       User if you need to ``sudo -u'' (def: nagios, linux and osx only)
         -U <user>       Check a systemd --user service for this user (Linux/systemd only)
+        -J <pattern>    Check the unit's recent journal for an extended-regex pattern instead of its
+                        active state; CRITICAL on any match. Combine with -U for a systemd --user
+                        unit, or use alone for a plain system-wide unit (Linux/systemd only)
+        -L <window>     journalctl --since window for -J (def: 10min)
         -t <tool>       Manually specify service management tool (def: autodetect) with status and service
                         e.g. ``-t "service nagios status"''
 
@@ -84,7 +95,18 @@ determine_service_tool() {
             SERVICETOOL="systemctl is-active $SERVICE"
             LISTTOOL="systemctl"
 
-            if [ "$SYSTEMD_USER" ]; then
+            if [ "$SYSTEMD_USER" ] && [ "$JOURNAL_PATTERN" ]; then
+                if ! id "$SYSTEMD_USER" >/dev/null 2>&1; then
+                    echo "Unknown systemd user: $SYSTEMD_USER"
+                    exit $UNKNOWN
+                fi
+
+                SERVICETOOL="sudo -n -u $SYSTEMD_USER $PLUGIN_DIR/check_systemd_journal user $SERVICE $JOURNAL_LOOKBACK \"$JOURNAL_PATTERN\""
+
+            elif [ "$JOURNAL_PATTERN" ]; then
+                SERVICETOOL="$PLUGIN_DIR/check_systemd_journal system $SERVICE $JOURNAL_LOOKBACK \"$JOURNAL_PATTERN\""
+
+            elif [ "$SYSTEMD_USER" ]; then
                 if ! id "$SYSTEMD_USER" >/dev/null 2>&1; then
                     echo "Unknown systemd user: $SYSTEMD_USER"
                     exit $UNKNOWN
@@ -217,10 +239,12 @@ LISTTOOL=null
 SERVICE=".*"
 #USER_NAME=nagios
 SYSTEMD_USER=""
+JOURNAL_PATTERN=""
+JOURNAL_LOOKBACK="10min"
 
 argcheck 1
 
-while getopts "hls:o:t:u:U:" OPTION
+while getopts "hls:o:t:u:U:J:L:" OPTION
 do
      case $OPTION in
          h)
@@ -257,6 +281,12 @@ do
          U)
              SYSTEMD_USER="$OPTARG"
              ;;
+         J)
+             JOURNAL_PATTERN="$OPTARG"
+             ;;
+         L)
+             JOURNAL_LOOKBACK="$OPTARG"
+             ;;
          \?)
              exit 1
              ;;
@@ -267,6 +297,11 @@ os_check
 
 if [ "$USER_NAME" ] && [ "$SYSTEMD_USER" ]; then
     echo "Options conflict: ``-u'' and ``-U''"
+    exit $UNKNOWN
+fi
+
+if [ "$JOURNAL_PATTERN" ] && [ -z "$SYSTEMD_USER" ]; then
+    echo "Option \`\`-J'' requires \`\`-U''"
     exit $UNKNOWN
 fi
 
